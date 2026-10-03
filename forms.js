@@ -1,17 +1,28 @@
 import { supabase } from './supabase.js';
-const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+const DEFAULT_RECAPTCHA_SITE_KEY = '6LfW3NstAAAAAB27CdNwy27joAxlNbfnKV-nuY5y';
+const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || DEFAULT_RECAPTCHA_SITE_KEY;
 let captchaReady;
-export function getToken(action) {
+export function ensureCaptchaLoaded() {
   if (!siteKey) return Promise.reject(new Error('Security check unavailable. Please call +44 7300 331603.'));
   captchaReady ||= new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-recaptcha-v3]');
+    if (existing && window.grecaptcha) {
+      window.grecaptcha.ready(resolve);
+      return;
+    }
     const script = document.createElement('script');
     script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
     script.async = true;
+    script.dataset.recaptchaV3 = 'true';
     script.onload = () => window.grecaptcha.ready(resolve);
     script.onerror = () => { captchaReady = null; script.remove(); reject(new Error('Unable to load the security check. Please retry or call us.')); };
     document.head.append(script);
   });
-  return Promise.race([captchaReady.then(() => window.grecaptcha.execute(siteKey, { action })), new Promise((_, reject) => setTimeout(() => reject(new Error('Security check timed out. Please retry.')), 15000))]);
+  return captchaReady;
+}
+export function getToken(action) {
+  if (!siteKey) return Promise.reject(new Error('Security check unavailable. Please call +44 7300 331603.'));
+  return Promise.race([ensureCaptchaLoaded().then(() => window.grecaptcha.execute(siteKey, { action })), new Promise((_, reject) => setTimeout(() => reject(new Error('Security check timed out. Please retry.')), 15000))]);
 }
 export async function post(path, payload, action) {
   const token = await getToken(action);
@@ -67,3 +78,10 @@ document.getElementById('resetForm')?.addEventListener('submit', async event => 
   } catch (error) { status.textContent = error.message; }
   finally { button.disabled = false; }
 });
+
+const protectedForms = '#bookingForm,#enquiryForm,#authForm,#resetForm,#auth-reset,#auth-resend';
+if (siteKey && document.querySelector(protectedForms)) {
+  const loadBadge = () => ensureCaptchaLoaded().catch(() => {});
+  if ('requestIdleCallback' in window) requestIdleCallback(loadBadge, { timeout: 2500 });
+  else setTimeout(loadBadge, 900);
+}
