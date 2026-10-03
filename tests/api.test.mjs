@@ -19,6 +19,25 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     const url=String(input);calls.push(url);
     if(url.includes('siteverify')) return json({success:mode!=='captcha-fail',action,hostname:'www.breezyeevans.co.uk',score:0.9,challenge_ts:new Date().toISOString()});
     if(url.includes('bv_rate_limit')) return json(mode!=='limited');
+    if(url.includes('/auth/v1/admin/generate_link')) {
+      const payload=JSON.parse(options.body);
+      assert.equal(payload.type,'magiclink');
+      assert.equal(payload.email,user.email);
+      return json({...user,user_metadata:{password_set:false},email_otp:'123456',action_link:'https://www.breezyeevans.co.uk/login',hashed_token:'hash',redirect_to:'https://www.breezyeevans.co.uk/login',verification_type:'magiclink'});
+    }
+    if(url.includes('/auth/v1/admin/users')) {
+      assert.equal(options.method,'GET');
+      return json({users:[]});
+    }
+    if(url.includes('api.resend.com/emails')) {
+      const payload=JSON.parse(options.body);
+      assert.equal(payload.from,'Breezyee Vans <no-reply@breezyeevans.co.uk>');
+      assert.deepEqual(payload.to,[user.email]);
+      assert.match(payload.text,/123456/);
+      assert.equal(options.headers['Idempotency-Key'].length,64);
+      return json({id:'resend-auth-test'});
+    }
+    if(url.includes('/auth/v1/otp')) throw new Error('Supabase OTP email endpoint must not be used');
     if(url.includes('/auth/v1/user')) return json(user);
     if(url.includes('/auth/v1/token')) {
       assert.equal(JSON.parse(options.body).password,' password with spaces ');
@@ -72,9 +91,11 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     const unsigned=request(booking);delete unsigned.headers.authorization;res=response();await submit(unsigned,res);assert.equal(res.code,401);
     action='manage';res=response();await manage(request({action:'confirm',token:'mock',requestId,bookingId:'booking'}),res);assert.equal(res.code,403);
     action='register';mode='captcha-fail';res=response();await auth(request({action:'register',email:user.email,token:'mock'}),res);assert.equal(res.code,403);
+    action='start_otp';mode='ok';calls=[];res=response();await auth(request({action:'start_otp',email:user.email,token:'mock',signup:true,fullName:'Test Customer',phone:'+44 7300 331603',postcode:'SW1A 1AA'}),res);assert.equal(res.code,200);assert.match(res.body.message,/one-time code/);assert.ok(calls.some(x=>x.includes('/auth/v1/admin/generate_link')));assert.ok(calls.some(x=>x.includes('api.resend.com/emails')));assert.ok(!calls.some(x=>x.includes('/auth/v1/otp')));
     action='login';mode='ok';res=response();await auth(request({action:'login',email:user.email,token:'mock',password:' password with spaces '}),res);assert.equal(res.code,200);assert.equal(res.body.session.access_token,'test-access');
     action='verify_otp';res=response();await auth(request({action:'verify_otp',email:user.email,token:'mock',otp:'123456'}),res);assert.equal(res.code,200);assert.equal(res.body.session.access_token,'otp-access');
     action='payment';res=response();await createPaymentIntent(request({reference:'BV-TEST123',token:'mock'}),res);assert.equal(res.code,200);assert.equal(res.body.clientSecret,'pi_test_secret');assert.equal(res.body.amountTotal,5000);
   } finally {globalThis.fetch=original;}
 });
+
 
