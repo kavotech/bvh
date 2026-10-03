@@ -71,7 +71,7 @@ export function initBookingWorkflow() {
     if (!form.reportValidity()) return;
     const vehicle = vehicles.find(item => item.id === select.value);
     if (!vehicle) return;
-    document.getElementById('reviewDetails').textContent = `${vehicle.model}\n${value('bookDate')} at ${value('bookTime')} (UK time)\n${value('pickup')} → ${value('dropoff')}\n${value('custName')} · ${value('custEmail')}\nEstimated price: ${document.getElementById('estimatedPrice').textContent}\nThis is a request, not a confirmed reservation. No payment is taken online.`;
+    document.getElementById('reviewDetails').textContent = `${vehicle.model}\n${value('bookDate')} at ${value('bookTime')} (UK time)\n${value('pickup')} → ${value('dropoff')}\n${value('custName')} · ${value('custEmail')}\nEstimated price: ${document.getElementById('estimatedPrice').textContent}\nThis is a request, not a confirmed reservation. Secure payment is the next step.`;
     review.showModal();
   });
   document.getElementById('editBooking')?.addEventListener('click', () => review.close());
@@ -102,9 +102,9 @@ export function initBookingWorkflow() {
         driver: { full_name: value('driverFullName'), date_of_birth: value('driverDateOfBirth'), driving_licence_number: value('driverLicenceNumber'), dvla_check_code: value('dvlaCheckCode'), licence_front_file: front, licence_back_file: back },
       }, 'booking');
       review.close(); form.style.display = 'none';
-      if (result.payment?.checkoutUrl) {
-        sessionStorage.setItem('bv_pending_payment', JSON.stringify({ reference: result.reference, checkoutUrl: result.payment.checkoutUrl, price: document.getElementById('estimatedPrice').textContent }));
-        window.location.href = `/payment?reference=${encodeURIComponent(result.reference)}`;
+      if (result.payment?.paymentPage) {
+        sessionStorage.setItem('bv_pending_payment', JSON.stringify({ reference: result.reference, price: document.getElementById('estimatedPrice').textContent }));
+        window.location.href = result.payment.paymentPage;
         return;
       }
       const done = document.getElementById('bookingConfirm');

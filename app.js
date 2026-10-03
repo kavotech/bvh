@@ -933,13 +933,13 @@ function initLoginPage(user) {
         return;
       }
 
-      const token = otpField?.value.trim() || '';
-      if (!token) {
+      const otp = otpField?.value.trim() || '';
+      if (!otp) {
         authStatus.textContent = 'Enter the one-time code from your email.';
         return;
       }
       authStatus.textContent = 'Verifying your code…';
-      const response = await post('/api/auth', { action: 'verify_otp', email: pendingEmail || authEmail, token }, 'verify_otp');
+      const response = await post('/api/auth', { action: 'verify_otp', email: pendingEmail || authEmail, otp }, 'verify_otp');
       const result = await supabase.auth.setSession(response.session);
       if (result.error) throw result.error;
       if (response.requiresPasswordSetup) {

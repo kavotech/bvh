@@ -29,7 +29,7 @@ export default handle(async (req, res) => {
     return;
   }
   if (body.action === 'verify_otp') {
-    const token = text(body.token, 'your one-time code', 12, 6).replace(/\s+/g, '');
+    const token = text(body.otp, 'your one-time code', 12, 6).replace(/\s+/g, '');
     result = await client.auth.verifyOtp({ email: address, token, type: 'email' });
     if (result.error || !result.data.session || !result.data.user?.email_confirmed_at) throw new HttpError(401, 'That code could not be verified. Check the latest email and try again.');
     res.status(200).json({ session: { access_token: result.data.session.access_token, refresh_token: result.data.session.refresh_token }, requiresPasswordSetup: result.data.user.user_metadata?.password_set !== true });

@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
         const path = req.url?.split('?')[0];
         if (!path?.startsWith('/api/')) return next();
         const endpoint = path.slice(5);
-        if (!['submit','auth','manage','email-retry','stripe-checkout','stripe-webhook','payment-status'].includes(endpoint)) { res.statusCode=404; res.end(); return; }
+        if (!['submit','auth','manage','email-retry','stripe-payment-intent','stripe-webhook','payment-status'].includes(endpoint)) { res.statusCode=404; res.end(); return; }
         let body = '';
         for await (const chunk of req) { body += chunk; if(Buffer.byteLength(body)>24000) {res.statusCode=413;res.end();return;} }
         req.body=body;

@@ -10,22 +10,32 @@
 </head><body class="page-auth"><a class="skip-link" href="#main">Skip to content</a>
   <nav class="navbar" id="navbar"><div class="nav-container"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a><ul class="nav-links" id="navLinks"><li><a href="/">Home</a></li><li><a href="/fleet">Our Fleet</a></li><li><a href="/services">Services</a></li><li><a href="/contact">Contact</a></li><li><a href="/booking">Book Now</a></li><li class="nav-auth nav-auth-signed-out"><a href="/login">Login</a></li><li class="nav-auth nav-auth-signed-in" style="display:none;"><a href="/dashboard">Dashboard</a></li><li class="nav-auth nav-auth-signed-in" style="display:none;"><a href="#" id="signOutLink">Sign out</a></li></ul><button class="nav-toggle" id="navToggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button></div></nav>
   <main id="main">
-    <section class="page-hero bg-purple"><div class="container"><span class="page-eyebrow txt-white-60">Secure Stripe Payment</span><h1 class="txt-white">Complete your booking payment</h1><p class="txt-white-60">Your booking request is saved. Pay the calculated hire estimate securely with Stripe.</p></div></section>
-    <section class="section bg-lavender"><div class="container auth-page-grid">
-      <div class="auth-card reveal payment-card">
-        <div class="auth-card-header"><div><span class="sec-tag">Payment step</span><h2>Review before payment</h2></div></div>
-        <div class="auth-status" id="paymentStatus" role="status" aria-live="polite">Loading your payment details…</div>
-        <div class="booking-confirm" style="display:block;text-align:left">
-          <p>Booking reference: <strong id="paymentReference">—</strong></p>
-          <p>Amount: <strong id="paymentAmount">Calculated on booking</strong></p>
-          <p>This payment does not automatically confirm vehicle availability. Breezyee Vans will still confirm the booking, driver verification and collection details.</p>
-          <div class="auth-actions"><button class="btn btn-primary" id="payWithStripe" type="button">Pay securely with Stripe</button><a class="btn btn-outline" href="/booking">Back to booking</a></div>
-        </div>
-      </div>
-      <aside class="auth-panel reveal"><div class="auth-copy"><span class="sec-tag">Protected checkout</span><h2>Powered by Stripe</h2><p>Your card details are handled by Stripe. Breezyee Vans stores your booking request and receives payment confirmation from Stripe after payment succeeds.</p><div class="auth-features"><div><strong>✓</strong> Secure hosted card payment</div><div><strong>✓</strong> Booking reference linked to payment</div><div><strong>✓</strong> Availability still confirmed by our team</div></div></div></aside>
+    <section class="page-hero bg-purple"><div class="container"><span class="page-eyebrow txt-white-60">Custom Secure Checkout</span><h1 class="txt-white">Pay for your booking request</h1><p class="txt-white-60">Review your Breezyee booking details and pay securely without leaving this page.</p></div></section>
+    <section class="section bg-lavender"><div class="container payment-shell">
+      <article class="payment-panel reveal">
+        <div class="payment-panel-head"><span class="sec-tag">Stripe Payment Element</span><h2>Card payment</h2><p>Your payment details are encrypted and processed by Stripe. Breezyee Vans never sees or stores your card number.</p></div>
+        <div class="auth-status" id="paymentStatus" role="status" aria-live="polite">Preparing secure payment…</div>
+        <form id="paymentForm" class="stripe-payment-form">
+          <div id="paymentElement" class="payment-element-shell"></div>
+          <button class="btn btn-primary payment-submit" id="payWithStripe" type="submit">Pay securely</button>
+          <p class="form-note">Payment does not automatically confirm vehicle availability. We still verify the driver documents and confirm collection details separately.</p>
+        </form>
+      </article>
+      <aside class="payment-summary-card reveal">
+        <span class="sec-tag">Booking summary</span>
+        <h2>Your request</h2>
+        <div class="bk-summary-row"><span>Reference</span><strong id="paymentReference">—</strong></div>
+        <div class="bk-summary-row"><span>Vehicle</span><strong id="paymentVehicle">—</strong></div>
+        <div class="bk-summary-row"><span>Status</span><strong id="paymentBookingStatus">Requested</strong></div>
+        <div class="bk-summary-divider"></div>
+        <div class="bk-summary-total"><span>Amount due</span><strong id="paymentAmount">—</strong></div>
+        <div class="driver-info-box"><strong>What happens next?</strong><p>After payment, Breezyee Vans checks availability and your driver verification. If anything needs changing, we’ll contact you using your booking details.</p></div>
+        <a class="btn btn-outline" href="/booking">Back to booking</a>
+      </aside>
     </div></section>
   </main>
   <footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer>
+  <script src="https://js.stripe.com/v3/"></script>
   <script type="module" src="/payment.js"></script>
   <script type="module" src="/app.js"></script>
 </body></html>

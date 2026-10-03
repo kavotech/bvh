@@ -20,10 +20,10 @@ export default async function handler(req, res) {
     const body = await raw(req);
     verifyStripeSignature(body, req.headers['stripe-signature']);
     const event = JSON.parse(body);
-    if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
-      const session = event.data?.object || {};
-      if (session.mode === 'payment' && session.payment_status === 'paid') {
-        const reference = session.metadata?.booking_reference || session.client_reference_id;
+    if (event.type === 'payment_intent.succeeded') {
+      const intent = event.data?.object || {};
+      if (intent.status === 'succeeded') {
+        const reference = intent.metadata?.booking_reference;
         if (!reference) throw new HttpError(400, 'Missing booking reference.');
         const { error } = await db().from('bookings').update({ status: 'Paid' }).eq('reference', reference).neq('status', 'Cancelled');
         if (error) throw new Error('Booking payment status update failed');

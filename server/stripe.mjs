@@ -1,4 +1,4 @@
-import { env, site, HttpError } from './core.mjs';
+import { env, HttpError } from './core.mjs';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const STRIPE_API = 'https://api.stripe.com/v1';
@@ -41,27 +41,19 @@ export async function stripeRequest(path, params, idempotencyKey, fetcher = fetc
   return data;
 }
 
-export async function createBookingCheckoutSession({ reference, bookingId, customerEmail, customerName, vehicleName, priceText }, fetcher = fetch) {
+export async function createBookingPaymentIntent({ reference, bookingId, customerEmail, customerName, vehicleName, priceText }, fetcher = fetch) {
   const amount = parseMoneyToPence(priceText);
   if (!amount) return null;
-  const base = site();
-  return stripeRequest('/checkout/sessions', {
-    mode: 'payment',
-    'line_items[0][quantity]': 1,
-    'line_items[0][price_data][currency]': 'gbp',
-    'line_items[0][price_data][unit_amount]': amount,
-    'line_items[0][price_data][product_data][name]': `Breezyee Vans booking request ${reference}`,
-    'line_items[0][price_data][product_data][description]': `${vehicleName || 'Van hire'} estimated hire payment. Availability remains subject to confirmation.`,
-    customer_email: customerEmail,
-    client_reference_id: reference,
-    success_url: `${base}/payment.html?session_id={CHECKOUT_SESSION_ID}&reference=${encodeURIComponent(reference)}`,
-    cancel_url: `${base}/payment.html?cancelled=1&reference=${encodeURIComponent(reference)}`,
+  return stripeRequest('/payment_intents', {
+    amount,
+    currency: 'gbp',
+    receipt_email: customerEmail,
+    description: `Breezyee Vans booking request ${reference} — ${vehicleName || 'Van hire'}`,
+    'automatic_payment_methods[enabled]': true,
     'metadata[booking_reference]': reference,
     'metadata[booking_id]': bookingId || '',
     'metadata[customer_email]': customerEmail,
     'metadata[customer_name]': customerName || '',
-    'payment_intent_data[metadata][booking_reference]': reference,
-    'payment_intent_data[metadata][booking_id]': bookingId || '',
   }, `booking-payment:${reference}`, fetcher);
 }
 

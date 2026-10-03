@@ -1,5 +1,5 @@
 import { handle, requestBody, db, rateLimit, captcha, userFor, text, HttpError } from '../server/core.mjs';
-import { createBookingCheckoutSession } from '../server/stripe.mjs';
+import { createBookingPaymentIntent } from '../server/stripe.mjs';
 
 export default handle(async (req, res) => {
   const body = requestBody(req);
@@ -15,7 +15,7 @@ export default handle(async (req, res) => {
     .single();
   if (error || booking.user_id !== user.id || booking.email?.toLowerCase() !== user.email.toLowerCase()) throw new HttpError(404, 'Booking not found.');
   if (booking.status === 'Paid') throw new HttpError(409, 'This booking has already been paid.');
-  const session = await createBookingCheckoutSession({
+  const intent = await createBookingPaymentIntent({
     reference,
     bookingId: booking.id,
     customerEmail: booking.email,
@@ -23,6 +23,14 @@ export default handle(async (req, res) => {
     vehicleName: booking.vehicle_name || booking.van_size,
     priceText: booking.price,
   });
-  if (!session?.url) throw new HttpError(400, 'This booking needs a custom quote before payment. We will contact you.');
-  res.status(200).json({ checkoutUrl: session.url, sessionId: session.id, reference, amountTotal: session.amount_total, currency: session.currency });
+  if (!intent?.client_secret) throw new HttpError(400, 'This booking needs a custom quote before payment. We will contact you.');
+  res.status(200).json({
+    clientSecret: intent.client_secret,
+    paymentIntentId: intent.id,
+    reference,
+    amountTotal: intent.amount,
+    currency: intent.currency,
+    vehicle: booking.vehicle_name || booking.van_size,
+    price: booking.price,
+  });
 });

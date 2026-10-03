@@ -25,8 +25,8 @@ Copy `.env.example` to `.env.local` and configure values privately. `.env.local`
 | `CRON_SECRET` | Server only, independent random secret for the email retry endpoint. Generated in ignored local configuration. |
 | `ADMIN_EMAIL` | Server authorization identity. Keep aligned with the admin identity in the SQL policies and `VITE_ADMIN_EMAIL`. |
 | `SITE_URL` | Exact allowed form origin and auth link destination. Production default: `https://www.breezyeevans.co.uk`. Set explicitly for an isolated preview environment. |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | Public Stripe publishable key for future browser-side Stripe components. |
-| `STRIPE_SECRET_KEY` | Server only. Creates Stripe Checkout Sessions after a booking request is saved. |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Public Stripe publishable key used by Stripe.js Payment Element in the browser. |
+| `STRIPE_SECRET_KEY` | Server only. Creates idempotent Stripe PaymentIntents for priced booking requests. |
 | `STRIPE_WEBHOOK_SECRET` | Server only. Stripe webhook signing secret for `/api/stripe-webhook`; set after creating the webhook endpoint in Stripe. |
 | `GOOGLE_SITE_VERIFICATION` | Optional Search Console HTML verification value, emitted at build time. |
 
@@ -58,11 +58,11 @@ Enquiries validate contact details and message, verify v3, and atomically save t
 
 Every transactional email has branded HTML and plain text, sender `Breezyee Vans <no-reply@breezyeevans.co.uk>` and business reply-to. Resend acceptance is recorded with its provider ID. It does not prove inbox delivery. A failed provider request leaves durable queued work; the browser reports that the request is saved rather than claiming an email was delivered.
 
-The authenticated admin workflow supports driver approval/rejection, separate confirmation after availability has been checked, cancellation confirmation, and booking-detail/status/reminder emails. Customers can request cancellation; this does not promise a refund. Stripe Checkout is now used for calculated online booking payments after the booking request is saved. A Stripe webhook, not the browser redirect, marks a booking `Paid`; paid bookings still require driver review and separate availability confirmation.
+The authenticated admin workflow supports driver approval/rejection, separate confirmation after availability has been checked, cancellation confirmation, and booking-detail/status/reminder emails. Customers can request cancellation; this does not promise a refund. Stripe Payment Element is used for calculated online booking payments after the booking request is saved. A Stripe webhook, not the browser redirect, marks a booking `Paid`; paid bookings still require driver review and separate availability confirmation.
 
 ## Stripe payment setup
 
-Create a Stripe webhook endpoint for `https://www.breezyeevans.co.uk/api/stripe-webhook` and subscribe at least to `checkout.session.completed` and `checkout.session.async_payment_succeeded`. Copy the resulting `whsec_...` signing secret into `STRIPE_WEBHOOK_SECRET`. Apply `supabase_migrations/20261003_stripe_payments.sql` so admin confirmation remains possible after a booking has been paid but before availability is confirmed. Custom quote bookings do not take payment online until a price is agreed.
+Create a Stripe webhook endpoint for `https://www.breezyeevans.co.uk/api/stripe-webhook` and subscribe to `payment_intent.succeeded`. Copy the resulting `whsec_...` signing secret into `STRIPE_WEBHOOK_SECRET`. Set `VITE_STRIPE_PUBLISHABLE_KEY` and `STRIPE_SECRET_KEY` in the appropriate Vercel environments. Apply `supabase_migrations/20261003_stripe_payments.sql` so admin confirmation remains possible after a booking has been paid but before availability is confirmed. Custom quote bookings do not take payment online until a price is agreed.
 
 ## Email retries and Resend domain
 
