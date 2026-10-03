@@ -3,7 +3,7 @@ import { handle, requestBody, db, rateLimit, captcha, text, email, env, site, Ht
 
 export default handle(async (req, res) => {
   const body = requestBody(req);
-  if (!['login','register','reset','resend'].includes(body.action)) throw new HttpError(400, 'Invalid action.');
+  if (!['login','register','reset','resend','start_otp','verify_otp'].includes(body.action)) throw new HttpError(400, 'Invalid action.');
   const address = email(body.email);
   const admin = db();
   await rateLimit(req, admin, 'auth');
@@ -12,6 +12,29 @@ export default handle(async (req, res) => {
   const client = createClient(env('VITE_SUPABASE_URL'), env('VITE_SUPABASE_ANON_KEY'), { auth: { persistSession: false, autoRefreshToken: false } });
   let result;
   const password = body.password;
+  if (body.action === 'start_otp') {
+    const metadata = {};
+    if (body.fullName) metadata.full_name = text(body.fullName, 'your name', 100, 2);
+    if (body.phone) metadata.phone = text(body.phone, 'phone number', 30, 7);
+    if (body.dob) metadata.date_of_birth = text(body.dob, 'date of birth', 10, 8);
+    if (body.postcode) metadata.postcode = text(body.postcode, 'postcode', 12, 3);
+    const adminEmail = (process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk').toLowerCase();
+    const shouldCreateUser = body.signup === true || address.toLowerCase() === adminEmail;
+    result = await client.auth.signInWithOtp({
+      email: address,
+      options: { shouldCreateUser, emailRedirectTo: `${site()}/login`, data: metadata },
+    });
+    if (result.error) throw new HttpError(400, shouldCreateUser ? 'Unable to send a one-time code. Please wait before trying again.' : 'No account was found for this email. Create an account first.');
+    res.status(200).json({ message: 'We sent a one-time code to your email. Enter it here to continue.' });
+    return;
+  }
+  if (body.action === 'verify_otp') {
+    const token = text(body.token, 'your one-time code', 12, 6).replace(/\s+/g, '');
+    result = await client.auth.verifyOtp({ email: address, token, type: 'email' });
+    if (result.error || !result.data.session || !result.data.user?.email_confirmed_at) throw new HttpError(401, 'That code could not be verified. Check the latest email and try again.');
+    res.status(200).json({ session: { access_token: result.data.session.access_token, refresh_token: result.data.session.refresh_token }, requiresPasswordSetup: result.data.user.user_metadata?.password_set !== true });
+    return;
+  }
   if (['login','register'].includes(body.action) && (typeof password !== 'string' || password.length < (body.action === 'register' ? 12 : 1) || password.length > 128)) throw new HttpError(400, 'Please check your password. New passwords need at least 12 characters.');
   if (body.action === 'login') {
     result = await client.auth.signInWithPassword({ email: address, password });

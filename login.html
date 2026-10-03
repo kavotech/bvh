@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — Breezyee Vans</title>
+  <title>Email code login — Breezyee Vans</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
@@ -58,15 +58,15 @@
             <button type="button" class="btn btn-outline btn-sm" id="authToggle">Create an account</button>
           </div>
         </div>
-        <div class="auth-status" id="authStatus" role="status" aria-live="polite">The first step to your dashboard.</div>
+        <div class="auth-status" id="authStatus" role="status" aria-live="polite">Enter your email and we’ll send a secure one-time code.</div>
         <form id="authForm" class="auth-form">
           <div class="bk-field">
             <label for="authEmail">Email address or username</label>
             <input type="text" id="authEmail" required="" placeholder="you@example.com or admin" autocomplete="email">
           </div>
-          <div class="bk-field">
-            <label for="authPassword">Password</label>
-            <input type="password" id="authPassword" required="" placeholder="Enter a secure password" autocomplete="current-password" maxlength="128">
+          <div class="bk-field otp-only" style="display:none;">
+            <label for="authOtp">One-time code</label>
+            <input type="text" id="authOtp" inputmode="numeric" pattern="[0-9 ]*" placeholder="6 digit code" autocomplete="one-time-code" maxlength="12">
           </div>
           <div class="bk-field signup-only" style="display:none;">
             <label for="authFullName">Full name</label>
@@ -85,9 +85,9 @@
             <input type="text" id="authPostcode" placeholder="SW1A 1AA">
           </div>
           <div class="auth-actions">
-            <button type="submit" class="btn btn-primary" id="authSubmit">Sign in</button>
+            <button type="submit" class="btn btn-primary" id="authSubmit">Send one-time code</button>
           </div>
-        </form><div class="auth-recovery"><button type="button" id="auth-reset">Forgot password?</button><button type="button" id="auth-resend">Resend verification email</button></div>
+        </form><p class="form-note">Admin login uses <strong>info@breezyeevans.co.uk</strong>. You can also type <strong>admin</strong>.</p><div class="auth-recovery"><button type="button" id="auth-reset">Forgot password?</button><button type="button" id="auth-resend">Resend one-time code</button></div>
       </div>
     </div>
   </section>

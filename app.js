@@ -852,79 +852,106 @@ function initLoginPage(user) {
   const authModeHint = document.getElementById('authModeHint');
   const authSubmit = document.getElementById('authSubmit');
   const authStatus = document.getElementById('authStatus');
+  const emailField = document.getElementById('authEmail');
+  const otpField = document.getElementById('authOtp');
   const signupFields = loginPage.querySelectorAll('.signup-only');
+  const otpFields = loginPage.querySelectorAll('.otp-only');
   let authMode = 'signIn';
+  let otpSent = false;
+  let pendingEmail = '';
 
-  function updateMode() {
-    if (authMode === 'signIn') {
-      authMode = 'signUp';
-      authHeading.textContent = 'Create your account';
-      authModeHint.textContent = 'Already registered?';
-      authToggle.textContent = 'Sign in';
-      authSubmit.textContent = 'Create account';
-    } else {
-      authMode = 'signIn';
-      authHeading.textContent = 'Sign in to your account';
-      authModeHint.textContent = 'New here?';
-      authToggle.textContent = 'Create an account';
-      authSubmit.textContent = 'Sign in';
-    }
-    signupFields.forEach(field => {
-      field.style.display = authMode === 'signUp' ? 'block' : 'none';
-    });
-    authStatus.textContent = 'Enter your email and password to continue.';
+  function normaliseEmail(value) {
+    const email = value.trim();
+    return email.toLowerCase() === 'admin' ? ADMIN_EMAIL : email;
   }
 
-  authToggle.addEventListener('click', updateMode);
-  signupFields.forEach(field => { field.style.display = 'none'; });
+  function renderMode(message) {
+    signupFields.forEach(field => {
+      field.style.display = authMode === 'signUp' && !otpSent ? 'block' : 'none';
+    });
+    otpFields.forEach(field => {
+      field.style.display = otpSent ? 'block' : 'none';
+    });
+    if (emailField) emailField.disabled = otpSent;
+    if (authMode === 'signIn') {
+      authHeading.textContent = otpSent ? 'Enter your one-time code' : 'Sign in to your account';
+      authModeHint.textContent = 'New here?';
+      authToggle.textContent = otpSent ? 'Use another email' : 'Create an account';
+    } else {
+      authHeading.textContent = otpSent ? 'Enter your signup code' : 'Create your account';
+      authModeHint.textContent = 'Already registered?';
+      authToggle.textContent = otpSent ? 'Use another email' : 'Sign in';
+    }
+    authSubmit.textContent = otpSent ? 'Verify code' : 'Send one-time code';
+    authStatus.textContent = message || (otpSent ? 'Check your email and enter the code we sent.' : 'Enter your email and we’ll send a secure one-time code.');
+  }
+
+  function resetOtpState(nextMode = authMode) {
+    authMode = nextMode;
+    otpSent = false;
+    pendingEmail = '';
+    if (emailField) emailField.disabled = false;
+    if (otpField) otpField.value = '';
+    renderMode();
+  }
+
+  authToggle.addEventListener('click', () => {
+    resetOtpState(otpSent ? authMode : (authMode === 'signIn' ? 'signUp' : 'signIn'));
+  });
+  renderMode();
+
   authForm.addEventListener('submit', async e => {
     e.preventDefault();
-    const email = document.getElementById('authEmail')?.value.trim();
-    const password = document.getElementById('authPassword')?.value;
-    if (!email || !password) return;
+    const rawEmail = emailField?.value.trim() || '';
+    const authEmail = normaliseEmail(rawEmail);
+    if (!authEmail) return;
 
-    authSubmit.disabled = true;
-    authStatus.textContent = authMode === 'signIn' ? 'Signing in…' : 'Creating account…';
+    if (!supabase) {
+      authStatus.textContent = 'Authentication is not configured. Please contact support.';
+      return;
+    }
 
-    let result;
     const fullName = document.getElementById('authFullName')?.value.trim();
     const dob = document.getElementById('authDob')?.value;
     const phone = document.getElementById('authPhone')?.value.trim();
     const postcode = document.getElementById('authPostcode')?.value.trim();
 
-    if (authMode === 'signUp' && (!fullName || !dob || !phone || !postcode)) {
+    if (!otpSent && authMode === 'signUp' && (!fullName || !dob || !phone || !postcode)) {
       authStatus.textContent = 'Please complete all required signup fields.';
-      authSubmit.disabled = false;
       return;
     }
 
-    const authEmail = email.toLowerCase() === 'admin' ? ADMIN_EMAIL : email;
-
-    if (!supabase) {
-      authStatus.textContent = 'Authentication is not configured. Please contact support.';
-      authSubmit.disabled = false;
-      return;
-    }
-
+    authSubmit.disabled = true;
     try {
-      const response = await post('/api/auth', { action: authMode === 'signIn' ? 'login' : 'register', email: authEmail, password, fullName, phone, postcode }, authMode === 'signIn' ? 'login' : 'register');
-      result = response.session ? await supabase.auth.setSession(response.session) : { data: {}, message: response.message };
-    } catch (error) { result = { error }; }
+      if (!otpSent) {
+        authStatus.textContent = 'Sending your one-time code…';
+        const response = await post('/api/auth', { action: 'start_otp', email: authEmail, signup: authMode === 'signUp', fullName, dob, phone, postcode }, 'start_otp');
+        pendingEmail = authEmail;
+        otpSent = true;
+        renderMode(response.message || 'We sent a one-time code to your email.');
+        otpField?.focus();
+        return;
+      }
 
-    authSubmit.disabled = false;
-    if (result.error) {
-      authStatus.textContent = result.error.message;
-      return;
-    }
-
-    if (authMode === 'signIn') {
+      const token = otpField?.value.trim() || '';
+      if (!token) {
+        authStatus.textContent = 'Enter the one-time code from your email.';
+        return;
+      }
+      authStatus.textContent = 'Verifying your code…';
+      const response = await post('/api/auth', { action: 'verify_otp', email: pendingEmail || authEmail, token }, 'verify_otp');
+      const result = await supabase.auth.setSession(response.session);
+      if (result.error) throw result.error;
+      if (response.requiresPasswordSetup) {
+        window.location.href = 'reset-password.html?setup=1';
+        return;
+      }
       const signedInUser = result.data?.user;
       window.location.href = isAdminUser(signedInUser) ? 'dashboard.html' : 'user-dashboard.html';
-    } else if (result.data?.session) {
-      const signedInUser = result.data?.user;
-      window.location.href = isAdminUser(signedInUser) ? 'dashboard.html' : 'user-dashboard.html';
-    } else {
-      authStatus.textContent = result.message || 'Check your email to verify your account before signing in.';
+    } catch (error) {
+      authStatus.textContent = error.message || 'Unable to continue. Please try again.';
+    } finally {
+      authSubmit.disabled = false;
     }
   });
 }

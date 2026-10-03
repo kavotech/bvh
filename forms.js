@@ -54,7 +54,7 @@ for (const action of ['reset','resend']) {
   document.getElementById(`auth-${action}`)?.addEventListener('click', async event => {
     const status = document.getElementById('authStatus');
     event.target.disabled = true;
-    try { const result = await post('/api/auth', { action, email: document.getElementById('authEmail').value }, action); status.textContent = result.message; }
+    try { const apiAction = action === 'resend' ? 'start_otp' : action; const result = await post('/api/auth', { action: apiAction, email: document.getElementById('authEmail').value }, apiAction); status.textContent = result.message; }
     catch (error) { status.textContent = error.message; }
     finally { event.target.disabled = false; }
   });
@@ -70,10 +70,11 @@ document.getElementById('resetForm')?.addEventListener('submit', async event => 
     if (!data.session) throw new Error('Please open a valid password reset link from your email.');
     const password = document.getElementById('newPassword').value;
     if (password.length < 12) throw new Error('Use at least 12 characters.');
-    const { error } = await supabase.auth.updateUser({ password });
+    const userMeta = data.session.user?.user_metadata || {};
+    const { error } = await supabase.auth.updateUser({ password, data: { ...userMeta, password_set: true } });
     if (error) throw new Error('Unable to reset your password. Request a new reset link.');
     await supabase.auth.signOut();
-    status.textContent = 'Password updated. You can now sign in with your new password.';
+    status.textContent = 'Password updated. You can now sign in with a one-time code and use password recovery if needed.';
     event.target.reset();
   } catch (error) { status.textContent = error.message; }
   finally { button.disabled = false; }

@@ -3,7 +3,7 @@ import { template, deliverEmails } from '../server/email.mjs';
 export default handle(async (req,res) => {
   const body=requestBody(req), client=db();
   const user=await userFor(req,client);
-  const isAdmin=user.email.toLowerCase()===(process.env.ADMIN_EMAIL || 'kavotechuk@gmail.com').toLowerCase();
+  const isAdmin=user.email.toLowerCase()===(process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk').toLowerCase();
   await rateLimit(req,client,'manage',user.id);
   await captcha(body.token,'manage');
   if(!['cancel','confirm','cancel_confirm','invoice','reminder','confirmation','approve','reject'].includes(body.action)) throw new HttpError(400,'Invalid booking action.');
