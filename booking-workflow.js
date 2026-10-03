@@ -102,6 +102,11 @@ export function initBookingWorkflow() {
         driver: { full_name: value('driverFullName'), date_of_birth: value('driverDateOfBirth'), driving_licence_number: value('driverLicenceNumber'), dvla_check_code: value('dvlaCheckCode'), licence_front_file: front, licence_back_file: back },
       }, 'booking');
       review.close(); form.style.display = 'none';
+      if (result.payment?.checkoutUrl) {
+        sessionStorage.setItem('bv_pending_payment', JSON.stringify({ reference: result.reference, checkoutUrl: result.payment.checkoutUrl, price: document.getElementById('estimatedPrice').textContent }));
+        window.location.href = `/payment?reference=${encodeURIComponent(result.reference)}`;
+        return;
+      }
       const done = document.getElementById('bookingConfirm');
       done.style.display = 'block'; done.tabIndex = -1;
       document.getElementById('bookingReference').textContent = result.reference;

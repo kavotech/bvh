@@ -5,6 +5,8 @@ import { PGlite } from '@electric-sql/pglite';
 import { captcha, requestBody, uuid } from '../server/core.mjs';
 import { validateBooking, validateDriver, validateEnquiry } from '../server/validation.mjs';
 import { template, submissionEmails, deliverEmails } from '../server/email.mjs';
+import { parseMoneyToPence, verifyStripeSignature } from '../server/stripe.mjs';
+import { createHmac } from 'node:crypto';
 
 const user={id:'10000000-0000-4000-8000-000000000001',email:'customer@example.test'};
 const requestId='20000000-0000-4000-8000-000000000001';
@@ -54,6 +56,17 @@ test('email templates escape customer content and distinguish requests from rese
   assert.match(jobs[0].text,/not a confirmed reservation/);
   assert.equal(jobs[1].recipient,'info@breezyeevans.co.uk');
 });
+test('Stripe helpers parse GBP amounts and verify webhook signatures',()=>{
+  assert.equal(parseMoneyToPence('£100'),10000);
+  assert.equal(parseMoneyToPence('£50.25'),5025);
+  assert.equal(parseMoneyToPence('Quote required'),null);
+  const body=JSON.stringify({id:'evt_test'});
+  const secret='whsec_test';
+  const timestamp=Math.floor(Date.now()/1000);
+  const signature=createHmac('sha256',secret).update(`${timestamp}.${body}`).digest('hex');
+  assert.doesNotThrow(()=>verifyStripeSignature(body,`t=${timestamp},v1=${signature}`,secret));
+  assert.throws(()=>verifyStripeSignature(body,`t=${timestamp},v1=bad`,secret));
+});
 test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and lease email work',async()=>{
   const pg=new PGlite();
   try {
@@ -64,7 +77,7 @@ test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and leas
       create table storage.objects(id uuid,bucket_id text,name text);
       create function storage.foldername(text) returns text[] language sql as $$ select string_to_array($1,'/') $$;
       insert into auth.users values ('${user.id}');`);
-    for(const file of ['create_cars_table.sql','create_driver_verifications.sql','20261003_production_workflows.sql','20261003_booking_management.sql','20261003_fleet_images.sql']) await pg.exec(readFileSync(new URL(`../supabase_migrations/${file}`,import.meta.url),'utf8'));
+    for(const file of ['create_cars_table.sql','create_driver_verifications.sql','20261003_production_workflows.sql','20261003_booking_management.sql','20261003_fleet_images.sql','20261003_stripe_payments.sql']) await pg.exec(readFileSync(new URL(`../supabase_migrations/${file}`,import.meta.url),'utf8'));
     const data=validateBooking(body,user,car,new Date('2026-10-03'));
     const jobs=submissionEmails('booking',data,'BV-TEST');
     const submit=(key,hash='hash',d=driver)=>pg.query('select bv_submit($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7::jsonb) result',[key,hash,'booking','BV-'+key,JSON.stringify(data),JSON.stringify(d),JSON.stringify(jobs)]);
@@ -88,6 +101,7 @@ test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and leas
     await assert.rejects(()=>manage('confirm','confirm-before-driver'),/driver_not_approved/);
     await manage('approve','approve');
     assert.equal((await pg.query('select status from bookings')).rows[0].status,'Requested');
+    await pg.exec("update bookings set status='Paid'");
     await manage('confirm','confirm');await manage('confirm','confirm');
     assert.equal((await pg.query('select status from bookings')).rows[0].status,'Confirmed');
     await assert.rejects(()=>manage('cancel_confirm','forbidden',false),/forbidden/);

@@ -33,6 +33,6 @@ test('sitemap excludes account pages and robots references canonical sitemap',()
 });
 test('client bundle contains no server credentials or fake payment flow',()=>{
   const bundle=fs.readdirSync('dist/assets').filter(f=>f.endsWith('.js')).map(f=>fs.readFileSync(`dist/assets/${f}`,'utf8')).join('');
-  for(const secretName of ['RESEND_API_KEY','RECAPTCHA_SECRET_KEY','SUPABASE_SERVICE_ROLE_KEY','RATE_LIMIT_SECRET']) assert.ok(!bundle.includes(secretName));
+  for(const secretName of ['RESEND_API_KEY','RECAPTCHA_SECRET_KEY','SUPABASE_SERVICE_ROLE_KEY','RATE_LIMIT_SECRET','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET']) assert.ok(!bundle.includes(secretName));
   assert.ok(!bundle.includes('Mark as paid'));
 });

@@ -1,6 +1,7 @@
 import { handle, requestBody, db, rateLimit, captcha, userFor, uuid, digest, HttpError } from '../server/core.mjs';
 import { validateBooking, validateEnquiry, validateDriver } from '../server/validation.mjs';
 import { submissionEmails, deliverEmails } from '../server/email.mjs';
+import { createBookingCheckoutSession } from '../server/stripe.mjs';
 
 export default handle(async (req, res) => {
   const body = requestBody(req);
@@ -34,5 +35,14 @@ export default handle(async (req, res) => {
   }
   // Persistence succeeds even if the provider is unavailable; the durable queue can retry.
   try { await deliverEmails(client, key); } catch { console.warn('email_queue_pending'); }
-  res.status(200).json({ reference: saved.reference, status: 'Requested', message: 'Your request is saved. Availability is subject to confirmation.' });
+  let payment = null;
+  if (body.kind === 'booking' && process.env.STRIPE_SECRET_KEY) {
+    try {
+      const session = await createBookingCheckoutSession({ reference: saved.reference, customerEmail: data.email, customerName: data.name, vehicleName: data.vehicle_name, priceText: data.price });
+      if (session?.url) payment = { checkoutUrl: session.url, sessionId: session.id, amountTotal: session.amount_total, currency: session.currency };
+    } catch {
+      console.warn('stripe_checkout_pending');
+    }
+  }
+  res.status(200).json({ reference: saved.reference, status: 'Requested', message: payment ? 'Your booking request is saved. Continue to secure payment.' : 'Your request is saved. Availability is subject to confirmation.', payment });
 });
