@@ -1,7 +1,8 @@
 import { handle, requestBody, db, rateLimit, captcha, userFor, uuid, digest, HttpError } from '../server/core.mjs';
 import { validateBooking, validateEnquiry, validateDriver } from '../server/validation.mjs';
 import { submissionEmails, deliverEmails } from '../server/email.mjs';
-import { parseMoneyToPence } from '../server/stripe.mjs';
+import { calculateChargesForCar, bookingWindow, checkVehicleAvailable, readBusinessSettings } from '../server/booking-payments.mjs';
+import { penceToDisplay } from '../server/pricing.mjs';
 
 export default handle(async (req, res) => {
   const body = requestBody(req);
@@ -10,13 +11,34 @@ export default handle(async (req, res) => {
   await rateLimit(req, client, 'submit');
   const requestId = uuid(body.requestId);
   await captcha(body.token, body.kind);
-  let data, driver = null, owner;
+  let data, driver = null, owner, charges = null;
   if (body.kind === 'booking') {
     const user = await userFor(req, client);
     owner = user.id;
-    const { data: car, error } = await client.from('cars').select('id,model,type,price_daily,is_active').eq('id', uuid(body.vehicleId)).single();
-    if (error) throw new HttpError(400, 'Please select a listed vehicle.');
-    data = validateBooking(body, user, car);
+    const { data: car, error } = await client.from('cars').select('id,model,type,price_daily,daily_rate_pence,is_active,published').eq('id', uuid(body.vehicleId)).single();
+    if (error || car?.published === false) throw new HttpError(400, 'Please select a listed vehicle.');
+    const settings = await readBusinessSettings(client);
+    charges = calculateChargesForCar(car, body.duration, settings);
+    if (!charges) throw new HttpError(400, 'Custom-duration bookings need a manual quote. Please call +44 7300 331603.');
+    const window = bookingWindow({ date: body.date, time: body.time, duration: body.duration });
+    const available = await checkVehicleAvailable(client, car.id, window.collection_at, window.return_at);
+    if (!available) throw new HttpError(409, 'That vehicle is already reserved or unavailable for the selected time. Please choose another vehicle or date.');
+    const holdExpires = new Date(Date.now() + charges.settings.hold_minutes * 60 * 1000).toISOString();
+    const paymentDeadline = new Date(Date.now() + charges.settings.payment_deadline_hours * 60 * 60 * 1000).toISOString();
+    data = validateBooking(body, user, car, new Date(), {
+      ...window,
+      hold_expires_at: holdExpires,
+      payment_deadline_at: paymentDeadline,
+      booking_status: 'Awaiting booking deposit',
+      payment_status: 'unpaid',
+      hire_price_pence: charges.hire_price_pence,
+      booking_deposit_pence: charges.booking_deposit_pence,
+      outstanding_balance_pence: charges.outstanding_hire_balance_pence,
+      insurance_charge_pence: charges.insurance_charge_pence,
+      security_deposit_pence: charges.security_deposit_pence,
+      total_due_pence: charges.hire_price_pence + charges.insurance_charge_pence + charges.security_deposit_pence,
+      price: penceToDisplay(charges.hire_price_pence),
+    });
     driver = validateDriver(body, user, requestId);
     const { data: files, error: fileError } = await client.storage.from('driver-verification-documents').list(`${user.id}/${requestId}`);
     if (fileError || ![driver.licence_front_file, driver.licence_back_file].every(path => files?.some(file => file.name === path.split('/').pop() && file.metadata?.size <= 5 * 1024 * 1024))) throw new HttpError(400, 'Please upload both licence documents, each under 5 MB.');
@@ -31,11 +53,16 @@ export default handle(async (req, res) => {
   const { data: saved, error } = await client.rpc('bv_submit', { p_key: key, p_hash: digest([stable, driver]), p_kind: body.kind, p_reference: reference, p_data: data, p_driver: driver, p_emails: jobs });
   if (error) {
     if (error.message?.includes('idempotency_conflict')) throw new HttpError(409, 'This request was already submitted with different details. Start a new request.');
+    if (error.message?.includes('vehicle_unavailable')) throw new HttpError(409, 'That vehicle has just been reserved for the selected time. Please choose another vehicle or date.');
     throw new Error('Submission persistence failed');
   }
-  // Persistence succeeds even if the provider is unavailable; the durable queue can retry.
   try { await deliverEmails(client, key); } catch { console.warn('email_queue_pending'); }
-  const amount = body.kind === 'booking' ? parseMoneyToPence(data.price) : null;
-  const payment = amount ? { paymentPage: `/payment?reference=${encodeURIComponent(saved.reference)}`, amountTotal: amount, currency: 'gbp' } : null;
-  res.status(200).json({ reference: saved.reference, status: 'Requested', message: payment ? 'Your booking request is saved. Continue to secure payment.' : 'Your request is saved. Availability is subject to confirmation.', payment });
+  const payment = body.kind === 'booking' && charges ? {
+    paymentPage: `/payment?reference=${encodeURIComponent(saved.reference)}&category=booking_deposit`,
+    amountTotal: charges.initial_payment_pence,
+    currency: 'gbp',
+    category: 'booking_deposit',
+    breakdown: charges,
+  } : null;
+  res.status(200).json({ reference: saved.reference, status: payment ? 'Awaiting booking deposit' : 'Requested', message: payment ? 'Your booking request is saved. Pay the booking deposit to reserve the vehicle.' : 'Your request is saved. Availability is subject to confirmation.', payment });
 });

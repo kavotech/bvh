@@ -44,27 +44,42 @@ export function initBookingWorkflow() {
     if (idx <= activeStep || validateStep(activeStep)) showStep(idx);
   }));
   showStep(0);
+
+  function vehicleWindowPayload() {
+    const date = document.getElementById('bookDate')?.value;
+    const time = document.getElementById('bookTime')?.value;
+    const duration = document.getElementById('duration')?.value;
+    if (!date || !time || !duration || duration === 'custom') return {};
+    const start = new Date(date + 'T' + time + ':00Z');
+    const end = new Date(start.getTime() + Number(duration) * 60 * 60 * 1000);
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return {};
+    return { start: start.toISOString(), end: end.toISOString() };
+  }
+
   async function loadVehicles() {
     try {
-      if (!supabase) throw new Error('Booking is temporarily unavailable. Please contact us.');
-      const { data, error } = await supabase.from('cars').select('id,model,type,price_daily').eq('is_active', true).order('price_daily').abortSignal(AbortSignal.timeout(8000));
-      if (error || !data?.length) throw new Error('Online vehicle selection is unavailable. Please call +44 7300 331603.');
-      vehicles = data;
+      const result = await post('/api/vehicles', vehicleWindowPayload(), 'vehicles');
+      if (!result.vehicles?.length) throw new Error('No vehicles are available online right now. Please call +44 7300 331603.');
+      vehicles = result.vehicles;
       select.replaceChildren(new Option('Select a vehicle', ''));
       const requested = new URLSearchParams(location.search).get('van');
       for (const vehicle of vehicles) {
-        const option = new Option(`${vehicle.model} (£${vehicle.price_daily}/day)`, vehicle.id);
+        const label = `${vehicle.model} (£${vehicle.price_daily}/day)${vehicle.available === false ? ' — unavailable for selected time' : ''}`;
+        const option = new Option(label, vehicle.id);
         option.dataset.daily = vehicle.price_daily;
         option.dataset.model = vehicle.model;
+        option.disabled = vehicle.available === false;
         select.add(option);
         if (requested === vehicle.type || requested === vehicle.id) select.value = vehicle.id;
       }
       submit.disabled = false;
       select.dispatchEvent(new Event('change'));
-      status.textContent = 'Requests are subject to availability and driver verification. Sign in before submitting.';
+      const unavailable = vehicles.filter(vehicle => vehicle.available === false).length;
+      status.textContent = unavailable ? 'Some vehicles are unavailable for that time. Choose an available van and sign in before submitting.' : 'Live vehicle selection loaded. Sign in before submitting driver documents.';
     } catch (error) { status.textContent = error.message; }
   }
   loadVehicles();
+  ['bookDate','bookTime','duration'].forEach(id => document.getElementById(id)?.addEventListener('change', () => loadVehicles()));
   const value = id => document.getElementById(id).value.trim();
   form.addEventListener('submit', event => {
     event.preventDefault();
@@ -103,7 +118,7 @@ export function initBookingWorkflow() {
       }, 'booking');
       review.close(); form.style.display = 'none';
       if (result.payment?.paymentPage) {
-        sessionStorage.setItem('bv_pending_payment', JSON.stringify({ reference: result.reference, price: document.getElementById('estimatedPrice').textContent }));
+        sessionStorage.setItem('bv_pending_payment', JSON.stringify({ reference: result.reference, price: result.payment?.breakdown ? `£${(result.payment.amountTotal / 100).toFixed(2)}` : document.getElementById('estimatedPrice').textContent, category: result.payment.category }));
         window.location.href = result.payment.paymentPage;
         return;
       }

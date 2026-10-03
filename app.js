@@ -71,6 +71,59 @@ async function updateDriverVerificationStatus(_verificationId, bookingId, _recip
   catch (error) { alert(error.message); }
 }
 
+async function initPaymentSettingsPage(user) {
+  const form = document.getElementById('paymentSettingsForm');
+  if (!form) return;
+  const status = document.getElementById('paymentSettingsStatus');
+  const setStatus = message => { if (status) status.textContent = message; };
+  if (!isAdminUser(user)) {
+    setStatus('Administrator access required.');
+    form.querySelectorAll('input,textarea,button').forEach(input => { input.disabled = true; });
+    return;
+  }
+  const money = pence => (Number(pence || 0) / 100).toFixed(2);
+  const hydrate = settings => {
+    document.getElementById('settingBookingDeposit').value = money(settings.booking_deposit_pence);
+    document.getElementById('settingSecurityDeposit').value = money(settings.security_deposit_pence);
+    document.getElementById('settingInsurancePercent').value = (Number(settings.insurance_percent_bps || 0) / 100).toString();
+    document.getElementById('settingInsuranceEnabled').checked = settings.insurance_enabled === true;
+    document.getElementById('settingInsuranceDisclosure').value = settings.insurance_disclosure || '';
+    document.getElementById('settingHoldMinutes').value = settings.hold_minutes || 15;
+    document.getElementById('settingPaymentDeadlineHours').value = settings.payment_deadline_hours || 24;
+  };
+  try {
+    const result = await post('/api/settings', { action: 'get' }, 'manage');
+    hydrate(result.settings);
+    setStatus('Payment settings loaded.');
+  } catch (error) {
+    setStatus(error.message);
+  }
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = form.querySelector('button[type=submit]');
+    button.disabled = true;
+    setStatus('Saving payment settings…');
+    try {
+      const result = await post('/api/settings', {
+        action: 'update',
+        bookingDeposit: document.getElementById('settingBookingDeposit').value,
+        securityDeposit: document.getElementById('settingSecurityDeposit').value,
+        insurancePercent: document.getElementById('settingInsurancePercent').value,
+        insuranceEnabled: document.getElementById('settingInsuranceEnabled').checked,
+        insuranceDisclosure: document.getElementById('settingInsuranceDisclosure').value,
+        holdMinutes: document.getElementById('settingHoldMinutes').value,
+        paymentDeadlineHours: document.getElementById('settingPaymentDeadlineHours').value,
+      }, 'manage');
+      hydrate(result.settings);
+      setStatus(result.message || 'Payment settings saved.');
+    } catch (error) {
+      setStatus(error.message);
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
 function updateAuthNav(user) {
   document.querySelectorAll('.nav-auth-signed-out').forEach(el => {
     el.style.display = user ? 'none' : '';
@@ -825,6 +878,7 @@ window.addEventListener('load', async () => {
   initLoginPage(user);
   initBookingPage(user);
   initDashboardPage(user);
+  initPaymentSettingsPage(user);
   initCarsPage(user);
 
   // Load cars for fleet pages - check for actual page elements instead of pathname

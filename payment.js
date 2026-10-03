@@ -5,6 +5,7 @@ const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 const params = new URLSearchParams(window.location.search);
 const reference = params.get('reference') || '';
 const stored = (() => { try { return JSON.parse(sessionStorage.getItem('bv_pending_payment') || '{}'); } catch { return {}; } })();
+const category = params.get('category') || stored.category || 'booking_deposit';
 const paymentStatus = document.getElementById('paymentStatus');
 const refEl = document.getElementById('paymentReference');
 const amountEl = document.getElementById('paymentAmount');
@@ -36,7 +37,7 @@ async function refreshStatus() {
   try {
     const { data } = supabase ? await supabase.auth.getSession() : { data: {} };
     if (!data.session) throw new Error('Sign in to confirm payment status.');
-    const result = await post('/api/payment-status', { reference }, 'payment_status');
+    const result = await post('/api/payment-status', { reference, category }, 'payment_status');
     if (bookingStatusEl) bookingStatusEl.textContent = result.status;
     if (result.paid) {
       setStatus(`Payment received for ${result.reference}. We will contact you to confirm availability and collection details.`);
@@ -55,7 +56,7 @@ async function preparePaymentElement() {
   if (!reference) throw new Error('Missing booking reference. Please return to your booking confirmation.');
   if (!STRIPE_PUBLISHABLE_KEY) throw new Error('Stripe publishable key is not configured yet.');
   if (!window.Stripe) throw new Error('Stripe.js did not load. Refresh the page or contact us.');
-  const result = await post('/api/stripe-payment-intent', { reference }, 'payment');
+  const result = await post('/api/stripe-payment-intent', { reference, category }, 'payment');
   clientSecret = result.clientSecret;
   stripe = window.Stripe(STRIPE_PUBLISHABLE_KEY);
   elements = stripe.elements({
@@ -69,7 +70,7 @@ async function preparePaymentElement() {
   paymentElement.mount('#paymentElement');
   if (amountEl) amountEl.textContent = result.price || formatAmount(result.amountTotal, result.currency);
   if (vehicleEl) vehicleEl.textContent = result.vehicle || 'Van hire';
-  if (bookingStatusEl) bookingStatusEl.textContent = 'Awaiting payment';
+  if (bookingStatusEl) bookingStatusEl.textContent = result.categoryLabel || 'Awaiting payment';
   payButton.textContent = `Pay ${formatAmount(result.amountTotal, result.currency)}`;
   payButton.disabled = false;
   paymentPanel?.classList.add('payment-card-ready');
@@ -91,7 +92,7 @@ form?.addEventListener('submit', async event => {
   const { error } = await stripe.confirmPayment({
     elements,
     clientSecret,
-    confirmParams: { return_url: `${window.location.origin}/payment?reference=${encodeURIComponent(reference)}` },
+    confirmParams: { return_url: `${window.location.origin}/payment?reference=${encodeURIComponent(reference)}&category=${encodeURIComponent(category)}` },
   });
   if (error) {
     setStatus(error.message || 'Payment could not be confirmed. Please try again.');

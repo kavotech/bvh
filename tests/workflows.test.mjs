@@ -6,6 +6,7 @@ import { captcha, requestBody, uuid } from '../server/core.mjs';
 import { validateBooking, validateDriver, validateEnquiry } from '../server/validation.mjs';
 import { template, submissionEmails, deliverEmails } from '../server/email.mjs';
 import { parseMoneyToPence, verifyStripeSignature } from '../server/stripe.mjs';
+import { calculateBookingCharges } from '../server/pricing.mjs';
 import { createHmac } from 'node:crypto';
 
 const user={id:'10000000-0000-4000-8000-000000000001',email:'customer@example.test'};
@@ -67,6 +68,20 @@ test('Stripe helpers parse GBP amounts and verify webhook signatures',()=>{
   assert.doesNotThrow(()=>verifyStripeSignature(body,`t=${timestamp},v1=${signature}`,secret));
   assert.throws(()=>verifyStripeSignature(body,`t=${timestamp},v1=bad`,secret));
 });
+test('two-stage payment allocation matches the £200 rental example',()=>{
+  const charges=calculateBookingCharges(20000,{booking_deposit_pence:5000,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:true});
+  assert.equal(charges.booking_deposit_pence,5000);
+  assert.equal(charges.outstanding_hire_balance_pence,15000);
+  assert.equal(charges.insurance_charge_pence,4000);
+  assert.equal(charges.security_deposit_pence,25000);
+  assert.equal(charges.initial_payment_pence,5000);
+  assert.equal(charges.final_payment_pence,44000);
+  assert.equal(charges.hire_price_pence + charges.insurance_charge_pence + charges.security_deposit_pence,49000);
+  const lowValue=calculateBookingCharges(3000,{booking_deposit_pence:5000,security_deposit_pence:25000,insurance_percent_bps:0,insurance_enabled:false});
+  assert.equal(lowValue.booking_deposit_pence,3000);
+  assert.equal(lowValue.outstanding_hire_balance_pence,0);
+  assert.throws(()=>calculateBookingCharges(20000,{booking_deposit_pence:5000,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:false},{requireInsurance:true}),{status:409});
+});
 test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and lease email work',async()=>{
   const pg=new PGlite();
   try {
@@ -77,7 +92,9 @@ test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and leas
       create table storage.objects(id uuid,bucket_id text,name text);
       create function storage.foldername(text) returns text[] language sql as $$ select string_to_array($1,'/') $$;
       insert into auth.users values ('${user.id}');`);
-    for(const file of ['create_cars_table.sql','create_driver_verifications.sql','20261003_production_workflows.sql','20261003_booking_management.sql','20261003_fleet_images.sql','20261003_stripe_payments.sql']) await pg.exec(readFileSync(new URL(`../supabase_migrations/${file}`,import.meta.url),'utf8'));
+    for(const file of ['create_cars_table.sql','create_driver_verifications.sql','20261003_production_workflows.sql','20261003_booking_management.sql','20261003_fleet_images.sql','20261003_stripe_payments.sql','20261003_booking_payment_system.sql']) await pg.exec(readFileSync(new URL(`../supabase_migrations/${file}`,import.meta.url),'utf8'));
+    await pg.exec(`insert into cars(id,model,type,price_daily,capacity,payload,is_active,daily_rate_pence,published)
+      values('${car.id}','${car.model}','${car.type}',100,'2-3 m3',750,true,10000,true) on conflict (id) do nothing`);
     const data=validateBooking(body,user,car,new Date('2026-10-03'));
     const jobs=submissionEmails('booking',data,'BV-TEST');
     const submit=(key,hash='hash',d=driver)=>pg.query('select bv_submit($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7::jsonb) result',[key,hash,'booking','BV-'+key,JSON.stringify(data),JSON.stringify(d),JSON.stringify(jobs)]);
@@ -100,7 +117,7 @@ test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and leas
     const manage=(action,key,admin=true)=>pg.query('select bv_manage($1,$2,$3,$4,$5,$6,$7,$8::jsonb)',[booking.id,action,'Requested',user.id,admin,key,action,JSON.stringify(jobs)]);
     await assert.rejects(()=>manage('confirm','confirm-before-driver'),/driver_not_approved/);
     await manage('approve','approve');
-    assert.equal((await pg.query('select status from bookings')).rows[0].status,'Requested');
+    assert.equal((await pg.query('select status from bookings')).rows[0].status,'Awaiting booking deposit');
     await pg.exec("update bookings set status='Paid'");
     await manage('confirm','confirm');await manage('confirm','confirm');
     assert.equal((await pg.query('select status from bookings')).rows[0].status,'Confirmed');

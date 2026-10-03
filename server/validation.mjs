@@ -2,8 +2,10 @@ import { HttpError, text, email } from './core.mjs';
 export function validateEnquiry(body) {
   return { name: text(body.name, 'your name', 100, 2), email: email(body.email), phone: text(body.phone, 'your phone number', 30, 7), message: text(body.message, 'your message', 4000, 10), service: text(body.service || 'General enquiry', 'service', 80) };
 }
-export function validateBooking(body, user, car, now = new Date()) {
-  if (!car?.is_active || !Number.isFinite(Number(car.price_daily)) || Number(car.price_daily) <= 0) throw new HttpError(400, 'Please choose a listed vehicle.');
+export function validateBooking(body, user, car, now = new Date(), extras = {}) {
+  const priceDaily = Number(car?.price_daily);
+  const dailyRatePence = Number(car?.daily_rate_pence);
+  if (!car?.is_active || (!Number.isFinite(priceDaily) || priceDaily <= 0) && (!Number.isSafeInteger(dailyRatePence) || dailyRatePence <= 0)) throw new HttpError(400, 'Please choose a listed vehicle.');
   if (!['2','4','8','24','48','72','custom'].includes(body.duration)) throw new HttpError(400, 'Please select a duration.');
   const date = text(body.date, 'booking date', 10);
   const time = text(body.time, 'booking time', 5);
@@ -12,11 +14,12 @@ export function validateBooking(body, user, car, now = new Date()) {
   if (date === ukToday && time <= new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hour12: false }).format(now)) throw new HttpError(400, 'Please choose a future pickup time.');
   if (body.termsAccepted !== true) throw new HttpError(400, 'Please accept the hire terms.');
   const hours = Number(body.duration);
-  const price = body.duration === 'custom' ? 'Quote required' : `£${Math.ceil(Number(car.price_daily) * (hours >= 24 ? hours / 24 : hours / 8))}`;
+  const daily = Number.isSafeInteger(dailyRatePence) && dailyRatePence > 0 ? dailyRatePence / 100 : priceDaily;
+  const price = body.duration === 'custom' ? 'Quote required' : `£${Math.ceil(daily * (hours >= 24 ? hours / 24 : hours / 8))}`;
   const name = text(body.name, 'your name', 100, 2);
   const phone = text(body.phone, 'your phone number', 30, 7);
   if (!/^[+\d ()-]{7,30}$/.test(phone)) throw new HttpError(400, 'Please check your phone number.');
-  return { user_id: user.id, service: 'van-hire', van_size: car.type, vehicle_id: car.id, vehicle_name: car.model, name, email: user.email, phone, pickup: text(body.pickup, 'pickup location', 300, 3), dropoff: text(body.dropoff, 'destination', 300, 3), date, time, duration: body.duration, helpers: '0', price, status: 'Requested', terms_accepted_at: now.toISOString() };
+  return { user_id: user.id, service: 'van-hire', van_size: car.type, vehicle_id: car.id, vehicle_name: car.model, name, email: user.email, phone, pickup: text(body.pickup, 'pickup location', 300, 3), dropoff: text(body.dropoff, 'destination', 300, 3), date, time, duration: body.duration, helpers: '0', price, status: extras.status || 'Awaiting booking deposit', terms_accepted_at: now.toISOString(), ...extras };
 }
 export function validateDriver(body, user, requestId) {
   const driver = body.driver || {};

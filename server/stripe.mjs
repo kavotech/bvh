@@ -41,20 +41,32 @@ export async function stripeRequest(path, params, idempotencyKey, fetcher = fetc
   return data;
 }
 
-export async function createBookingPaymentIntent({ reference, bookingId, customerEmail, customerName, vehicleName, priceText }, fetcher = fetch) {
-  const amount = parseMoneyToPence(priceText);
+export async function createBookingPaymentIntent({
+  reference,
+  bookingId,
+  paymentId,
+  category = 'booking_deposit',
+  customerEmail,
+  customerName,
+  vehicleName,
+  amountPence,
+  priceText,
+}, fetcher = fetch) {
+  const amount = Number.isSafeInteger(Number(amountPence)) ? Number(amountPence) : parseMoneyToPence(priceText);
   if (!amount) return null;
   return stripeRequest('/payment_intents', {
     amount,
     currency: 'gbp',
     receipt_email: customerEmail,
-    description: `Breezyee Vans booking request ${reference} — ${vehicleName || 'Van hire'}`,
+    description: `Breezyee Vans ${category.replaceAll('_', ' ')} ${reference} — ${vehicleName || 'Van hire'}`,
     'automatic_payment_methods[enabled]': true,
     'metadata[booking_reference]': reference,
     'metadata[booking_id]': bookingId || '',
+    'metadata[payment_id]': paymentId || '',
+    'metadata[payment_category]': category,
     'metadata[customer_email]': customerEmail,
     'metadata[customer_name]': customerName || '',
-  }, `booking-payment:${reference}`, fetcher);
+  }, `booking-payment:${reference}:${category}`, fetcher);
 }
 
 export function verifyStripeSignature(rawBody, signatureHeader, secret = env('STRIPE_WEBHOOK_SECRET'), toleranceSeconds = 300) {
