@@ -28,6 +28,7 @@ function renderVehicle(vehicle) {
     vehicleRate: rateText,
     detailCapacity: vehicle.capacity || 'Listed on request',
     detailPayload: vehicle.payload ? `${vehicle.payload} kg` : 'Listed on request',
+    detailPayloadSecondary: vehicle.payload ? `${vehicle.payload} kg` : 'Listed on request',
     detailRate: rateDayText,
   };
 
@@ -41,7 +42,7 @@ function renderVehicle(vehicle) {
     img.src = image;
     img.alt = `${vehicle.model} preview`;
   }
-  for (const link of [document.getElementById('bookVehicleLink'), document.getElementById('bookVehicleLinkBottom')]) {
+  for (const link of [document.getElementById('bookVehicleLink'), document.getElementById('bookVehicleLinkBottom'), document.getElementById('bookVehicleLinkTertiary')]) {
     if (link) link.href = `/booking?van=${encodeURIComponent(stableId)}`;
   }
 }
