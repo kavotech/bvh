@@ -13,25 +13,28 @@ export function submissionEmails(kind, data, reference) {
     { recipient: 'info@breezyeevans.co.uk', ...template(`New ${kind} request — ${reference}`, [...lines, `Customer email: ${data.email}`, `Phone: ${data.phone}`]) },
   ];
 }
+export async function sendResendEmail(job, idempotencyKey, fetcher = fetch) {
+  const response = await fetcher('https://api.resend.com/emails', {
+    method: 'POST', headers: { Authorization: `Bearer ${env('RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify({ from: 'Breezyee Vans <no-reply@breezyeevans.co.uk>', to: [job.recipient], reply_to: 'info@breezyeevans.co.uk', subject: job.subject, html: job.html, text: job.text }), signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new Error('Email provider rejected request');
+  const { id } = await response.json();
+  if (!id) throw new Error('Email provider returned no receipt');
+  return id;
+}
 export async function deliverEmails(client, submissionKey = null, fetcher = fetch) {
   const { data: jobs, error } = await client.rpc('bv_claim_emails', { p_submission_key: submissionKey });
   if (error) throw new Error('Email queue unavailable');
   let sent = 0;
   for (const job of jobs || []) {
     try {
-      const response = await fetcher('https://api.resend.com/emails', {
-        method: 'POST', headers: { Authorization: `Bearer ${env('RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': job.id },
-        body: JSON.stringify({ from: 'Breezyee Vans <no-reply@breezyeevans.co.uk>', to: [job.recipient], reply_to: 'info@breezyeevans.co.uk', subject: job.subject, html: job.html, text: job.text }), signal: AbortSignal.timeout(10000),
-      });
-      if (!response.ok) throw new Error('Email provider rejected request');
-      const { id } = await response.json();
-      if (!id) throw new Error('Email provider returned no receipt');
-      const { error: updateError } = await client.from('email_outbox').update({ sent_at: new Date().toISOString(), provider_id: id, locked_until: null }).eq('id', job.id);
+      const providerId = await sendResendEmail(job, job.id, fetcher);
+      const { error: updateError } = await client.from('email_outbox').update({ sent_at: new Date().toISOString(), provider_id: providerId, locked_until: null }).eq('id', job.id);
       if (updateError) throw new Error('Email receipt not saved');
       sent++;
     } catch {
       console.warn('email_delivery_pending');
-      // Keep the lease after ambiguous errors; retries use the same provider idempotency key.
     }
   }
   return sent;

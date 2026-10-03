@@ -77,3 +77,4 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     action='payment';res=response();await createPaymentIntent(request({reference:'BV-TEST123',token:'mock'}),res);assert.equal(res.code,200);assert.equal(res.body.clientSecret,'pi_test_secret');assert.equal(res.body.amountTotal,5000);
   } finally {globalThis.fetch=original;}
 });
+
