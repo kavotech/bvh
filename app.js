@@ -1,13 +1,18 @@
+function fleetImageUrl(value) { return ({'/van-small.jpg':'/van-small.webp','/van-medium.jpg':'/van-medium.webp','/van-large.png':'/van-large.webp'})[value] || value || '/van-small.webp'; }
+function escapeHTML(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 /* ============================================================
    BREEZYEE VANS — App JS
    ============================================================ */
 import { supabase, ADMIN_EMAIL } from './supabase.js';
+import { post } from './forms.js';
+import { initBookingWorkflow } from './booking-workflow.js';
+initBookingWorkflow();
 
 let currentUser = null;
 let bookingsRealtimeChannel = null;
 let driverVerificationsRealtimeChannel = null;
 const ADMIN_OWNER_NAME = 'Mr Olushola Fadipe';
-const authListener = supabase ? supabase.auth.onAuthStateChange((_event, session) => {
+supabase ? supabase.auth.onAuthStateChange((_event, session) => {
   currentUser = session?.user ?? null;
   updateAuthNav(currentUser);
 }) : null;
@@ -34,164 +39,33 @@ async function refreshAuthState() {
   return user;
 }
 
-async function markBookingAsPaid(bookingId) {
-  if (!confirm('Are you sure you want to mark this booking as paid?')) return;
-
-  try {
-    if (supabase) {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'Paid' })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-    }
-
-    // Refresh the dashboard to show updated data
-    const user = await refreshAuthState();
-    initDashboardPage(user);
-
-    alert('Booking marked as paid successfully!');
-  } catch (error) {
-    console.error('Error marking booking as paid:', error);
-    alert('Failed to mark booking as paid. Please try again.');
-  }
+const managementRequests = new Map();
+async function manageBooking(bookingId, action, availabilityChecked = false) {
+  const identity = bookingId + ':' + action;
+  const requestId = managementRequests.get(identity) || crypto.randomUUID();
+  managementRequests.set(identity, requestId);
+  const controls = document.querySelectorAll('.confirm-booking-btn,.cancel-booking-btn,.approve-driver-btn,.reject-driver-btn,.admin-email-action,#invoiceEmailForm button');
+  controls.forEach(button => button.disabled = true);
+  let result;
+  try { result = await post('/api/manage', { bookingId, action, requestId, availabilityChecked }, 'manage'); }
+  finally { controls.forEach(button => button.disabled = false); }
+  managementRequests.delete(identity);
+  await initDashboardPage(await refreshAuthState());
+  return result;
 }
-
-async function deleteBooking(bookingId) {
-  if (!confirm('Are you sure you want to delete this booking? This action cannot be undone.')) return;
-
-  try {
-    if (supabase) {
-      const { error } = await supabase
-        .from('bookings')
-        .delete()
-        .eq('id', bookingId);
-
-      if (error) throw error;
-    }
-
-    // Refresh the dashboard to show updated data
-    const user = await refreshAuthState();
-    initDashboardPage(user);
-
-    alert('Booking deleted successfully!');
-  } catch (error) {
-    console.error('Error deleting booking:', error);
-    alert('Failed to delete booking. Please try again.');
-  }
+async function confirmBooking(bookingId) {
+  if (!confirm('Have you checked vehicle availability and agreed the hire details with the customer?')) return;
+  try { await manageBooking(bookingId, 'confirm', true); }
+  catch (error) { alert(error.message); }
 }
-
-async function deleteCustomer(customerEmail) {
-  if (!confirm(`Are you sure you want to delete all bookings and data for customer ${customerEmail}? This action cannot be undone.`)) return;
-
-  try {
-    if (supabase) {
-      // Delete all bookings for this customer
-      const { error: bookingError } = await supabase
-        .from('bookings')
-        .delete()
-        .eq('email', customerEmail);
-
-      if (bookingError) throw bookingError;
-
-      // Note: We don't delete the auth user as that would prevent them from logging in
-      // If you want to delete the auth user, you would need additional server-side logic
-    }
-
-    // Refresh the dashboard to show updated data
-    const user = await refreshAuthState();
-    initDashboardPage(user);
-
-    alert(`All data for customer ${customerEmail} has been deleted successfully!`);
-  } catch (error) {
-    console.error('Error deleting customer:', error);
-    alert('Failed to delete customer data. Please try again.');
-  }
+async function cancelBooking(bookingId) {
+  if (!confirm('Confirm cancellation of this booking and notify the customer?')) return;
+  try { await manageBooking(bookingId, 'cancel_confirm'); }
+  catch (error) { alert(error.message); }
 }
-
-async function updateDriverVerificationStatus(verificationId, bookingId, recipientEmail, status) {
-  if (!supabase || !verificationId) return;
-  const isRejected = status === 'REJECTED';
-  const rejectionReason = isRejected ? prompt('Why is this verification being rejected?') : null;
-  if (isRejected && rejectionReason === null) return;
-
-  try {
-    const user = await refreshAuthState();
-    const { error } = await supabase
-      .from('driver_verifications')
-      .update({
-        verification_status: status,
-        checked_by_admin: user?.id || null,
-        checked_date: new Date().toISOString(),
-        rejection_reason: rejectionReason,
-      })
-      .eq('verification_id', verificationId);
-
-    if (error) throw error;
-
-    if (bookingId) {
-      await supabase
-        .from('bookings')
-        .update({ status: status === 'APPROVED' ? 'Confirmed' : 'Driver Verification Rejected' })
-        .eq('id', bookingId);
-    }
-
-    await queueDriverVerificationEmail({
-      verificationId,
-      bookingId,
-      recipientEmail,
-      notificationType: status.toLowerCase(),
-      subject: status === 'APPROVED'
-        ? 'Your driving licence has been approved.'
-        : 'Your verification requires attention.',
-      message: status === 'APPROVED'
-        ? 'Your driving licence has been approved. Your booking can now be confirmed for vehicle release.'
-        : `Your verification requires attention.${rejectionReason ? ` Reason: ${rejectionReason}` : ''}`,
-    });
-
-    await initDashboardPage(user);
-  } catch (error) {
-    console.error('Error updating driver verification:', error);
-    alert('Unable to update this driver verification.');
-  }
-}
-
-async function deleteDriverVerificationDocuments(verificationId) {
-  if (!supabase || !verificationId) return;
-  if (!confirm('Delete the uploaded driving licence documents for this verification?')) return;
-
-  try {
-    const { data, error } = await supabase
-      .from('driver_verifications')
-      .select('licence_front_file, licence_back_file')
-      .eq('verification_id', verificationId)
-      .single();
-
-    if (error) throw error;
-
-    const files = [data.licence_front_file, data.licence_back_file].filter(Boolean);
-    if (files.length) {
-      const { error: storageError } = await supabase.storage.from(DRIVER_DOC_BUCKET).remove(files);
-      if (storageError) throw storageError;
-    }
-
-    const { error: updateError } = await supabase
-      .from('driver_verifications')
-      .update({
-        licence_front_file: null,
-        licence_back_file: null,
-      })
-      .eq('verification_id', verificationId);
-
-    if (updateError) throw updateError;
-
-    const user = await refreshAuthState();
-    await initDashboardPage(user);
-  } catch (error) {
-    console.error('Error deleting driver documents:', error);
-    alert('Unable to delete these secure documents.');
-  }
+async function updateDriverVerificationStatus(_verificationId, bookingId, _recipientEmail, status) {
+  try { await manageBooking(bookingId, status === 'APPROVED' ? 'approve' : 'reject'); }
+  catch (error) { alert(error.message); }
 }
 
 function updateAuthNav(user) {
@@ -210,7 +84,7 @@ async function signOut() {
   if (supabase) await supabase.auth.signOut();
   await refreshAuthState();
   const path = window.location.pathname;
-  if (path.endsWith('dashboard.html') || path.endsWith('user-dashboard.html') || path.includes('admin-')) {
+  if (path.includes('dashboard') || path.includes('admin-')) {
     window.location.href = 'login.html';
   }
 }
@@ -236,15 +110,19 @@ if (navToggle && navLinks) {
     e.preventDefault();
     e.stopPropagation();
     const open = navLinks.classList.toggle('open');
+    navToggle.setAttribute('aria-expanded', String(open));
     navToggle.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
   }
   navToggle.addEventListener('click', toggleNav);
-  navToggle.addEventListener('touchend', toggleNav, { passive: false });
+  navToggle.setAttribute('aria-expanded', 'false');
+  navToggle.setAttribute('aria-controls', 'navLinks');
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && navLinks.classList.contains('open')) navToggle.click(); });
 
   navLinks.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', () => {
       navLinks.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
       navToggle.classList.remove('open');
       document.body.style.overflow = '';
     });
@@ -304,7 +182,7 @@ window.addEventListener('resize', revealCheck, { passive: true });
 revealCheck();
 
 // ── BOOKING PAGE SETUP ──
-let activeService = 'van-hire';
+
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('van')) {
   const vs = document.getElementById('vanSize');
@@ -335,12 +213,10 @@ const RATES = {
   medium: { hourly: 25, daily: 200 },
   xl:     { hourly: 43.75, daily: 350 },
 };
-const HELPER_RATES = { '0': 0, '1': 30, '2': 55 };
 
 function calcPrice() {
   const van      = document.getElementById('vanSize')?.value;
   const duration = document.getElementById('duration')?.value;
-  const helpers  = document.getElementById('helpers')?.value || '0';
   const priceEl  = document.getElementById('estimatedPrice');
   const sumTotal = document.getElementById('sum-total');
   const sumVan   = document.getElementById('sum-van');
@@ -350,7 +226,7 @@ function calcPrice() {
   const vanLabels = { small: 'Small / Medium Van (Citroen Berlingo)', medium: 'Medium / Large Van (Mercedes Sprinter)', xl: 'Large / XL Van (Iveco Daily Luton)' };
   const durLabels = { '2':'2 Hours','4':'4 Hours (Half Day)','8':'Full Day','24':'1 Day','48':'2 Days','72':'3 Days','custom':'Custom' };
 
-  if (sumVan)  sumVan.textContent  = vanLabels[van]     || 'Not selected';
+  if (sumVan)  sumVan.textContent  = document.getElementById('vanSize')?.selectedOptions[0]?.dataset.model || vanLabels[van] || 'Not selected';
   if (sumDur)  sumDur.textContent  = durLabels[duration] || 'Not selected';
   if (sumSvc)  sumSvc.textContent  = 'Van Hire';
 
@@ -364,7 +240,9 @@ function calcPrice() {
   }
   const hrs      = parseFloat(duration);
   const isDays   = hrs >= 24;
-  const r        = RATES[van];
+  const daily = Number(document.getElementById('vanSize')?.selectedOptions[0]?.dataset.daily);
+  const r = daily ? { daily, hourly: daily / 8 } : RATES[van];
+  if (!r) return;
   const vanCost  = isDays ? r.daily * (hrs / 24) : r.hourly * hrs;
   const drCost   = 0;
   const hlpCost  = 0;
@@ -404,59 +282,23 @@ function setTermsReady() {
 function closeTermsModal() {
   if (!termsModal) return;
   termsModal.classList.remove('open');
+  if (termsModal.open) termsModal.close();
   termsModal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
 }
 
 const DRIVER_DOC_BUCKET = 'driver-verification-documents';
 
-function sanitizeFileName(name = 'document') {
-  return String(name)
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80) || 'document';
-}
-
-async function uploadDriverDocument(fileInputId, userId, bookingId, label) {
-  const file = document.getElementById(fileInputId)?.files?.[0];
-  if (!file) throw new Error(`Please upload ${label}.`);
-  if (!supabase) return `${label}: ${file.name}`;
-
-  const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
-  const path = `${userId}/${bookingId}/${label}-${Date.now()}.${sanitizeFileName(ext)}`;
-  const { error } = await supabase.storage
-    .from(DRIVER_DOC_BUCKET)
-    .upload(path, file, {
-      cacheControl: '3600',
-      contentType: file.type || 'application/octet-stream',
-      upsert: false,
-    });
-
-  if (error) throw error;
-  return path;
-}
-
-async function queueDriverVerificationEmail({ verificationId, bookingId, recipientEmail, subject, message, notificationType }) {
-  if (!supabase || !recipientEmail) return;
-  await supabase.from('driver_verification_notifications').insert([{
-    verification_id: verificationId || null,
-    booking_id: bookingId || null,
-    recipient_email: recipientEmail,
-    notification_type: notificationType,
-    subject,
-    message,
-  }]);
-}
-
 document.getElementById('openTermsModal')?.addEventListener('click', () => {
   if (!termsModal) return;
   termsModal.classList.add('open');
+  if (!termsModal.open) termsModal.showModal();
   termsModal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
   termsModalBody?.focus();
 });
 
+termsModal?.addEventListener('cancel', closeTermsModal);
 document.getElementById('closeTermsModal')?.addEventListener('click', closeTermsModal);
 doneTermsModal?.addEventListener('click', closeTermsModal);
 termsModal?.addEventListener('click', e => {
@@ -468,106 +310,6 @@ termsModalBody?.addEventListener('scroll', () => {
   if (reachedBottom) setTermsReady();
 }, { passive: true });
 
-bookingForm?.addEventListener('submit', async e => {
-  e.preventDefault();
-  const btn = bookingForm.querySelector('.bk-submit');
-  if (!termsAccepted?.checked) {
-    alert('Please read and accept the Terms and Conditions before placing your booking.');
-    document.getElementById('termsAcceptance')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-  if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
-
-  const van      = document.getElementById('vanSize')?.value;
-  const pickup   = document.getElementById('pickup')?.value;
-  const dropoff  = document.getElementById('dropoff')?.value;
-  const bookDate = document.getElementById('bookDate')?.value;
-  const bookTime = document.getElementById('bookTime')?.value;
-  const duration = document.getElementById('duration')?.value;
-  const helpers  = document.getElementById('helpers')?.value || '0';
-  const name     = document.getElementById('custName')?.value;
-  const email    = currentUser?.email || document.getElementById('custEmail')?.value;
-  const phone    = document.getElementById('custPhone')?.value;
-  const price    = document.getElementById('estimatedPrice')?.textContent || '—';
-  const userId   = currentUser?.id || null;
-  const driverFullName = document.getElementById('driverFullName')?.value;
-  const driverDateOfBirth = document.getElementById('driverDateOfBirth')?.value;
-  const driverLicenceNumber = document.getElementById('driverLicenceNumber')?.value;
-  const dvlaCheckCode = document.getElementById('dvlaCheckCode')?.value;
-
-  if (supabase && !userId) {
-    alert('Please sign in before submitting driver verification documents.');
-    window.location.href = 'login.html';
-    if (btn) { btn.disabled = false; btn.textContent = 'Confirm Booking'; }
-    return;
-  }
-
-  try {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    let bookingId = `local-${Date.now()}`;
-    let verificationId = null;
-
-    if (supabase) {
-      const { data: booking, error: bookingError } = await supabase.from('bookings').insert([{
-        user_id: userId,
-        service: activeService,
-        van_size: van,
-        pickup,
-        dropoff,
-        date: bookDate,
-        time: bookTime,
-        duration,
-        helpers,
-        name,
-        email,
-        phone,
-        price,
-        status: 'Driver Verification Pending',
-      }]).select('id').single();
-
-      if (bookingError) throw bookingError;
-      bookingId = booking.id;
-    }
-
-    const licenceFrontPath = await uploadDriverDocument('licenceFrontFile', userId || 'guest', bookingId, 'licence-front');
-    const licenceBackPath = await uploadDriverDocument('licenceBackFile', userId || 'guest', bookingId, 'licence-back');
-
-    if (supabase) {
-      const { data: verification, error: verificationError } = await supabase.from('driver_verifications').insert([{
-        user_id: userId,
-        booking_id: bookingId,
-        full_name: driverFullName,
-        date_of_birth: driverDateOfBirth,
-        driving_licence_number: driverLicenceNumber,
-        dvla_check_code: dvlaCheckCode,
-        licence_front_file: licenceFrontPath,
-        licence_back_file: licenceBackPath,
-        verification_status: 'PENDING',
-      }]).select('verification_id').single();
-
-      if (verificationError) throw verificationError;
-      verificationId = verification.verification_id;
-
-      await queueDriverVerificationEmail({
-        verificationId,
-        bookingId,
-        recipientEmail: email,
-        notificationType: 'submitted',
-        subject: 'Your driver verification has been received.',
-        message: 'Your driver verification has been received. Breezye Van Hires will review your licence documents before vehicle release.',
-      });
-    }
-
-    bookingForm.style.display = 'none';
-    bookingConfirm.style.display = 'block';
-  } catch (error) {
-    console.error('Error submitting booking verification:', error);
-    alert(error.message || 'Unable to submit your driver verification. Please check your details and try again.');
-    if (btn) { btn.disabled = false; btn.textContent = 'Confirm Booking'; }
-  }
-});
-
 newBookingBtn?.addEventListener('click', () => {
   bookingConfirm.style.display = 'none';
   bookingForm.style.display    = 'block';
@@ -576,15 +318,15 @@ newBookingBtn?.addEventListener('click', () => {
   if (helpersField) helpersField.style.display = 'none';
   if (termsAccepted) {
     termsAccepted.checked = false;
-    termsAccepted.disabled = true;
+    termsAccepted.disabled = false;
   }
   if (doneTermsModal) doneTermsModal.disabled = true;
   if (termsHelp) termsHelp.textContent = 'Open the terms and scroll to the bottom before ticking this box.';
   if (termsScrollStatus) termsScrollStatus.textContent = 'Scroll to the bottom to enable acceptance.';
-  activeService = 'van-hire';
+
   bkTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === 'van-hire'));
   const btn = bookingForm.querySelector('.bk-submit');
-  if (btn) { btn.disabled = false; btn.textContent = 'Confirm Booking →'; }
+  if (btn) { btn.disabled = false; btn.textContent = 'Review booking request →'; }
   const t = new Date().toISOString().split('T')[0];
   if (document.getElementById('bookDate')) document.getElementById('bookDate').value = t;
 });
@@ -614,7 +356,7 @@ if (cookieBanner) {
 
 // ── CHAT BUBBLE ──
 document.getElementById('chatBubble')?.addEventListener('click', () => {
-  window.location.href = 'tel:+441234567890';
+  window.location.href = 'tel:+447300331603';
 });
 
 // ── SMOOTH SCROLL ──
@@ -624,7 +366,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     // Ignore placeholder links like href="#" to avoid invalid selector errors.
     if (!targetSel || targetSel === '#') return;
     const t = document.querySelector(targetSel);
-    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' }); }
   });
 });
 
@@ -672,8 +414,7 @@ const FALLBACK_CARS = [
 async function loadCarsFromSupabase() {
   // Check if Supabase is configured
   if (!supabase) {
-    console.log('Supabase not configured, using fallback fleet data');
-    carsData = FALLBACK_CARS;
+        carsData = FALLBACK_CARS;
     return FALLBACK_CARS;
   }
 
@@ -682,27 +423,20 @@ async function loadCarsFromSupabase() {
       .from('cars')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) {
-      console.error('Error loading cars from Supabase:', error);
-      console.log('Using fallback fleet data instead');
-      carsData = FALLBACK_CARS;
+      console.warn('Operation unavailable');
+            carsData = FALLBACK_CARS;
       return FALLBACK_CARS;
     }
-    
-    if (!cars || cars.length === 0) {
-      console.log('No cars found in Supabase, using fallback data');
-      carsData = FALLBACK_CARS;
-      return FALLBACK_CARS;
-    }
-    
+
+    if (!cars) throw new Error('Fleet unavailable');
+
     carsData = cars;
-    console.log(`Loaded ${cars.length} cars from Supabase`);
-    return cars;
+        return cars;
   } catch (error) {
-    console.error('Failed to load cars from Supabase:', error);
-    console.log('Using fallback fleet data instead');
-    carsData = FALLBACK_CARS;
+    console.warn('Operation unavailable');
+        carsData = FALLBACK_CARS;
     return FALLBACK_CARS;
   }
 }
@@ -735,119 +469,30 @@ async function initCarsPage(user) {
       .subscribe();
   }
 
-  // Make functions globally accessible
-  window.saveCarToSupabase = async function(carData) {
-    if (!supabase) {
-      console.log('Supabase not configured, adding car locally only');
-      alert('Note: Supabase is not configured. The car will be added locally for this session only.');
-      const newCar = { ...carData, id: `fallback-${Date.now()}` };
-      FALLBACK_CARS.push(newCar);
-      carsData = [...FALLBACK_CARS];
-      renderAdminCarsTable(carsData);
-      renderAdminCarsPreview(carsData);
-      updateCarsStats(carsData);
-      return newCar;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('cars')
-        .insert([carData])
-        .select();
-
-      if (error) throw error;
-      return data[0];
-    } catch (error) {
-      console.error('Error saving car to Supabase:', error);
-      alert('Note: Could not save to Supabase. The car will be added locally for this session only. Please set up Supabase to enable persistent storage.');
-      // Add to fallback data temporarily
-      const newCar = { ...carData, id: `fallback-${Date.now()}` };
-      FALLBACK_CARS.push(newCar);
-      carsData = [...FALLBACK_CARS];
-      renderAdminCarsTable(carsData);
-      renderAdminCarsPreview(carsData);
-      updateCarsStats(carsData);
-      return newCar;
-    }
+  // A failed write must never appear to have saved a fleet change.
+  function validateCar(carData) {
+    if (!carData.model?.trim() || !['small','medium','xl'].includes(carData.type) || !Number.isFinite(Number(carData.price_daily)) || Number(carData.price_daily) <= 0) throw new Error('Check the vehicle model, type and daily rate.');
+    if (carData.image_url && !/^\/(?!\/)[a-zA-Z0-9/_.-]+$/.test(carData.image_url) && !/^https:\/\/[^\s<>"']+$/.test(carData.image_url)) throw new Error('Use a valid HTTPS image URL or an existing /image path.');
+  }
+  window.saveCarToSupabase = async carData => {
+    validateCar(carData);
+    if (!supabase || usingFallback) throw new Error('Fleet storage is unavailable. No changes were saved.');
+    const { data, error } = await supabase.from('cars').insert([carData]).select().single();
+    if (error) throw new Error('Unable to save vehicle. Please check your connection and permissions.');
+    return data;
   };
-
-  window.updateCarInSupabase = async function(id, carData) {
-    if (!supabase) {
-      console.log('Supabase not configured, updating car locally only');
-      alert('Note: Supabase is not configured. Changes will be local only.');
-      const index = FALLBACK_CARS.findIndex(c => c.id === id);
-      if (index !== -1) {
-        FALLBACK_CARS[index] = { ...FALLBACK_CARS[index], ...carData };
-        carsData = [...FALLBACK_CARS];
-        renderAdminCarsTable(carsData);
-        renderAdminCarsPreview(carsData);
-        updateCarsStats(carsData);
-      }
-      return carData;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('cars')
-        .update(carData)
-        .eq('id', id)
-        .select();
-
-      if (error) throw error;
-      return data[0];
-    } catch (error) {
-      console.error('Error updating car in Supabase:', error);
-      alert('Note: Could not update in Supabase. Changes will be local only. Please set up Supabase to enable persistent storage.');
-      // Update fallback data temporarily
-      const index = FALLBACK_CARS.findIndex(c => c.id === id);
-      if (index !== -1) {
-        FALLBACK_CARS[index] = { ...FALLBACK_CARS[index], ...carData };
-        carsData = [...FALLBACK_CARS];
-        renderAdminCarsTable(carsData);
-        renderAdminCarsPreview(carsData);
-        updateCarsStats(carsData);
-      }
-      return carData;
-    }
+  window.updateCarInSupabase = async (id, carData) => {
+    validateCar(carData);
+    if (!supabase || usingFallback) throw new Error('Fleet storage is unavailable. No changes were saved.');
+    const { data, error } = await supabase.from('cars').update(carData).eq('id',id).select().single();
+    if (error) throw new Error('Unable to update vehicle. No changes were saved.');
+    return data;
   };
-
-  window.deleteCarFromSupabase = async function(id) {
-    if (!supabase) {
-      console.log('Supabase not configured, deleting car locally only');
-      alert('Note: Supabase is not configured. Removal will be local only.');
-      const index = FALLBACK_CARS.findIndex(c => c.id === id);
-      if (index !== -1) {
-        FALLBACK_CARS.splice(index, 1);
-        carsData = [...FALLBACK_CARS];
-        renderAdminCarsTable(carsData);
-        renderAdminCarsPreview(carsData);
-        updateCarsStats(carsData);
-      }
-      return true;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('cars')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error('Error deleting car from Supabase:', error);
-      alert('Note: Could not delete from Supabase. Removal will be local only. Please set up Supabase to enable persistent storage.');
-      // Remove from fallback data temporarily
-      const index = FALLBACK_CARS.findIndex(c => c.id === id);
-      if (index !== -1) {
-        FALLBACK_CARS.splice(index, 1);
-        carsData = [...FALLBACK_CARS];
-        renderAdminCarsTable(carsData);
-        renderAdminCarsPreview(carsData);
-        updateCarsStats(carsData);
-      }
-      return true;
-    }
+  window.deleteCarFromSupabase = async id => {
+    if (!supabase || usingFallback) throw new Error('Fleet storage is unavailable. No changes were saved.');
+    const { error } = await supabase.from('cars').delete().eq('id',id);
+    if (error) throw new Error('Unable to delete vehicle. No changes were saved.');
+    return true;
   };
 }
 
@@ -887,14 +532,14 @@ function renderAdminCarsTable(cars) {
   tableBody.innerHTML = cars.map(car => `
     <tr>
       <td>
-        <div class="car-thumb" style="background: ${car.image_url ? `url(${car.image_url})` : gradientColors[car.type]}; background-size: cover; background-position: center;">
+        <div class="car-thumb" style="background: ${car.image_url ? `url(&quot;${escapeHTML(car.image_url)}&quot;)` : gradientColors[car.type]}; background-size: cover; background-position: center;">
           ${!car.image_url ? `<span>${vanEmojis[car.type] || '🚐'}</span>` : ''}
         </div>
       </td>
-      <td><strong>${car.model}</strong></td>
+      <td><strong>${escapeHTML(car.model)}</strong></td>
       <td><span class="car-badge ${typeBadgeClasses[car.type]}">${typeLabels[car.type]}</span></td>
-      <td><strong>£${car.price_daily}</strong>/day</td>
-      <td>${car.capacity} • ${car.payload} kg</td>
+      <td><strong>£${escapeHTML(car.price_daily)}</strong>/day</td>
+      <td>${escapeHTML(car.capacity)} • ${escapeHTML(car.payload)} kg</td>
       <td><span class="status-badge ${car.is_active ? 'status-active' : 'status-inactive'}">${car.is_active ? 'Active' : 'Inactive'}</span></td>
       <td>
         <button class="admin-btn-icon edit-car-btn" data-id="${car.id}" title="Edit car">✏️</button>
@@ -942,19 +587,19 @@ function renderAdminCarsPreview(cars) {
 
   previewGrid.innerHTML = cars.map(car => `
     <div class="car-preview-card">
-      <div class="car-preview-img" style="background: ${car.image_url ? `url(${car.image_url})` : gradientColors[car.type]}; background-size: cover; background-position: center;">
+      <div class="car-preview-img" style="background: ${car.image_url ? `url(&quot;${escapeHTML(car.image_url)}&quot;)` : gradientColors[car.type]}; background-size: cover; background-position: center;">
         ${!car.image_url ? `<span style="font-size: 3rem;">${vanEmojis[car.type] || '🚐'}</span>` : ''}
       </div>
       <div class="car-preview-info">
-        <h4>${car.model}</h4>
+        <h4>${escapeHTML(car.model)}</h4>
         <p class="car-type">${typeLabels[car.type]}</p>
         <div class="car-specs">
-          <span>${car.capacity}</span>
+          <span>${escapeHTML(car.capacity)}</span>
           <span>•</span>
-          <span>${car.payload} kg</span>
+          <span>${escapeHTML(car.payload)} kg</span>
         </div>
         <div class="car-preview-price">
-          <strong>£${car.price_daily}</strong><span>/day</span>
+          <strong>£${escapeHTML(car.price_daily)}</strong><span>/day</span>
         </div>
       </div>
     </div>
@@ -973,7 +618,7 @@ function updateCarsStats(cars) {
   const totalCars = cars.length;
   const avgPrice = cars.reduce((sum, car) => sum + Number(car.price_daily), 0) / totalCars;
   const activeCars = cars.filter(car => car.is_active).length;
-  
+
   // Parse capacity ranges (e.g., "10–12 m³" -> average of 11)
   const capacities = cars.map(car => {
     const match = car.capacity.match(/(\d+)(?:–(\d+))?\s*m³/);
@@ -988,8 +633,8 @@ function updateCarsStats(cars) {
 
   document.getElementById('totalCarsCount').textContent = totalCars;
   document.getElementById('avgPriceRate').textContent = `£${Math.round(avgPrice)}`;
-  document.getElementById('totalCapacity').textContent = `${Math.round(totalCapacity)}–${Math.round(totalCapacity * 1.2)} m³`;
-  document.getElementById('fleetUtil').textContent = activeCars > 0 ? '87%' : '0%';
+  document.getElementById('totalCapacity').textContent = `${Math.round(totalCapacity)} m³ (approx.)`;
+  document.getElementById('fleetUtil').textContent = Math.round(activeCars / totalCars * 100) + '%';
 }
 
 async function editCar(id) {
@@ -1004,7 +649,7 @@ async function editCar(id) {
   document.getElementById('carPayload').value = car.payload;
   document.getElementById('carDesc').value = car.description || '';
   document.getElementById('carActive').checked = car.is_active;
-  
+
   // Handle image preview
   if (car.image_url) {
     const previewImg = document.getElementById('previewImg');
@@ -1014,9 +659,10 @@ async function editCar(id) {
   }
 
   document.getElementById('carModal').style.display = 'flex';
-  
+
   // Store the car ID for updating
   document.getElementById('carForm').dataset.editId = id;
+  document.getElementById('carForm').dispatchEvent(new Event('fleet-edit'));
 }
 
 async function deleteCar(id) {
@@ -1031,8 +677,7 @@ async function deleteCar(id) {
 }
 
 async function loadCarsForFleetPage() {
-  console.log('loadCarsForFleetPage called');
-  const fleetGrid = document.querySelector('.van-cards-grid');
+    const fleetGrid = document.querySelector('.van-cards-grid');
   const specsGrid = document.querySelector('.specs-comparison');
 
   if (fleetGrid) {
@@ -1045,25 +690,17 @@ async function loadCarsForFleetPage() {
 
   try {
     const cars = await loadCarsFromSupabase();
-    console.log('Cars loaded:', cars);
 
     if (fleetGrid) {
-      console.log('Rendering fleet cards...');
-      renderFleetCards(cars, fleetGrid);
+            renderFleetCards(cars, fleetGrid);
     }
 
     if (specsGrid) {
-      console.log('Rendering specs cards...');
-      renderSpecsCards(cars, specsGrid);
+            renderSpecsCards(cars, specsGrid);
     }
 
-    if (cars === FALLBACK_CARS) {
-      console.log('Fleet page: Using fallback data (Supabase not configured)');
-    } else {
-      console.log('Fleet page: Using live Supabase data');
-    }
   } catch (error) {
-    console.error('Error in loadCarsForFleetPage:', error);
+    console.warn('Operation unavailable');
     if (fleetGrid) {
       renderFleetCards(FALLBACK_CARS, fleetGrid);
     }
@@ -1071,8 +708,8 @@ async function loadCarsForFleetPage() {
 }
 
 function renderFleetCards(cars, container) {
-  console.log('renderFleetCards called with', cars?.length, 'cars');
-  if (!cars || cars.length === 0) {
+  cars = cars?.filter(car => car.is_active);
+    if (!cars || cars.length === 0) {
     container.innerHTML = '<p class="txt-dim">No fleet available at the moment.</p>';
     return;
   }
@@ -1106,8 +743,8 @@ function renderFleetCards(cars, container) {
       <div class="van-card-image van-card-image-loading">
         <div class="van-card-image-fallback">${fallbackIcons[car.type] || '🚐'}</div>
         <img
-          src="${car.image_url || '/van-small.jpg'}"
-          alt="${car.model}"
+          src="${escapeHTML(fleetImageUrl(car.image_url))}"
+          alt="${escapeHTML(car.model)}"
           loading="lazy"
           decoding="async"
           width="640"
@@ -1120,16 +757,16 @@ function renderFleetCards(cars, container) {
         <div class="van-name-row">
           <span class="van-badge-tag ${typeBadgeClasses[car.type]}">${badgeLabels[car.type]}</span>
         </div>
-        <h3>${car.model}</h3>
-        <p>${car.description || descriptions[car.type]}</p>
+        <h3>${escapeHTML(car.model)}</h3>
+        <p>${escapeHTML(car.description || descriptions[car.type])}</p>
         <div class="van-specs-row">
           <span class="vspec">Automatic</span>
-          <span class="vspec">${car.capacity}</span>
-          <span class="vspec">${car.payload} kg payload</span>
+          <span class="vspec">${escapeHTML(car.capacity)}</span>
+          <span class="vspec">${escapeHTML(car.payload)} kg payload</span>
         </div>
         <div class="van-price-row">
-          <div><span class="price-from">From</span><strong class="price-big">£${car.price_daily}</strong><span class="price-unit">/day</span></div>
-          <a href="booking.html?van=${car.type}" class="btn btn-primary">Book Now</a>
+          <div><span class="price-from">From</span><strong class="price-big">£${escapeHTML(car.price_daily)}</strong><span class="price-unit">/day</span></div>
+          <a href="/booking?van=${car.id.startsWith('fallback-') ? car.type : car.id}" class="btn btn-primary">Book Now</a>
         </div>
       </div>
     </div>
@@ -1138,6 +775,7 @@ function renderFleetCards(cars, container) {
 }
 
 function renderSpecsCards(cars, container) {
+  cars = cars?.filter(car => car.is_active);
   if (!cars || cars.length === 0) {
     container.innerHTML = '<p class="txt-dim">No specifications available.</p>';
     return;
@@ -1145,7 +783,7 @@ function renderSpecsCards(cars, container) {
 
   container.innerHTML = cars.map(car => `
     <div class="specs-card reveal ${car.type === 'medium' ? 'specs-featured' : ''}">
-      <h3>${car.model}</h3>
+      <h3>${escapeHTML(car.model)}</h3>
       <div class="specs-list">
         <div class="spec-row">
           <span class="spec-label">Transmission</span>
@@ -1153,11 +791,11 @@ function renderSpecsCards(cars, container) {
         </div>
         <div class="spec-row">
           <span class="spec-label">Load Space</span>
-          <span class="spec-value">${car.capacity}</span>
+          <span class="spec-value">${escapeHTML(car.capacity)}</span>
         </div>
         <div class="spec-row">
           <span class="spec-label">Max Payload</span>
-          <span class="spec-value">${car.payload} kg</span>
+          <span class="spec-value">${escapeHTML(car.payload)} kg</span>
         </div>
         <div class="spec-row">
           <span class="spec-label">Fuel Type</span>
@@ -1169,10 +807,10 @@ function renderSpecsCards(cars, container) {
         </div>
         <div class="spec-row">
           <span class="spec-label">Daily Rate</span>
-          <span class="spec-value">From £${car.price_daily}</span>
+          <span class="spec-value">From £${escapeHTML(car.price_daily)}</span>
         </div>
       </div>
-      <a href="booking.html?van=${car.type}" class="btn btn-primary btn-sm">Book Now</a>
+      <a href="/booking?van=${car.id.startsWith('fallback-') ? car.type : car.id}" class="btn btn-primary btn-sm">Book Now</a>
     </div>
   `).join('');
   requestAnimationFrame(() => setupRevealElements(container));
@@ -1185,13 +823,12 @@ window.addEventListener('load', async () => {
   initBookingPage(user);
   initDashboardPage(user);
   initCarsPage(user);
-  
+
   // Load cars for fleet pages - check for actual page elements instead of pathname
   const hasFleetGrid = document.querySelector('.van-cards-grid');
   const hasSpecsGrid = document.querySelector('.specs-comparison');
   if (hasFleetGrid || hasSpecsGrid) {
-    console.log('Detected fleet page elements, loading cars...');
-    loadCarsForFleetPage();
+        loadCarsForFleetPage();
   }
 });
 
@@ -1240,7 +877,7 @@ function initLoginPage(user) {
   authForm.addEventListener('submit', async e => {
     e.preventDefault();
     const email = document.getElementById('authEmail')?.value.trim();
-    const password = document.getElementById('authPassword')?.value.trim();
+    const password = document.getElementById('authPassword')?.value;
     if (!email || !password) return;
 
     authSubmit.disabled = true;
@@ -1266,22 +903,10 @@ function initLoginPage(user) {
       return;
     }
 
-    if (authMode === 'signIn') {
-      result = await supabase.auth.signInWithPassword({ email: authEmail, password });
-    } else {
-      result = await supabase.auth.signUp({
-        email: authEmail,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            phone,
-            postcode,
-            dob,
-          },
-        },
-      });
-    }
+    try {
+      const response = await post('/api/auth', { action: authMode === 'signIn' ? 'login' : 'register', email: authEmail, password, fullName, phone, postcode }, authMode === 'signIn' ? 'login' : 'register');
+      result = response.session ? await supabase.auth.setSession(response.session) : { data: {}, message: response.message };
+    } catch (error) { result = { error }; }
 
     authSubmit.disabled = false;
     if (result.error) {
@@ -1296,7 +921,7 @@ function initLoginPage(user) {
       const signedInUser = result.data?.user;
       window.location.href = isAdminUser(signedInUser) ? 'dashboard.html' : 'user-dashboard.html';
     } else {
-      authStatus.textContent = 'Account created. Please sign in to continue.';
+      authStatus.textContent = result.message || 'Check your email to verify your account before signing in.';
     }
   });
 }
@@ -1333,7 +958,7 @@ async function initDashboardPage(user) {
   const isAdminDashboard = dashboardPage.classList.contains('admin-console-page');
   const isInvoicePage = dashboardPage.classList.contains('admin-invoices-page');
   const isDriverChecksPage = dashboardPage.classList.contains('admin-driver-checks-page');
-  if (isAdminDashboard && !isAdmin && window.location.pathname.endsWith('dashboard.html')) {
+  if (isAdminDashboard && !isAdmin) {
     window.location.href = 'user-dashboard.html';
     return;
   }
@@ -1386,11 +1011,11 @@ async function initDashboardPage(user) {
   let bookings = [];
   let verifications = [];
   let error = null;
-  
+
   if (supabase) {
     const result = isAdmin
       ? await supabase.from('bookings').select('*').order('created_at', { ascending: false })
-      : await supabase.from('bookings').select('*').or(`user_id.eq.${user.id},email.eq.${user.email}`).order('created_at', { ascending: false });
+      : await supabase.from('bookings').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
     bookings = result.data;
     error = result.error;
 
@@ -1410,7 +1035,6 @@ async function initDashboardPage(user) {
     return;
   }
 
-  const verificationsByBooking = new Map(verifications.map(item => [item.booking_id, item]));
   const verificationStatusLabel = verification => {
     const status = verification?.verification_status || 'PENDING';
     if (status === 'APPROVED') return '🟢 Approved';
@@ -1436,8 +1060,7 @@ async function initDashboardPage(user) {
   }).join('');
 
   const bookingRows = bookings.slice(0, 10).map(booking => {
-    const verification = verificationsByBooking.get(booking.id);
-    const status = isUserDashboard && verification ? driverReleaseMessage(verification) : booking.status || 'Pending';
+    const status = booking.status || 'Requested';
     const loweredStatus = status.toLowerCase();
     const statusClass = loweredStatus.includes('cancel')
       || loweredStatus.includes('unsuccessful')
@@ -1447,7 +1070,7 @@ async function initDashboardPage(user) {
         : loweredStatus.includes('paid') || loweredStatus.includes('verified')
           ? 'paid'
           : 'successful';
-    const isPaid = loweredStatus.includes('paid');
+
     return `<tr>
       <td>${escapeHTML(booking.service)}</td>
       <td>${escapeHTML(booking.date)}</td>
@@ -1455,12 +1078,28 @@ async function initDashboardPage(user) {
       <td><span class="admin-status ${statusClass}">${escapeHTML(status)}</span></td>
       <td>${escapeHTML(booking.price || 'GBP 0')}</td>
       ${isAdmin ? `<td>
-        <button class="admin-btn-icon mark-paid-btn" data-id="${booking.id}" ${isPaid ? 'disabled' : ''} title="${isPaid ? 'Already paid' : 'Mark as paid'}">💰</button>
-        <button class="admin-btn-icon delete-booking-btn" data-id="${booking.id}" title="Delete booking">🗑️</button>
+        <button class="admin-btn-icon confirm-booking-btn" data-id="${escapeHTML(booking.id)}" title="Confirm checked availability">Confirm</button>
+        <button class="admin-btn-icon cancel-booking-btn" data-id="${escapeHTML(booking.id)}" title="Cancel booking">Cancel</button>
       </td>` : ''}
     </tr>`;
   }).join('');
 
+  if (isUserDashboard) {
+    const actions = document.getElementById('customerBookingActions');
+    if (actions) {
+      actions.replaceChildren();
+      bookings.filter(b => ['Requested','Confirmed','Pending','Driver Verification Pending'].includes(b.status)).forEach(booking => {
+        const button = document.createElement('button'); button.className = 'btn btn-outline btn-sm';
+        button.textContent = 'Request cancellation: ' + (booking.reference || booking.id);
+        button.addEventListener('click', async () => {
+          if (!confirm('Request cancellation? The team will review the applicable hire terms.')) return;
+          button.disabled = true;
+          try { await manageBooking(booking.id, 'cancel'); }
+          catch(error) { alert(error.message); button.disabled = false; }
+        }); actions.append(button);
+      });
+    }
+  }
   if (tableBody) {
     tableBody.innerHTML = bookings.length === 0
       ? `<tr><td colspan="${isAdmin ? '6' : '5'}" class="txt-dim">No bookings found yet.</td></tr>`
@@ -1469,19 +1108,19 @@ async function initDashboardPage(user) {
 
   // Add event listeners for booking action buttons
   if (isAdmin) {
-    tableBody?.querySelectorAll('.mark-paid-btn').forEach(btn => {
-      btn.addEventListener('click', () => markBookingAsPaid(btn.dataset.id));
+    tableBody?.querySelectorAll('.confirm-booking-btn').forEach(btn => {
+      btn.addEventListener('click', () => confirmBooking(btn.dataset.id));
     });
 
-    tableBody?.querySelectorAll('.delete-booking-btn').forEach(btn => {
-      btn.addEventListener('click', () => deleteBooking(btn.dataset.id));
+    tableBody?.querySelectorAll('.cancel-booking-btn').forEach(btn => {
+      btn.addEventListener('click', () => cancelBooking(btn.dataset.id));
     });
 
     // Populate customers table
     const customersTableBody = document.getElementById('customersTableBody');
     if (customersTableBody && Array.isArray(bookings)) {
       // Group bookings by customer email
-      const customerData = {};
+      const customerData = Object.create(null);
       bookings.forEach(booking => {
         const email = booking.email;
         if (!email) return;
@@ -1505,7 +1144,7 @@ async function initDashboardPage(user) {
           <td>${customer.bookings}</td>
           <td>${formatMoney(customer.totalSpent)}</td>
           <td>
-            <button class="admin-btn-icon delete-customer-btn" data-email="${customer.email}" title="Delete customer and all bookings">🗑️</button>
+            <a href="mailto:${escapeHTML(customer.email)}">Contact</a>
           </td>
         </tr>
       `).join('');
@@ -1515,15 +1154,13 @@ async function initDashboardPage(user) {
         : customerRows;
 
       // Add event listeners for customer delete buttons
-      customersTableBody.querySelectorAll('.delete-customer-btn').forEach(btn => {
-        btn.addEventListener('click', () => deleteCustomer(btn.dataset.email));
-      });
+
     }
   }
 
   setText('dashboardBookingsCount', bookings.length);
   const now = new Date();
-  const upcomingBookings = bookings.filter(b => b.date && new Date(b.date) >= now);
+  const upcomingBookings = bookings.filter(b => b.date && new Date(b.date + 'T23:59:59') >= now && !/cancel/i.test(b.status || ''));
   setText('dashboardUpcomingCount', upcomingBookings.length);
 
   const uniqueUsers = new Set(bookings.filter(b => b.email).map(b => b.email));
@@ -1536,8 +1173,8 @@ async function initDashboardPage(user) {
   });
   if (weeklyCountEl) weeklyCountEl.textContent = weeklyBookings.length;
 
-  const totalRevenue = bookings.reduce((sum, booking) => sum + parseMoney(booking.price), 0);
-  const pendingBookings = bookings.filter(b => (b.status || '').toLowerCase() === 'pending');
+  const totalRevenue = bookings.filter(b => b.status === 'Paid').reduce((sum, b) => sum + parseMoney(b.price), 0);
+  const pendingBookings = bookings.filter(b => /requested|pending/i.test(b.status || ''));
   const completedBookings = bookings.filter(b => {
     const status = (b.status || '').toLowerCase();
     return status.includes('success') || status.includes('complete') || status.includes('confirm');
@@ -1548,19 +1185,19 @@ async function initDashboardPage(user) {
     const created = b.created_at ? new Date(b.created_at) : null;
     return created && (Date.now() - created.getTime()) > 3 * 24 * 60 * 60 * 1000;
   });
-  const currentMonthRevenue = bookings.reduce((sum, booking) => {
+  const currentMonthRevenue = bookings.filter(b => b.status === 'Paid').reduce((sum, booking) => {
     const created = booking.created_at ? new Date(booking.created_at) : null;
     if (!created || created.getMonth() !== now.getMonth() || created.getFullYear() !== now.getFullYear()) return sum;
     return sum + parseMoney(booking.price);
   }, 0);
   const revenueGoal = Math.max(25000, totalRevenue * 1.25);
   const monthlyProgress = Math.min(100, Math.round((currentMonthRevenue / revenueGoal) * 100)) || 0;
-  const fleetUtilisation = bookings.length ? Math.min(96, Math.round((upcomingBookings.length / Math.max(bookings.length, 1)) * 100) + 28) : 0;
+  const fleetUtilisation = 'Not tracked';
   const followUpRate = bookings.length ? Math.round((pendingBookings.length / bookings.length) * 100) : 0;
 
   setText('dashboardRevenue', formatMoney(totalRevenue));
   setText('dashboardBalance', formatMoney(totalRevenue));
-  setText('dashboardCreditAmount', formatMoney(totalRevenue * 0.27));
+  setText('dashboardCreditAmount', 'Not tracked');
   setText('dashboardPendingCount', pendingBookings.length);
   setText('dashboardCustomersCount', uniqueUsers.size);
   setText('dashboardCompletedCount', completedBookings.length);
@@ -1570,7 +1207,7 @@ async function initDashboardPage(user) {
   setText('dashboardAverageBooking', formatMoney(bookings.length ? totalRevenue / bookings.length : 0));
   setText('dashboardConversionRate', `${bookings.length ? Math.round((completedBookings.length / bookings.length) * 100) : 0}%`);
   setText('dashboardRevenueGoal', `${monthlyProgress}%`);
-  setText('dashboardFleetUtilisation', `${fleetUtilisation}%`);
+  setText('dashboardFleetUtilisation', fleetUtilisation);
   setText('dashboardFollowUps', `${followUpRate}%`);
   setText('dashboardSyncStatus', 'Synced with Supabase');
   setText('dashboardLastSync', `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
@@ -1638,7 +1275,7 @@ async function initDashboardPage(user) {
             <a href="https://www.gov.uk/check-driving-information" target="_blank" rel="noopener">Open DVLA Verification</a>
             <button type="button" class="approve-driver-btn" data-verification-id="${item.verification_id}" data-booking-id="${item.booking_id}" data-email="${escapeHTML(booking.email || '')}">Approve Driver</button>
             <button type="button" class="reject-driver-btn" data-verification-id="${item.verification_id}" data-booking-id="${item.booking_id}" data-email="${escapeHTML(booking.email || '')}">Reject Driver</button>
-            <button type="button" class="delete-driver-docs-btn" data-verification-id="${item.verification_id}">Delete Documents</button>
+
           </div>
         </article>`;
       }).join('') : '<p class="txt-dim">No pending driver checks right now.</p>';
@@ -1662,79 +1299,18 @@ async function initDashboardPage(user) {
       pendingList.querySelectorAll('.reject-driver-btn').forEach(button => {
         button.addEventListener('click', () => updateDriverVerificationStatus(button.dataset.verificationId, button.dataset.bookingId, button.dataset.email, 'REJECTED'));
       });
-      pendingList.querySelectorAll('.delete-driver-docs-btn').forEach(button => {
-        button.addEventListener('click', () => deleteDriverVerificationDocuments(button.dataset.verificationId));
-      });
+
     }
   }
 
-  const composeAdminEmail = (booking, type = 'invoice') => {
-    const customer = booking?.name || 'Customer';
-    const service = booking?.service || 'your Breezyee Vans booking';
-    const amount = document.getElementById('invoiceAmount')?.value || booking?.price || 'GBP 0';
-    const dueDate = document.getElementById('invoiceDueDate')?.value || 'as soon as possible';
-    const customMessage = document.getElementById('invoiceMessage')?.value.trim();
-    const subjects = {
-      invoice: `Invoice for your Breezyee Vans booking`,
-      reminder: `Payment reminder for your Breezyee Vans booking`,
-      confirmation: `Booking confirmation from Breezyee Vans`,
-    };
-    const intros = {
-      invoice: `Please find the invoice details for your Breezyee Vans booking below.`,
-      reminder: `This is a friendly reminder that payment is due for your Breezyee Vans booking.`,
-      confirmation: `Your Breezyee Vans booking details are below.`,
-    };
-    const body = [
-      `Hello ${customer},`,
-      '',
-      customMessage || intros[type] || intros.invoice,
-      '',
-      `Service: ${service}`,
-      `Van: ${booking?.van_size || 'To be confirmed'}`,
-      `Booking date: ${booking?.date || 'To be confirmed'}`,
-      `Time: ${booking?.time || 'To be confirmed'}`,
-      `Pickup: ${booking?.pickup || 'To be confirmed'}`,
-      `Drop-off: ${booking?.dropoff || 'To be confirmed'}`,
-      `Amount: ${amount}`,
-      `Due date: ${dueDate}`,
-      '',
-      `Kind regards,`,
-      ADMIN_OWNER_NAME,
-      `Breezyee Vans`,
-    ].join('\n');
-    return { subject: subjects[type] || subjects.invoice, body, amount, dueDate };
-  };
-
-  const logAdminEmail = async (booking, type, email) => {
-    if (supabase) {
-      await supabase.from('admin_messages').insert([{
-        booking_id: booking?.id || null,
-        recipient_email: booking?.email || null,
-        message_type: type,
-        subject: email.subject,
-        body: email.body,
-        amount: email.amount,
-        due_date: email.dueDate,
-        created_by: user.email,
-      }]);
-    }
-  };
-
-  const openAdminEmail = async (booking, type = 'invoice') => {
-    if (!booking?.email) {
-      setText('invoiceEmailStatus', 'This booking has no customer email');
-      return;
-    }
-    const email = composeAdminEmail(booking, type);
-    setText('invoiceEmailStatus', `Opening ${type} email for ${booking.email}`);
-    const preview = document.getElementById('invoiceEmailPreview');
-    if (preview) preview.textContent = `Subject: ${email.subject}\n\n${email.body}`;
-    try {
-      await logAdminEmail(booking, type, email);
-    } catch (_error) {
-      setText('invoiceEmailStatus', 'Email opened. Add admin_messages table to log sends.');
-    }
-    window.location.href = `mailto:${encodeURIComponent(booking.email)}?subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
+  const composeAdminEmail = booking => ({
+    subject: 'Your booking details',
+    body: booking ? [booking.reference || booking.id, booking.vehicle_name || booking.van_size, booking.date, booking.time, booking.pickup, booking.dropoff, 'Status: ' + booking.status, 'Hire estimate: ' + booking.price, 'This is not a payment receipt or a new confirmation of availability.'].join('\n') : '',
+  });
+  const openAdminEmail = async (booking, type = 'confirmation') => {
+    if (!booking?.email) { setText('invoiceEmailStatus','Select a booking.'); return; }
+    try { const result = await manageBooking(booking.id,type); setText('invoiceEmailStatus',result.message); }
+    catch(error) { setText('invoiceEmailStatus',error.message); }
   };
 
   if (isInvoicePage) {
@@ -1781,19 +1357,19 @@ async function initDashboardPage(user) {
   const revenueGoalBar = document.getElementById('dashboardRevenueGoalBar');
   if (revenueGoalBar) revenueGoalBar.style.width = `${monthlyProgress}%`;
   const fleetBar = document.getElementById('dashboardFleetUtilisationBar');
-  if (fleetBar) fleetBar.style.width = `${fleetUtilisation}%`;
+  if (fleetBar) fleetBar.style.width = '0%';
   const followUpsBar = document.getElementById('dashboardFollowUpsBar');
   if (followUpsBar) followUpsBar.style.width = `${followUpRate}%`;
 
   const monthlyTotals = Array.from({ length: 12 }, () => 0);
   bookings.forEach(booking => {
     const created = booking.created_at ? new Date(booking.created_at) : booking.date ? new Date(booking.date) : null;
-    if (!created || created.getFullYear() !== now.getFullYear()) return;
-    monthlyTotals[created.getMonth()] += parseMoney(booking.price) || 1;
+    if (!created || created.getFullYear() !== now.getFullYear() || booking.status !== 'Paid') return;
+    monthlyTotals[created.getMonth()] += parseMoney(booking.price);
   });
   const maxMonth = Math.max(...monthlyTotals, 1);
   document.querySelectorAll('[data-month-bar]').forEach((bar, index) => {
-    const height = Math.max(14, Math.round((monthlyTotals[index] / maxMonth) * 100));
+    const height = Math.round((monthlyTotals[index] / maxMonth) * 100);
     bar.style.height = `${height}%`;
     bar.classList.toggle('active', index === now.getMonth());
   });

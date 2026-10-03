@@ -1,22 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Dashboard - Breezyee Vans</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body id="dashboardPage" class="user-dashboard-page">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript></head>
+<body id="dashboardPage" class="user-dashboard-page"><a class="skip-link" href="#main">Skip to content</a>
   <div class="user-dashboard-shell">
     <aside class="user-dashboard-sidebar">
-      <a href="index.html" class="user-dashboard-brand"><img src="/logo.png" alt="Breezyee Vans" class="logo-image"></a>
+      <a href="/" class="user-dashboard-brand"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
       <nav class="user-dashboard-nav">
-        <a href="user-dashboard.html" class="active">Overview</a>
-        <a href="booking.html">New Booking</a>
-        <a href="fleet.html">Fleet</a>
+        <a href="/user-dashboard" class="active">Overview</a>
+        <a href="/booking">New Booking</a>
+        <a href="/fleet">Fleet</a>
       </nav>
       <div class="user-profile-card">
         <div class="user-profile-avatar" id="headerAvatar">U</div>
@@ -28,14 +26,14 @@
       <a href="#" class="user-signout-link" id="signOutLink">Sign out</a>
     </aside>
 
-    <main class="user-dashboard-main">
+    <main id="main" class="user-dashboard-main">
       <header class="user-dashboard-hero">
         <div>
           <span class="user-eyebrow">Customer Dashboard</span>
           <h1>Your van hire, organised clearly.</h1>
           <p>Track your Breezyee Vans bookings, see what is coming next, and start a new request in a few clicks.</p>
         </div>
-        <a href="booking.html" class="user-primary-action">Book a Van</a>
+        <a href="/booking" class="user-primary-action">Book a Van</a>
       </header>
 
       <section class="user-stats-grid">
@@ -55,22 +53,22 @@
           <p>Requests awaiting confirmation.</p>
         </article>
         <article class="user-stat-card">
-          <span>Total spend</span>
+          <span>Recorded paid amount</span>
           <strong id="userTotalSpend">GBP 0</strong>
           <p>Estimated value of your bookings.</p>
         </article>
       </section>
 
       <section class="user-quick-grid">
-        <a href="booking.html?van=medium" class="user-quick-card">
+        <a href="/booking?van=medium" class="user-quick-card">
           <span>Medium Van</span>
           <strong>Reserve popular size</strong>
         </a>
-        <a href="booking.html" class="user-quick-card">
+        <a href="/booking" class="user-quick-card">
           <span>Book a Van</span>
           <strong>Reserve your rental</strong>
         </a>
-        <a href="fleet.html" class="user-quick-card">
+        <a href="/fleet" class="user-quick-card">
           <span>Fleet</span>
           <strong>See our vans</strong>
         </a>
@@ -83,7 +81,7 @@
               <span>Next Booking</span>
               <h2 id="userNextService">Loading...</h2>
             </div>
-            <a href="booking.html">Update</a>
+            <a href="/booking">Update</a>
           </div>
           <div class="user-next-card">
             <div>
@@ -137,10 +135,10 @@
             </div>
           </div>
           <div class="user-checklist">
-            <label><input type="checkbox" /> Confirm pickup and drop-off addresses</label>
-            <label><input type="checkbox" /> Pack fragile items separately</label>
-            <label><input type="checkbox" /> Keep keys, documents, and chargers handy</label>
-            <label><input type="checkbox" /> Be ready 15 minutes before arrival</label>
+            <label><input type="checkbox"> Confirm pickup and drop-off addresses</label>
+            <label><input type="checkbox"> Pack fragile items separately</label>
+            <label><input type="checkbox"> Keep keys, documents, and chargers handy</label>
+            <label><input type="checkbox"> Be ready 15 minutes before arrival</label>
           </div>
         </article>
 
@@ -153,8 +151,8 @@
           </div>
           <p class="user-panel-note">Questions about timing, van size, payments, or changing a booking? Contact Breezyee Vans and we will help confirm the details.</p>
           <div class="user-support-actions">
-            <a href="tel:+441234567890">Call support</a>
-            <a href="booking.html">Change booking</a>
+            <a href="tel:+447300331603">Call support</a>
+            <a href="/booking">Change booking</a>
           </div>
         </article>
 
@@ -178,126 +176,10 @@
           </div>
         </article>
 
-        <article class="user-panel user-addresses-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Saved Addresses</span>
-              <h2>Quick access locations</h2>
-            </div>
-            <a href="#" class="user-add-btn">+ Add Address</a>
-          </div>
-          <div class="user-address-list">
-            <div class="address-item">
-              <div class="address-label">Home</div>
-              <div class="address-text">42 Oak Lane, Manchester, M1 4AB</div>
-            </div>
-            <div class="address-item">
-              <div class="address-label">Work</div>
-              <div class="address-text">100 Business Park, Birmingham, B3 2QR</div>
-            </div>
-          </div>
-        </article>
-
-        <article class="user-panel user-favorites-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Your Favorites</span>
-              <h2>Preferred vans & services</h2>
-            </div>
-          </div>
-          <div class="user-fav-grid">
-            <div class="fav-item">
-              <span class="fav-badge">★ Popular</span>
-              <strong>Medium Van</strong>
-              <p>Great for bulky loads</p>
-            </div>
-            <div class="fav-item">
-              <span class="fav-badge">★ Trusted</span>
-              <strong>Medium Van</strong>
-              <p>Great for smaller jobs</p>
-            </div>
-          </div>
-        </article>
-
-        <article class="user-panel user-rewards-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Rewards & Loyalty</span>
-              <h2>Earn points on every booking</h2>
-            </div>
-          </div>
-          <div class="rewards-content">
-            <div class="reward-stat">
-              <strong id="userRewardPoints">245</strong>
-              <span>Points earned</span>
-            </div>
-            <p class="user-panel-note">Every £1 spent = 10 points. Redeem 500 points for £20 off your next booking.</p>
-            <div class="reward-progress">
-              <div class="progress-bar" style="width: 49%;"></div>
-            </div>
-            <small>245 / 500 points to next reward</small>
-          </div>
-        </article>
-
-        <article class="user-panel user-payment-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Payment Methods</span>
-              <h2>Manage your payment options</h2>
-            </div>
-            <a href="#" class="user-add-btn">+ Add Card</a>
-          </div>
-          <div class="user-payment-list">
-            <div class="payment-method">
-              <span class="payment-icon">💳</span>
-              <div>
-                <strong>Visa ending in 4242</strong>
-                <p>Expires 12/25</p>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <article class="user-panel user-reviews-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Your Reviews</span>
-              <h2>Share your experience</h2>
-            </div>
-          </div>
-          <div class="user-review-item">
-            <div class="review-header">
-              <div>
-                <strong>Van Hire - 2024-05-15</strong>
-                <div class="star-rating">★★★★★</div>
-              </div>
-              <a href="#" class="edit-review">Edit</a>
-            </div>
-            <p>"Great van, easy booking, and the whole process was smooth from pickup to drop-off."</p>
-          </div>
-          <a href="booking.html" class="user-panel-link">Leave a review →</a>
-        </article>
-
-        <article class="user-panel user-referral-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Referral Program</span>
-              <h2>Share & earn £10 credits</h2>
-            </div>
-          </div>
-          <div class="referral-content">
-            <p>Invite friends and get £10 credit for every successful referral!</p>
-            <div class="referral-code">
-              <input type="text" value="REF-OLLIE2024" readonly>
-              <button onclick="navigator.clipboard.writeText('REF-OLLIE2024')">Copy</button>
-            </div>
-            <p class="user-panel-note"><strong>£20</strong> already earned from 2 successful referrals</p>
-          </div>
-        </article>
       </section>
-    </main>
+    <section class="user-panel contact-card"><h2>Manage a request</h2><p>Cancellations are reviewed against your agreed hire terms.</p><div id="customerBookingActions" class="review-actions"></div></section></main>
   </div>
 
   <script type="module" src="app.js"></script>
-</body>
-</html>
+
+<footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer></body></html>

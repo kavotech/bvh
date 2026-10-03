@@ -1,33 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Book Now — Breezyee Vans</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript></head>
+<body><a class="skip-link" href="#main">Skip to content</a>
 
   <nav class="navbar" id="navbar">
     <div class="nav-container">
-      <a href="index.html" class="nav-logo"><img src="/logo.png" alt="Breezyee Vans" class="logo-image"></a>
-      </a>
+      <a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
       <ul class="nav-links" id="navLinks">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="fleet.html">Our Fleet</a></li>
-        <li><a href="booking.html" class="nav-active">Book Now</a></li>
-        <li class="nav-auth nav-auth-signed-out"><a href="login.html">Login</a></li>
-        <li class="nav-auth nav-auth-signed-in" style="display:none;"><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/fleet">Our Fleet</a></li>
+        <li><a href="/services">Services</a></li><li><a href="/contact">Contact</a></li><li><a href="/booking" class="nav-active">Book Now</a></li>
+        <li class="nav-auth nav-auth-signed-out"><a href="/login">Login</a></li>
+        <li class="nav-auth nav-auth-signed-in" style="display:none;"><a href="/dashboard">Dashboard</a></li>
         <li class="nav-auth nav-auth-signed-in" style="display:none;"><a href="#" id="signOutLink">Sign out</a></li>
       </ul>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
         <span></span><span></span><span></span>
       </button>
     </div>
-  </nav>
+  </nav><main id="main">
 
   <section class="page-hero bg-purple">
     <div class="container">
@@ -37,7 +34,7 @@
     </div>
   </section>
 
-  <div class="wave-wrap wave-from-purple"><svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,30 C360,0 1080,60 1440,30 L1440,60 L0,60 Z" fill="#f5f0ff"/></svg></div>
+  <div class="wave-wrap wave-from-purple"><svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,30 C360,0 1080,60 1440,30 L1440,60 L0,60 Z" fill="#f5f0ff"></path></svg></div>
 
   <!-- MAIN BOOKING FORM -->
   <section class="section bg-lavender">
@@ -50,13 +47,13 @@
             <h3>Van Hire</h3>
           </div>
 
-          <form class="booking-form" id="bookingForm">
+          <form class="booking-form" id="bookingForm"><p id="bookingStatus" role="status">Loading vehicle options…</p><p><a href="/login" target="_blank" rel="noopener">Sign in or create an account</a> before submitting driver documents.</p>
 
             <div class="bk-section-label">Van Details</div>
             <div class="bk-grid">
               <div class="bk-field bk-field-full">
-                <label>Van Size</label>
-                <select id="vanSize" required>
+                <label for="vanSize">Van Size</label>
+                <select id="vanSize" required="">
                   <option value="">Select a van size</option>
                   <option value="small">Small / Medium Van — Citroen Berlingo (£100/day)</option>
                   <option value="medium">Medium / Large Van — Mercedes Sprinter (£200/day)</option>
@@ -68,34 +65,34 @@
             <div class="bk-section-label">Move Details</div>
             <div class="bk-grid">
               <div class="bk-field">
-                <label>Pick-up Location</label>
+                <label for="pickup">Pick-up Location</label>
                 <div class="bk-input-ico">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 119.5 9 2.5 2.5 0 0112 11.5z"/></svg>
-                  <input type="text" id="pickup" placeholder="Postcode or address" required />
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 119.5 9 2.5 2.5 0 0112 11.5z"></path></svg>
+                  <input type="text" id="pickup" placeholder="Postcode or address" required="">
                 </div>
               </div>
 
               <div class="bk-field">
-                <label>Drop-off Location</label>
+                <label for="dropoff">Drop-off Location</label>
                 <div class="bk-input-ico">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 119.5 9 2.5 2.5 0 0112 11.5z"/></svg>
-                  <input type="text" id="dropoff" placeholder="Postcode or address" required />
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 119.5 9 2.5 2.5 0 0112 11.5z"></path></svg>
+                  <input type="text" id="dropoff" placeholder="Postcode or address" required="">
                 </div>
               </div>
 
               <div class="bk-field">
-                <label>Pick-up Date</label>
-                <input type="date" id="bookDate" required />
+                <label for="bookDate">Pick-up Date</label>
+                <input type="date" id="bookDate" required="">
               </div>
 
               <div class="bk-field">
-                <label>Pick-up Time</label>
-                <input type="time" id="bookTime" value="10:00" required />
+                <label for="bookTime">Pick-up Time</label>
+                <input type="time" id="bookTime" value="10:00" required="">
               </div>
 
               <div class="bk-field">
-                <label>Duration</label>
-                <select id="duration" required>
+                <label for="duration">Duration</label>
+                <select id="duration" required="">
                   <option value="">Select duration</option>
                   <option value="2">2 Hours</option>
                   <option value="4">4 Hours (Half Day)</option>
@@ -111,51 +108,51 @@
             <div class="bk-section-label">Your Details</div>
             <div class="bk-grid">
               <div class="bk-field bk-field-full">
-                <label>Your Name</label>
-                <input type="text" id="custName" placeholder="Full name" required />
+                <label for="custName">Your Name</label>
+                <input type="text" id="custName" placeholder="Full name" required="" autocomplete="name">
               </div>
 
               <div class="bk-field">
-                <label>Email Address</label>
-                <input type="email" id="custEmail" placeholder="you@example.com" required />
+                <label for="custEmail">Email Address</label>
+                <input type="email" id="custEmail" placeholder="you@example.com" required="" autocomplete="email">
               </div>
 
               <div class="bk-field">
-                <label>Phone Number</label>
-                <input type="tel" id="custPhone" placeholder="+44 7700 000000" required />
+                <label for="custPhone">Phone Number</label>
+                <input type="tel" id="custPhone" placeholder="+44 7700 000000" required="" autocomplete="tel">
               </div>
             </div>
 
             <div class="bk-section-label">Driver Verification</div>
             <div class="driver-info-box">
               <strong>Licence check required</strong>
-              <p>To hire a vehicle with Breezye Van Hires, we need to verify your driving licence. Please generate a DVLA check code using the official GOV.UK service and enter it below.</p>
+              <p>To hire a vehicle with Breezyee Vans, we need to verify your driving licence. Please generate a DVLA check code using the official GOV.UK service and enter it below.</p>
               <a class="btn btn-outline btn-sm" href="https://www.gov.uk/view-driving-licence" target="_blank" rel="noopener">Get DVLA Check Code</a>
             </div>
             <div class="bk-grid">
               <div class="bk-field bk-field-full">
-                <label>Full Legal Name</label>
-                <input type="text" id="driverFullName" placeholder="As shown on your driving licence" required />
+                <label for="driverFullName">Full Legal Name</label>
+                <input type="text" id="driverFullName" placeholder="As shown on your driving licence" required="">
               </div>
               <div class="bk-field">
-                <label>Date of Birth</label>
-                <input type="date" id="driverDateOfBirth" required />
+                <label for="driverDateOfBirth">Date of Birth</label>
+                <input type="date" id="driverDateOfBirth" required="">
               </div>
               <div class="bk-field">
-                <label>Driving Licence Number</label>
-                <input type="text" id="driverLicenceNumber" placeholder="16 character licence number" autocomplete="off" required />
+                <label for="driverLicenceNumber">Driving Licence Number</label>
+                <input type="text" id="driverLicenceNumber" placeholder="16 character licence number" autocomplete="off" required="">
               </div>
               <div class="bk-field bk-field-full">
-                <label>DVLA Check Code</label>
-                <input type="text" id="dvlaCheckCode" placeholder="Enter your DVLA check code" autocomplete="off" required />
+                <label for="dvlaCheckCode">DVLA Check Code</label>
+                <input type="text" id="dvlaCheckCode" placeholder="Enter your DVLA check code" autocomplete="off" required="">
               </div>
               <div class="bk-field">
-                <label>Driving Licence Front</label>
-                <input type="file" id="licenceFrontFile" accept="image/*,.pdf" required />
+                <label for="licenceFrontFile">Driving Licence Front</label>
+                <input type="file" id="licenceFrontFile" accept="image/jpeg,image/png,image/webp,application/pdf" required="">
               </div>
               <div class="bk-field">
-                <label>Driving Licence Back</label>
-                <input type="file" id="licenceBackFile" accept="image/*,.pdf" required />
+                <label for="licenceBackFile">Driving Licence Back</label>
+                <input type="file" id="licenceBackFile" accept="image/jpeg,image/png,image/webp,application/pdf" required="">
               </div>
             </div>
 
@@ -165,26 +162,26 @@
                 <div class="pest-label">Estimated Price</div>
                 <div class="pest-amount" id="estimatedPrice">—</div>
               </div>
-              <div class="pest-note">Includes VAT &amp; insurance. Final price confirmed on booking.</div>
+              <div class="pest-note">Estimate only. Availability, insurance requirements and final hire terms must be confirmed.</div>
             </div>
 
             <div class="terms-acceptance" id="termsAcceptance">
               <label class="terms-check">
-                <input type="checkbox" id="termsAccepted" required disabled />
+                <input type="checkbox" id="termsAccepted" required="">
                 <span>I have read and accept the <button type="button" class="terms-link-button" id="openTermsModal">Terms and Conditions</button>.</span>
               </label>
-              <p id="termsHelp">Open the terms and scroll to the bottom before ticking this box.</p>
+              <p id="termsHelp">Read the hire terms before accepting.</p>
             </div>
 
-            <button type="submit" class="btn btn-primary bk-submit">Confirm Booking →</button>
-          </form>
+            <button type="submit" class="btn btn-primary bk-submit">Review booking request →</button>
+          <p class="form-note">Protected by reCAPTCHA. Google’s <a href="https://policies.google.com/privacy">Privacy Policy</a> and <a href="https://policies.google.com/terms">Terms of Service</a> apply. Licence files: JPG, PNG, WebP or PDF, up to 5 MB each.</p></form>
 
           <div class="booking-confirm" id="bookingConfirm" style="display:none">
             <div class="confirm-icon">
-              <svg viewBox="0 0 48 48" fill="none" width="52" height="52"><circle cx="24" cy="24" r="22" fill="#5b22b0"/><path d="M14 24l8 8 12-14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg viewBox="0 0 48 48" fill="none" width="52" height="52"><circle cx="24" cy="24" r="22" fill="#5b22b0"></circle><path d="M14 24l8 8 12-14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             </div>
-            <h3>Booking Received!</h3>
-            <p>Thank you! Your booking request and driver verification have been received. Your driving documents are being reviewed before vehicle release.</p>
+            <h3>Booking request received</h3><p>Your reference: <strong id="bookingReference"></strong></p>
+            <p>Thank you! Your booking request and driver verification have been received. Availability is not yet confirmed. We will contact you with the next steps.</p>
             <button class="btn btn-outline" id="newBookingBtn">Make Another Booking</button>
           </div>
         </div>
@@ -213,37 +210,12 @@
         </div>
 
         <!-- Trust list -->
-        <div class="bk-sidebar-card">
-          <h4>Why Book with Us?</h4>
-          <ul class="bk-trust-list">
-            <li>
-              <svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M10 2l2.09 4.26L17 7.27l-3.5 3.41.83 4.82L10 13.27l-4.33 2.23.83-4.82L3 7.27l4.91-.01L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-              Automatic vans
-            </li>
-            <li>
-              <svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M10 18s-7-5-7-10a7 7 0 0114 0c0 5-7 10-7 10z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10" cy="8" r="2" stroke="currentColor" stroke-width="1.6"/></svg>
-              Insurance included
-            </li>
-            <li>
-              <svg viewBox="0 0 20 20" width="18" height="18" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Confirmed quickly
-            </li>
-            <li>
-              <svg viewBox="0 0 20 20" width="18" height="18" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M2 8h16" stroke="currentColor" stroke-width="1.6"/></svg>
-              No hidden fees
-            </li>
-            <li>
-              <svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M18 13.56v2.25a1.5 1.5 0 01-1.64 1.5 14.84 14.84 0 01-6.47-2.3A14.63 14.63 0 012.3 7.11 14.84 14.84 0 01.01 .66 1.5 1.5 0 011.5 0h2.25A1.5 1.5 0 015.27 1.3c.1.72.27 1.43.52 2.11a1.5 1.5 0 01-.34 1.58l-.95.95a12 12 0 004.5 4.5l.95-.95a1.5 1.5 0 011.58-.34c.68.25 1.39.42 2.11.52A1.5 1.5 0 0118 10.94v2.62z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              24/7 support
-            </li>
-          </ul>
-        </div>
 
         <!-- Need help -->
         <div class="bk-sidebar-card bk-help-card">
           <h4>Need Help Booking?</h4>
           <p>We can help you choose the right van.</p>
-          <a href="tel:+441234567890" class="btn btn-primary bk-call-btn">Call Us Now</a>
+          <a href="tel:+447300331603" class="btn btn-primary bk-call-btn">Call Us Now</a>
         </div>
 
       </div>
@@ -251,97 +223,17 @@
   </section>
 
   <!-- LOCATION SELECTOR -->
-  <section class="section bg-white">
-    <div class="container">
-      <div class="sec-hdr reveal">
-        <h3>Find a Van Near You</h3>
-      </div>
-      <div class="location-selector reveal">
-        <div class="loc-field">
-          <label>By Location:</label>
-          <div class="loc-select-wrap">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 119.5 9 2.5 2.5 0 0112 11.5z"/></svg>
-            <select>
-              <option>Location or Town</option>
-              <option>London</option>
-              <option>Birmingham</option>
-              <option>Manchester</option>
-              <option>Bristol</option>
-              <option>Glasgow</option>
-              <option>Edinburgh</option>
-            </select>
-          </div>
-        </div>
-        <div class="loc-field">
-          <label>By Airport:</label>
-          <div class="loc-select-wrap">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.01 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <select>
-              <option>Airport</option>
-              <option>Heathrow</option>
-              <option>Gatwick</option>
-              <option>Manchester Airport</option>
-              <option>Birmingham Airport</option>
-              <option>Stansted</option>
-            </select>
-          </div>
-        </div>
-        <div class="loc-field">
-          <label>By Region:</label>
-          <div class="loc-select-wrap">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" stroke-linejoin="round"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-            <select>
-              <option>Region</option>
-              <option>London</option>
-              <option>South East</option>
-              <option>Midlands</option>
-              <option>North West</option>
-              <option>Scotland</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <footer class="footer" id="contact">
-    <div class="footer-main">
-      <div class="container footer-grid">
-        <div class="footer-brand">
-          <a href="index.html" class="nav-logo footer-logo"><img src="/logo.png" alt="Breezyee Vans" class="logo-image"></a>
-          <p>Premium self-drive van hire across the UK.</p>
-        </div>
-        <div class="footer-col"><h5>Quick Links</h5><ul><li><a href="index.html">Home</a></li><li><a href="fleet.html">Our Fleet</a></li><li><a href="booking.html">Book Now</a></li></ul></div>
-        
-        <div class="footer-col"><h5>Contact</h5><ul class="footer-contact"><li><a href="tel:+441234567890">+44 1234 567 890</a></li><li><a href="mailto:hello@breezyeevans.co.uk">hello@breezyeevans.co.uk</a></li><li>United Kingdom</li></ul></div>
-      </div>
-    </div>
-    <div class="footer-mid">
-      <div class="container footer-mid-row">
-        <div class="footer-links-list"><a href="#">About Us</a><a href="#">Blog</a><a href="#">Our Partners</a></div>
-        <div class="footer-socials">
-          <a href="#" class="soc-btn" aria-label="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
-          <a href="#" class="soc-btn" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
-          <a href="#" class="soc-btn" aria-label="TikTok"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg></a>
-        </div>
-        <div class="footer-payments">
-          <div class="pay-badge"><svg viewBox="0 0 60 38" width="60" height="38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#1A1F71"/><text x="30" y="26" font-family="Arial,sans-serif" font-size="15" font-weight="bold" font-style="italic" fill="white" text-anchor="middle" letter-spacing="1">VISA</text></svg></div>
-          <div class="pay-badge"><svg viewBox="0 0 60 38" width="60" height="38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#252525"/><circle cx="23" cy="19" r="10" fill="#EB001B"/><circle cx="37" cy="19" r="10" fill="#F79E1B" fill-opacity="0.9"/></svg></div>
-          <div class="pay-badge"><svg viewBox="0 0 60 38" width="60" height="38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#FFB3C7"/><text x="30" y="24" font-family="Arial,sans-serif" font-size="11" font-weight="bold" fill="#1A1A1A" text-anchor="middle">klarna</text></svg></div>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans Ltd. All rights reserved.</p><div class="footer-legal"><a href="terms.html">Terms &amp; Conditions</a><a href="#">Privacy Policy</a><a href="#">Cookie Policy</a></div></div></div>
-  </footer>
+  </main><footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer>
 
-  <div class="terms-modal" id="termsModal" aria-hidden="true">
-    <div class="terms-modal-panel" role="dialog" aria-modal="true" aria-labelledby="termsModalTitle">
+  <dialog id="termsModal" class="terms-modal" aria-labelledby="termsTitle">
+    <div class="terms-modal-panel" aria-labelledby="termsModalTitle">
       <div class="terms-modal-head">
         <div>
           <span class="sec-tag">Rental Agreement</span>
-          <h3 id="termsModalTitle">Terms and Conditions</h3>
+          <h3 id="termsTitle">Terms and Conditions</h3>
         </div>
-        <button type="button" class="terms-modal-close" id="closeTermsModal" aria-label="Close terms modal">&times;</button>
+        <button type="button" class="terms-modal-close" id="closeTermsModal" aria-label="Close terms modal">×</button>
       </div>
       <div class="terms-modal-body" id="termsModalBody" tabindex="0">
         <p><strong>Please read these terms and conditions carefully before booking.</strong> By making a booking and signing the online contract you agree to be bound by these terms and conditions.</p>
@@ -378,13 +270,13 @@
       </div>
       <div class="terms-modal-foot">
         <span id="termsScrollStatus">Scroll to the bottom to enable acceptance.</span>
-        <button type="button" class="btn btn-primary" id="doneTermsModal" disabled>I've Read These Terms</button>
+        <button type="button" class="btn btn-primary" id="doneTermsModal" disabled="">I've Read These Terms</button>
       </div>
     </div>
-  </div>
+  </dialog>
 
-  <div class="cookie-banner" id="cookieBanner"><div class="cookie-inner"><div class="cookie-txt"><p>This website uses cookies to ensure you get the best experience on our website. Please let us know your preferences.</p><p>Please read our <a href="#">Cookie policy</a>.</p></div><div class="cookie-btns"><button class="btn btn-outline btn-sm" id="cookieManage">Manage</button><button class="btn btn-primary btn-sm" id="cookieAccept">Accept</button></div></div></div>
-  <button class="chat-fab" id="chatBubble" aria-label="Call us"><svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.01 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="chat-dot"></span></button>
-  <script type="module" src="app.js"></script>
-</body>
-</html>
+  <div class="cookie-banner" id="cookieBanner"><div class="cookie-inner"><div class="cookie-txt"><p>This website uses browser storage for sign-in and form security.</p><p>Please read our <a href="/cookies">Cookie policy</a>.</p></div><div class="cookie-btns"><button class="btn btn-outline btn-sm" id="cookieManage">Dismiss</button><button class="btn btn-primary btn-sm" id="cookieAccept">Remember dismissal</button></div></div></div>
+  <button class="chat-fab" id="chatBubble" aria-label="Call us"><svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.01 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="chat-dot"></span></button>
+  <dialog id="bookingReview" class="review-dialog"><h2>Review your request</h2><p id="reviewDetails" style="white-space:pre-line"></p><p id="reviewStatus" role="status"></p><div class="review-actions"><button class="btn btn-outline" id="editBooking" type="button">Edit details</button><button class="btn btn-primary" id="submitReviewedBooking" type="button">Submit request</button></div></dialog><script type="module" src="app.js"></script>
+
+</body></html>

@@ -1,29 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login — Breezyee Vans</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body id="loginPage" class="page-auth">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript></head>
+<body id="loginPage" class="page-auth"><a class="skip-link" href="#main">Skip to content</a>
   <nav class="navbar" id="navbar">
     <div class="nav-container">
-      <a href="index.html" class="nav-logo"><img src="/logo.png" alt="Breezyee Vans" class="logo-image"></a>
+      <a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
       <ul class="nav-links" id="navLinks">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="fleet.html">Our Fleet</a></li>
-        <li><a href="booking.html">Book Now</a></li>
-        <li class="nav-auth nav-auth-signed-out"><a href="login.html">Login</a></li>
-        <li class="nav-auth nav-auth-signed-in" style="display:none;"><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/fleet">Our Fleet</a></li>
+        <li><a href="/services">Services</a></li><li><a href="/contact">Contact</a></li><li><a href="/booking">Book Now</a></li>
+        <li class="nav-auth nav-auth-signed-out"><a href="/login">Login</a></li>
+        <li class="nav-auth nav-auth-signed-in" style="display:none;"><a href="/dashboard">Dashboard</a></li>
         <li class="nav-auth nav-auth-signed-in" style="display:none;"><a href="#" id="signOutLink">Sign out</a></li>
       </ul>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
     </div>
-  </nav>
+  </nav><main id="main">
 
   <section class="page-hero bg-purple">
     <div class="container">
@@ -33,7 +31,7 @@
     </div>
   </section>
 
-  <div class="wave-wrap wave-from-purple"><svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,30 C360,0 1080,60 1440,30 L1440,60 L0,60 Z" fill="#f5f0ff"/></svg></div>
+  <div class="wave-wrap wave-from-purple"><svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,30 C360,0 1080,60 1440,30 L1440,60 L0,60 Z" fill="#f5f0ff"></path></svg></div>
 
   <section class="section bg-white">
     <div class="container auth-page-grid">
@@ -60,46 +58,42 @@
             <button type="button" class="btn btn-outline btn-sm" id="authToggle">Create an account</button>
           </div>
         </div>
-        <div class="auth-status" id="authStatus">The first step to your dashboard.</div>
+        <div class="auth-status" id="authStatus" role="status" aria-live="polite">The first step to your dashboard.</div>
         <form id="authForm" class="auth-form">
           <div class="bk-field">
-            <label>Email address or username</label>
-            <input type="text" id="authEmail" required placeholder="you@example.com or admin" />
+            <label for="authEmail">Email address or username</label>
+            <input type="text" id="authEmail" required="" placeholder="you@example.com or admin" autocomplete="email">
           </div>
           <div class="bk-field">
-            <label>Password</label>
-            <input type="password" id="authPassword" required placeholder="Enter a secure password" />
+            <label for="authPassword">Password</label>
+            <input type="password" id="authPassword" required="" placeholder="Enter a secure password" autocomplete="current-password" maxlength="128">
           </div>
           <div class="bk-field signup-only" style="display:none;">
-            <label>Full name</label>
-            <input type="text" id="authFullName" placeholder="Your full name" />
+            <label for="authFullName">Full name</label>
+            <input type="text" id="authFullName" placeholder="Your full name">
           </div>
           <div class="bk-field signup-only" style="display:none;">
-            <label>Date of birth</label>
-            <input type="date" id="authDob" />
+            <label for="authDob">Date of birth</label>
+            <input type="date" id="authDob">
           </div>
           <div class="bk-field signup-only" style="display:none;">
-            <label>Phone number</label>
-            <input type="tel" id="authPhone" placeholder="+44 7700 000000" />
+            <label for="authPhone">Phone number</label>
+            <input type="tel" id="authPhone" placeholder="+44 7700 000000">
           </div>
           <div class="bk-field signup-only" style="display:none;">
-            <label>Postcode</label>
-            <input type="text" id="authPostcode" placeholder="SW1A 1AA" />
+            <label for="authPostcode">Postcode</label>
+            <input type="text" id="authPostcode" placeholder="SW1A 1AA">
           </div>
           <div class="auth-actions">
             <button type="submit" class="btn btn-primary" id="authSubmit">Sign in</button>
           </div>
-        </form>
+        </form><div class="auth-recovery"><button type="button" id="auth-reset">Forgot password?</button><button type="button" id="auth-resend">Resend verification email</button></div>
       </div>
     </div>
   </section>
 
-  <footer class="footer footer-minimal" id="contact">
-    <div class="container footer-bottom-inner" style="padding: 28px 0;">
-      <p class="txt-white-60">Need help? Call us on <a href="tel:+441234567890">+44 1234 567 890</a> or email <a href="mailto:hello@breezyeevans.co.uk">hello@breezyeevans.co.uk</a>.</p>
-    </div>
-  </footer>
+  </main><footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer>
 
   <script type="module" src="app.js"></script>
-</body>
-</html>
+
+</body></html>

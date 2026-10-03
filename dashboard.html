@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Breezyee Vans</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body id="dashboardPage" class="admin-console-page">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript></head>
+<body id="dashboardPage" class="admin-console-page"><a class="skip-link" href="#main">Skip to content</a>
   <div class="admin-console-shell">
     <aside class="admin-console-sidebar">
-      <a href="index.html" class="admin-console-brand">
+      <a href="/" class="admin-console-brand">
         <span class="admin-console-brand-mark">BV</span>
         <strong>Breezyee</strong>
       </a>
@@ -23,43 +21,36 @@
       </div>
       <nav class="admin-console-menu">
         <span>Main Menu</span>
-        <a href="dashboard.html" class="active"><b>DB</b>Dashboard</a>
-        <a href="admin-driver-checks.html"><b>DV</b>Driver Checks</a>
-        <a href="admin-analytics.html"><b>AN</b>Analytics <small>20</small></a>
-        <a href="admin-transactions.html"><b>TR</b>Transactions</a>
-        <a href="admin-invoices.html"><b>IN</b>Invoices</a>
+        <a href="/dashboard" class="active"><b>DB</b>Dashboard</a>
+        <a href="/admin-driver-checks"><b>DV</b>Driver Checks</a>
+        <a href="/admin-analytics"><b>AN</b>Analytics <small>20</small></a>
+        <a href="/admin-transactions"><b>TR</b>Transactions</a>
+        <a href="/admin-invoices"><b>IN</b>Invoices</a>
       </nav>
       <nav class="admin-console-menu">
         <span>Features</span>
-        <a href="admin-transactions.html#recurring"><b>RC</b>Recurring <small>16</small></a>
-        <a href="admin-invoices.html#subscriptions"><b>SB</b>Subscriptions</a>
-        <a href="admin-settings.html#feedback"><b>FB</b>Feedback</a>
+        <a href="/admin-transactions#recurring"><b>RC</b>Recurring <small>16</small></a>
+
+        <a href="/contact"><b>FB</b>Feedback</a>
       </nav>
       <nav class="admin-console-menu">
         <span>General</span>
-        <a href="admin-settings.html"><b>ST</b>Settings</a>
-        <a href="admin-settings.html#help"><b>HP</b>Help Desk</a>
+        <a href="/admin-settings"><b>ST</b>Settings</a>
+        <a href="/contact"><b>HP</b>Help Desk</a>
         <a href="#" id="signOutLink"><b>LO</b>Log out</a>
       </nav>
       <div class="admin-upgrade-card">
         <strong>Admin Pro</strong>
         <p>Faster control for bookings, customers, and fleet activity.</p>
-        <a href="admin-settings.html">Upgrade</a>
+        <a href="/admin-settings">Upgrade</a>
       </div>
     </aside>
 
-    <main class="admin-console-main">
+    <main id="main" class="admin-console-main">
       <header class="admin-console-topbar">
-        <button class="admin-collapse" type="button" aria-label="Collapse sidebar">K</button>
-        <label class="admin-search">
-          <span>Search</span>
-          <input type="search" placeholder="Search" />
-          <kbd>Ctrl K</kbd>
-        </label>
+
         <div class="admin-console-actions">
-          <button type="button" aria-label="Help">?</button>
-          <button type="button" aria-label="Messages">M</button>
-          <button type="button" aria-label="Notifications">N</button>
+
           <span class="admin-live-pill" id="dashboardLastSync">Syncing...</span>
           <div class="admin-console-avatar" id="headerAvatar">A</div>
         </div>
@@ -72,54 +63,19 @@
         </div>
         <div class="admin-hero-actions">
           <span class="admin-date-chip">Thu, 28 May 2026</span>
-          <a class="admin-export-button" href="booking.html">New Booking</a>
+          <a class="admin-export-button" href="/booking">New Booking</a>
         </div>
       </section>
 
       <section class="admin-kpi-grid">
-        <article class="admin-kpi-card admin-balance-card">
-          <div class="admin-kpi-top">
-            <span class="admin-kpi-icon">GBP</span>
-            <button type="button">USD</button>
-          </div>
-          <h2>Account Balance</h2>
-          <strong id="dashboardBalance">GBP 0</strong>
-          <p><span class="positive">+3.2%</span> from last month</p>
-          <div class="admin-card-spark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-          <div class="admin-money-actions">
-            <a href="admin-invoices.html">Send Invoice</a>
-            <a href="admin-transactions.html">Request Money</a>
-          </div>
-        </article>
 
-        <article class="admin-kpi-card">
-          <div class="admin-kpi-top">
-            <span class="admin-kpi-icon">EX</span>
-            <button type="button">...</button>
-          </div>
-          <h2>Total Expenses</h2>
-          <strong id="dashboardCreditAmount">GBP 0</strong>
-          <p><span class="negative">-2.1%</span> from last month</p>
-          <div class="admin-kpi-foot"><span>Deposits and refunds</span><b>Live</b></div>
-        </article>
-
-        <article class="admin-kpi-card">
-          <div class="admin-kpi-top">
-            <span class="admin-kpi-icon">SV</span>
-            <button type="button">...</button>
-          </div>
-          <h2>Total Savings</h2>
-          <strong id="dashboardRevenue">GBP 0</strong>
-          <p><span class="positive">+4.5%</span> from last month</p>
-          <div class="admin-kpi-foot"><span>Gross booking value</span><b>Synced</b></div>
-        </article>
       </section>
 
       <section class="admin-console-grid">
         <article class="admin-panel admin-wallet-panel">
           <div class="admin-panel-header">
             <h2>Operations Snapshot</h2>
-            <a href="admin-invoices.html">+ Add New</a>
+            <a href="/admin-invoices">+ Add New</a>
           </div>
           <div class="admin-wallet-grid">
             <div><b>BK</b><span>Total bookings</span><strong id="dashboardBookingsCount">0</strong><small>All captured requests</small></div>
@@ -134,32 +90,20 @@
         <article class="admin-panel admin-overview-panel">
           <div class="admin-panel-header">
             <h2>Overview</h2>
-            <div class="admin-panel-tools"><span>Earnings</span><button type="button">This Year</button></div>
+            <div class="admin-panel-tools"><span>Earnings</span></div>
           </div>
           <div class="admin-year-chart" aria-hidden="true">
-            <span data-month-bar style="height:42%"></span><span data-month-bar style="height:62%"></span><span data-month-bar style="height:72%"></span><span data-month-bar style="height:44%"></span>
-            <span data-month-bar style="height:58%"></span><span data-month-bar style="height:20%"></span><span data-month-bar style="height:44%"></span><span data-month-bar class="active" style="height:82%"></span>
-            <span data-month-bar style="height:54%"></span><span data-month-bar style="height:34%"></span><span data-month-bar style="height:30%"></span><span data-month-bar style="height:54%"></span>
+            <span data-month-bar="" style="height:42%"></span><span data-month-bar="" style="height:62%"></span><span data-month-bar="" style="height:72%"></span><span data-month-bar="" style="height:44%"></span>
+            <span data-month-bar="" style="height:58%"></span><span data-month-bar="" style="height:20%"></span><span data-month-bar="" style="height:44%"></span><span data-month-bar="" class="active" style="height:82%"></span>
+            <span data-month-bar="" style="height:54%"></span><span data-month-bar="" style="height:34%"></span><span data-month-bar="" style="height:30%"></span><span data-month-bar="" style="height:54%"></span>
           </div>
           <div class="admin-month-row"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span></div>
-        </article>
-
-        <article class="admin-panel admin-savings-panel">
-          <div class="admin-panel-header">
-            <h2>Operations Plan</h2>
-            <button type="button">...</button>
-          </div>
-          <div class="admin-plan-list">
-            <div><span>Fleet utilisation</span><strong id="dashboardFleetUtilisation">0%</strong><em><i id="dashboardFleetUtilisationBar" style="width:0%"></i></em></div>
-            <div><span>Monthly revenue goal</span><strong id="dashboardRevenueGoal">0%</strong><em><i id="dashboardRevenueGoalBar" style="width:0%"></i></em></div>
-            <div><span>Customer follow-ups</span><strong id="dashboardFollowUps">0%</strong><em><i id="dashboardFollowUpsBar" style="width:0%"></i></em></div>
-          </div>
         </article>
 
         <article class="admin-panel admin-table-panel">
           <div class="admin-panel-header">
             <h2>Recent Transactions</h2>
-            <a href="admin-transactions.html">Filter</a>
+            <a href="/admin-transactions">Filter</a>
           </div>
           <div class="admin-table-wrap">
             <table class="admin-history-table">
@@ -195,7 +139,7 @@
         <article class="admin-panel admin-ops-panel">
           <div class="admin-panel-header">
             <h2>Operations Command</h2>
-            <a href="admin-transactions.html">Open Queue</a>
+            <a href="/admin-transactions">Open Queue</a>
           </div>
           <div class="admin-command-grid">
             <div><span>Jobs Today</span><strong id="dashboardTodayCount">0</strong><small>Scheduled for today</small></div>
@@ -211,15 +155,15 @@
             <span>Admin tools</span>
           </div>
           <div class="admin-action-list">
-            <a href="booking.html"><b>NB</b><span>Create new booking</span></a>
-            <a href="admin-invoices.html"><b>IV</b><span>Send invoice or reminder</span></a>
-            <a href="admin-analytics.html"><b>AN</b><span>Review performance</span></a>
-            <a href="admin-settings.html#help"><b>HP</b><span>Open help desk</span></a>
+            <a href="/booking"><b>NB</b><span>Create new booking</span></a>
+            <a href="/admin-invoices"><b>IV</b><span>Send invoice or reminder</span></a>
+            <a href="/admin-analytics"><b>AN</b><span>Review performance</span></a>
+            <a href="/contact"><b>HP</b><span>Open help desk</span></a>
           </div>
         </article>
       </section>
     </main>
   </div>
   <script type="module" src="app.js"></script>
-</body>
-</html>
+
+<footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer></body></html>

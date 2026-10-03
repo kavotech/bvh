@@ -1,35 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings - Breezyee Vans Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body id="dashboardPage" class="admin-console-page">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript></head>
+<body id="dashboardPage" class="admin-console-page"><a class="skip-link" href="#main">Skip to content</a>
   <div class="admin-console-shell">
     <aside class="admin-console-sidebar">
-      <a href="index.html" class="admin-console-brand"><img src="/logo.png" alt="Breezyee Vans" class="logo-image"></a>
+      <a href="/" class="admin-console-brand"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
       <div class="admin-owner-card"><span>Admin account</span><strong class="admin-owner-name">Mr Olushola Fadipe</strong><small id="dashboardSyncStatus">Connecting to Supabase</small></div>
-      <nav class="admin-console-menu"><span>Main Menu</span><a href="dashboard.html"><b>DB</b>Dashboard</a><a href="admin-analytics.html"><b>AN</b>Analytics <small>20</small></a><a href="admin-transactions.html"><b>TR</b>Transactions</a><a href="admin-invoices.html"><b>IN</b>Invoices</a></nav>
-      <nav class="admin-console-menu"><span>Management</span><a href="admin-cars.html"><b>FL</b>Fleet Cars</a><a href="#pricing"><b>PR</b>Pricing</a><a href="#drivers"><b>DR</b>Drivers</a></nav>
-      <nav class="admin-console-menu"><span>General</span><a href="admin-settings.html" class="active"><b>ST</b>Settings</a><a href="#help"><b>HP</b>Help Desk</a><a href="#" id="signOutLink"><b>LO</b>Log out</a></nav>
-      <div class="admin-upgrade-card"><strong>Admin Pro</strong><p>Configure the workspace for your team.</p><a href="dashboard.html">Back home</a></div>
+      <nav class="admin-console-menu"><span>Main Menu</span><a href="/dashboard"><b>DB</b>Dashboard</a><a href="/admin-analytics"><b>AN</b>Analytics <small>20</small></a><a href="/admin-transactions"><b>TR</b>Transactions</a><a href="/admin-invoices"><b>IN</b>Invoices</a></nav>
+      <nav class="admin-console-menu"><span>Management</span><a href="/admin-cars"><b>FL</b>Fleet Cars</a><a href="/admin-cars"><b>PR</b>Pricing</a><a href="/admin-driver-checks"><b>DR</b>Drivers</a></nav>
+      <nav class="admin-console-menu"><span>General</span><a href="/admin-settings" class="active"><b>ST</b>Settings</a><a href="/contact"><b>HP</b>Help Desk</a><a href="#" id="signOutLink"><b>LO</b>Log out</a></nav>
+      <div class="admin-upgrade-card"><strong>Admin Pro</strong><p>Configure the workspace for your team.</p><a href="/dashboard">Back home</a></div>
     </aside>
-    <main class="admin-console-main">
-      <header class="admin-console-topbar"><button class="admin-collapse" type="button">K</button><label class="admin-search"><span>Search</span><input type="search" placeholder="Search settings" /><kbd>Ctrl K</kbd></label><div class="admin-console-actions"><button type="button">?</button><button type="button">M</button><button type="button">N</button><span class="admin-live-pill" id="dashboardLastSync">Syncing...</span><div class="admin-console-avatar" id="headerAvatar">A</div></div></header>
-      <section class="admin-console-hero"><div><h1>Settings</h1><p>Manage admin preferences, service rules, support requests, and workspace controls.</p></div><div class="admin-hero-actions"><span class="admin-date-chip">Workspace</span><a class="admin-export-button" href="dashboard.html">Save Changes</a></div></section>
+    <main id="main" class="admin-console-main">
+      <header class="admin-console-topbar"><div class="admin-console-actions"><span class="admin-live-pill" id="dashboardLastSync">Syncing...</span><div class="admin-console-avatar" id="headerAvatar">A</div></div></header>
+      <section class="admin-console-hero"><div><h1>Settings</h1><p>Account and operational information.</p></div></section>
       <section class="admin-settings-grid">
-        <article class="admin-panel"><div class="admin-panel-header"><h2>Profile</h2><button type="button">Edit</button></div><div class="admin-settings-list"><label>Admin name<input value="Mr Olushola Fadipe" /></label><label>Company name<input value="Breezyee Vans" /></label><label>Default currency<input value="GBP" /></label><label>Admin region<input value="United Kingdom" /></label></div></article>
-        <article class="admin-panel"><div class="admin-panel-header"><h2>Booking Rules</h2><button type="button">Update</button></div><div class="admin-toggle-list"><label><input type="checkbox" checked /> Require deposit before confirmation</label><label><input type="checkbox" checked /> Notify admin on new booking</label><label><input type="checkbox" /> Auto-assign vans by size</label></div></article>
-        <article class="admin-panel" id="feedback"><div class="admin-panel-header"><h2>Feedback</h2><button type="button">Open</button></div><div class="admin-plan-list"><div><span>Customer rating</span><strong>4.8</strong><em><i style="width:96%"></i></em></div><div><span>Open feedback</span><strong>3</strong><em><i style="width:30%"></i></em></div></div></article>
-        <article class="admin-panel" id="help"><div class="admin-panel-header"><h2>Help Desk</h2><button type="button">New ticket</button></div><div class="admin-service-grid"><div><strong>Payment issue</strong><span>2 open tickets</span></div><div><strong>Booking change</strong><span>5 open tickets</span></div><div><strong>Driver support</strong><span>1 open ticket</span></div></div></article>
+        <article class="admin-panel"><div class="admin-panel-header"><h2>Profile</h2></div><div class="admin-settings-list"><label>Admin name<input value="Mr Olushola Fadipe" readonly="readonly"></label><label>Company name<input value="Breezyee Vans" readonly="readonly"></label><label>Default currency<input value="GBP" readonly="readonly"></label><label>Admin region<input value="United Kingdom" readonly="readonly"></label></div></article>
+
       </section>
-    </main>
+    <section class="admin-panel contact-card"><h2>Operational settings</h2><p>Fleet rates are managed in Fleet Cars. Account, email and storage settings are managed in Supabase and Vercel.</p><a class="btn btn-primary" href="/admin-cars">Manage fleet and rates</a></section></main>
   </div>
   <script type="module" src="app.js"></script>
-</body>
-</html>
+
+<footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer></body></html>

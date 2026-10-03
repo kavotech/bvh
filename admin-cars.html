@@ -1,28 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fleet Management - Breezyee Vans Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body id="dashboardPage" class="admin-console-page" data-page="cars">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript></head>
+<body id="dashboardPage" class="admin-console-page" data-page="cars"><a class="skip-link" href="#main">Skip to content</a>
   <div class="admin-console-shell">
     <aside class="admin-console-sidebar">
-      <a href="index.html" class="admin-console-brand"><img src="/logo.png" alt="Breezyee Vans" class="logo-image"></a>
+      <a href="/" class="admin-console-brand"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
       <div class="admin-owner-card"><span>Admin account</span><strong class="admin-owner-name">Mr Olushola Fadipe</strong><small id="dashboardSyncStatus">Connecting to Supabase</small></div>
-      <nav class="admin-console-menu"><span>Main Menu</span><a href="dashboard.html"><b>DB</b>Dashboard</a><a href="admin-analytics.html"><b>AN</b>Analytics <small>20</small></a><a href="admin-transactions.html"><b>TR</b>Transactions</a><a href="admin-invoices.html"><b>IN</b>Invoices</a></nav>
-      <nav class="admin-console-menu"><span>Management</span><a href="admin-cars.html" class="active"><b>FL</b>Fleet Cars</a><a href="#pricing"><b>PR</b>Pricing</a><a href="#drivers"><b>DR</b>Drivers</a></nav>
-      <nav class="admin-console-menu"><span>General</span><a href="admin-settings.html"><b>ST</b>Settings</a><a href="#help"><b>HP</b>Help Desk</a><a href="#" id="signOutLink"><b>LO</b>Log out</a></nav>
-      <div class="admin-upgrade-card"><strong>Admin Pro</strong><p>Manage your fleet and bookings.</p><a href="dashboard.html">Back home</a></div>
+      <nav class="admin-console-menu"><span>Main Menu</span><a href="/dashboard"><b>DB</b>Dashboard</a><a href="/admin-analytics"><b>AN</b>Analytics <small>20</small></a><a href="/admin-transactions"><b>TR</b>Transactions</a><a href="/admin-invoices"><b>IN</b>Invoices</a></nav>
+      <nav class="admin-console-menu"><span>Management</span><a href="/admin-cars" class="active"><b>FL</b>Fleet Cars</a><a href="/admin-cars"><b>PR</b>Pricing</a><a href="/admin-driver-checks"><b>DR</b>Drivers</a></nav>
+      <nav class="admin-console-menu"><span>General</span><a href="/admin-settings"><b>ST</b>Settings</a><a href="/contact"><b>HP</b>Help Desk</a><a href="#" id="signOutLink"><b>LO</b>Log out</a></nav>
+      <div class="admin-upgrade-card"><strong>Admin Pro</strong><p>Manage your fleet and bookings.</p><a href="/dashboard">Back home</a></div>
     </aside>
 
-    <main class="admin-console-main">
-      <header class="admin-console-topbar"><button class="admin-collapse" type="button">K</button><label class="admin-search"><span>Search</span><input type="search" placeholder="Search cars..." /><kbd>Ctrl K</kbd></label><div class="admin-console-actions"><button type="button">?</button><button type="button">M</button><button type="button">N</button><span class="admin-live-pill" id="dashboardLastSync">Syncing...</span><div class="admin-console-avatar" id="headerAvatar">A</div></div></header>
-      
+    <main id="main" class="admin-console-main">
+      <header class="admin-console-topbar"><div class="admin-console-actions"><span class="admin-live-pill" id="dashboardLastSync">Syncing...</span><div class="admin-console-avatar" id="headerAvatar">A</div></div></header>
+
       <section class="admin-console-hero">
         <div>
           <h1>Fleet Management</h1>
@@ -99,14 +97,14 @@
       <div class="admin-modal-body">
         <form id="carForm">
           <div class="form-group">
-            <label>Car Model <span class="required">*</span></label>
-            <input type="text" id="carModel" placeholder="e.g., Mercedes Sprinter" required />
+            <label for="carModel">Car Model <span class="required">*</span></label>
+            <input type="text" id="carModel" placeholder="e.g., Mercedes Sprinter" required="">
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label>Type <span class="required">*</span></label>
-              <select id="carType" required>
+              <label for="carType">Type <span class="required">*</span></label>
+              <select id="carType" required="">
                 <option value="">Select type</option>
                 <option value="small">Small / Medium Van</option>
                 <option value="medium">Medium / Large Van</option>
@@ -114,35 +112,35 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Price per Day (£) <span class="required">*</span></label>
-              <input type="number" id="carPrice" placeholder="e.g., 200" min="1" required />
+              <label for="carPrice">Price per Day (£) <span class="required">*</span></label>
+              <input type="number" id="carPrice" placeholder="e.g., 200" min="1" required="">
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label>Capacity (m³) <span class="required">*</span></label>
-              <input type="text" id="carCapacity" placeholder="e.g., 10–12" required />
+              <label for="carCapacity">Capacity (m³) <span class="required">*</span></label>
+              <input type="text" id="carCapacity" placeholder="e.g., 10–12" required="">
             </div>
             <div class="form-group">
-              <label>Payload (kg) <span class="required">*</span></label>
-              <input type="number" id="carPayload" placeholder="e.g., 1500" min="1" required />
+              <label for="carPayload">Payload (kg) <span class="required">*</span></label>
+              <input type="number" id="carPayload" placeholder="e.g., 1500" min="1" required="">
             </div>
           </div>
 
           <div class="form-group">
-            <label>Description</label>
+            <label for="carDesc">Description</label>
             <textarea id="carDesc" placeholder="Brief description of the van..."></textarea>
           </div>
 
           <div class="form-group">
-            <label>Car Image</label>
+            <label for="carImage">Car Image</label>
             <div class="file-upload-area" id="fileUploadArea">
-              <input type="file" id="carImage" accept="image/*" style="display: none;" />
+              <input type="file" id="carImage" accept="image/jpeg,image/png,image/webp" style="display: none;">
               <div class="file-upload-content">
                 <span class="file-upload-icon">📷</span>
                 <p>Click to upload or drag and drop</p>
-                <small>PNG, JPG, GIF up to 5MB</small>
+                <small>JPG, PNG or WebP up to 5 MB</small>
               </div>
             </div>
             <div id="imagePreview" style="display: none; margin-top: 12px;">
@@ -152,7 +150,7 @@
           </div>
 
           <div class="form-check">
-            <label><input type="checkbox" id="carActive" checked /> Car is active</label>
+            <label><input type="checkbox" id="carActive" checked=""> Car is active</label>
           </div>
 
           <div class="admin-modal-footer">
@@ -165,160 +163,5 @@
   </div>
 
   <script type="module" src="app.js"></script>
-  <script>
-    // Make functions globally accessible for onclick handlers
-    window.removeImage = function() {
-      const carImage = document.getElementById('carImage');
-      const imagePreview = document.getElementById('imagePreview');
-      carImage.value = '';
-      imagePreview.style.display = 'none';
-    };
 
-    window.closeCarModal = function() {
-      document.getElementById('carModal').style.display = 'none';
-    };
-
-    window.handleCarFormSubmit = async function(e) {
-      e.preventDefault();
-      const form = document.getElementById('carForm');
-      const editId = form.dataset.editId;
-      const submitBtn = form.querySelector('button[type="submit"]');
-      
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Saving...';
-
-      const carData = {
-        model: document.getElementById('carModel').value,
-        type: document.getElementById('carType').value,
-        price_daily: parseFloat(document.getElementById('carPrice').value),
-        capacity: document.getElementById('carCapacity').value,
-        payload: parseInt(document.getElementById('carPayload').value),
-        description: document.getElementById('carDesc').value,
-        is_active: document.getElementById('carActive').checked,
-      };
-
-      // Handle image (if any)
-      const imagePreview = document.getElementById('previewImg');
-      if (imagePreview && imagePreview.src && !imagePreview.src.startsWith('data:')) {
-        carData.image_url = imagePreview.src;
-      }
-
-      try {
-        if (editId) {
-          // Update existing car
-          await window.updateCarInSupabase(editId, carData);
-          delete form.dataset.editId;
-        } else {
-          // Create new car
-          await window.saveCarToSupabase(carData);
-        }
-        
-        alert('Car saved successfully!');
-        document.getElementById('carModal').style.display = 'none';
-        form.reset();
-        document.getElementById('imagePreview').style.display = 'none';
-      } catch (error) {
-        alert('Error saving car: ' + error.message);
-      }
-
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Save Car';
-    };
-
-    window.editCar = function(id) {
-      // This function is now handled in app.js
-      if (typeof editCar === 'function') {
-        editCar(id);
-      }
-    };
-
-    window.deleteCar = function(id) {
-      // This function is now handled in app.js
-      if (typeof deleteCar === 'function') {
-        deleteCar(id);
-      }
-    };
-
-    document.addEventListener('DOMContentLoaded', function() {
-      // Car Management UI
-      const addCarBtn = document.getElementById('addCarBtn');
-      if (addCarBtn) {
-        addCarBtn.addEventListener('click', () => {
-          document.getElementById('carForm').reset();
-          document.getElementById('modalTitle').textContent = 'Add New Car';
-          document.getElementById('imagePreview').style.display = 'none';
-          document.getElementById('carModal').style.display = 'flex';
-        });
-      }
-
-      // File upload handling
-      const fileUploadArea = document.getElementById('fileUploadArea');
-      const carImage = document.getElementById('carImage');
-      const imagePreview = document.getElementById('imagePreview');
-      const previewImg = document.getElementById('previewImg');
-
-      if (fileUploadArea && carImage) {
-        fileUploadArea.addEventListener('click', () => carImage.click());
-        fileUploadArea.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          fileUploadArea.style.background = 'rgba(91, 34, 176, .1)';
-        });
-        fileUploadArea.addEventListener('dragleave', () => {
-          fileUploadArea.style.background = '';
-        });
-        fileUploadArea.addEventListener('drop', (e) => {
-          e.preventDefault();
-          fileUploadArea.style.background = '';
-          if (e.dataTransfer.files[0]) window.handleFileSelect(e.dataTransfer.files[0]);
-        });
-
-        carImage.addEventListener('change', (e) => {
-          if (e.target.files[0]) window.handleFileSelect(e.target.files[0]);
-        });
-      }
-
-      // Form submission
-      const carForm = document.getElementById('carForm');
-      if (carForm) {
-        carForm.addEventListener('submit', window.handleCarFormSubmit);
-      }
-
-      // Edit car button handlers
-      document.querySelectorAll('.edit-car-btn').forEach(btn => {
-        btn.addEventListener('click', window.editCar);
-      });
-
-      // Delete car handlers
-      document.querySelectorAll('.delete-car-btn').forEach(btn => {
-        btn.addEventListener('click', window.deleteCar);
-      });
-
-      // Close modal on background click
-      const carModal = document.getElementById('carModal');
-      if (carModal) {
-        carModal.addEventListener('click', (e) => {
-          if (e.target === carModal) {
-            carModal.style.display = 'none';
-          }
-        });
-      }
-    });
-
-    // File selection handler
-    window.handleFileSelect = function(file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File too large. Max 5MB.');
-        return;
-      }
-      const reader = new FileReader();
-      const previewImg = document.getElementById('previewImg');
-      const imagePreview = document.getElementById('imagePreview');
-      reader.onload = (e) => {
-        previewImg.src = e.target.result;
-        imagePreview.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    };
-  </script>
-</body>
-</html>
+<footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer><script type="module" src="/fleet-admin.js"></script></body></html>
