@@ -2,6 +2,7 @@ const origin = 'https://www.breezyeevans.co.uk';
 export const pages = {
   index: ['Self-drive Van Hire | Breezyee Vans', 'Explore Breezyee Vans: Citroen Berlingo, Mercedes Sprinter and Iveco Daily Luton van hire. Compare rates and request your preferred dates.'],
   fleet: ['Our Vans & Daily Hire Rates | Breezyee Vans', 'Compare our small, medium and XL vans, load space and daily hire rates. Find the right Breezyee van for your next move.'],
+  vehicle: ['Vehicle Preview & Booking | Breezyee Vans', 'View a Breezyee van preview, compare load space and daily rates, then continue to a booking request for your chosen vehicle.'],
   booking: ['Request a Van Booking | Breezyee Vans', 'Choose your van, review your estimated hire price and securely submit your booking request. Availability is confirmed by our team.'],
   services: ['Van Hire & Moving Enquiries | Breezyee Vans', 'Explore self-drive van hire for collections, larger moves and business transport. Discuss your moving requirements with Breezyee Vans.'],
   contact: ['Contact Breezyee Vans | Van Hire Enquiries', 'Call Breezyee Vans on +44 7300 331603 or send an enquiry about van hire, a move or an existing booking request.'],

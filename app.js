@@ -1,4 +1,5 @@
 function fleetImageUrl(value) { return ({'/van-small.jpg':'/van-small.webp','/van-medium.jpg':'/van-medium.webp','/van-large.png':'/van-large.webp'})[value] || value || '/van-small.webp'; }
+function vehicleDetailUrl(car) { return `/vehicle?van=${encodeURIComponent(car.id?.startsWith('fallback-') ? car.type : car.id || car.type)}`; }
 function escapeHTML(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 /* ============================================================
    BREEZYEE VANS — App JS
@@ -6,7 +7,9 @@ function escapeHTML(value) { return String(value ?? '').replace(/[&<>"']/g, c =>
 import { supabase, ADMIN_EMAIL } from './supabase.js';
 import { post } from './forms.js';
 import { initBookingWorkflow } from './booking-workflow.js';
+import { initVehicleViewer } from './vehicle-viewer.js';
 initBookingWorkflow();
+initVehicleViewer();
 
 let currentUser = null;
 let bookingsRealtimeChannel = null;
@@ -766,7 +769,7 @@ function renderFleetCards(cars, container) {
         </div>
         <div class="van-price-row">
           <div><span class="price-from">From</span><strong class="price-big">£${escapeHTML(car.price_daily)}</strong><span class="price-unit">/day</span></div>
-          <a href="/booking?van=${car.id.startsWith('fallback-') ? car.type : car.id}" class="btn btn-primary">Book Now</a>
+          <a href="${vehicleDetailUrl(car)}" class="btn btn-primary">View Van</a>
         </div>
       </div>
     </div>
@@ -810,7 +813,7 @@ function renderSpecsCards(cars, container) {
           <span class="spec-value">From £${escapeHTML(car.price_daily)}</span>
         </div>
       </div>
-      <a href="/booking?van=${car.id.startsWith('fallback-') ? car.type : car.id}" class="btn btn-primary btn-sm">Book Now</a>
+      <a href="${vehicleDetailUrl(car)}" class="btn btn-primary btn-sm">View Van</a>
     </div>
   `).join('');
   requestAnimationFrame(() => setupRevealElements(container));

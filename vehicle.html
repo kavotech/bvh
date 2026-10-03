@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Van - Breezyee Vans</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <nav class="navbar"><div class="nav-inner"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><button class="nav-toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button><ul class="nav-links"><li><a href="/">Home</a></li><li><a href="/fleet" class="nav-active">Our Fleet</a></li><li><a href="/services">Services</a></li><li><a href="/contact">Contact</a></li><li><a href="/booking">Book Now</a></li></ul><a href="/booking" class="btn btn-nav">Book Now</a></div></nav>
+
+  <main id="main" class="vehicle-page">
+    <section class="vehicle-showcase" aria-labelledby="vehicleTitle">
+      <div class="vehicle-topbar">
+        <a class="vehicle-back" href="/fleet" aria-label="Back to fleet">←</a>
+        <div class="vehicle-mode-tabs" aria-label="Vehicle action">
+          <span class="mode-pill is-active">Rent</span>
+          <span class="mode-pill">Inspect</span>
+          <span class="mode-pill">Reserve</span>
+        </div>
+        <a class="vehicle-help" href="tel:+447300331603">Call +44 7300 331603</a>
+      </div>
+
+      <div class="vehicle-stage">
+        <div class="vehicle-title-block">
+          <p class="sec-tag">Vehicle preview</p>
+          <h1 id="vehicleTitle">Mercedes Sprinter</h1>
+          <p id="vehicleSubtitle">Medium van for removals, deliveries and business transport.</p>
+        </div>
+
+        <div class="vehicle-view-shell" aria-live="polite">
+          <img id="vehicleImage" src="/van-medium.webp" alt="Mercedes Sprinter side view" width="980" height="560" fetchpriority="high">
+          <div class="vehicle-shadow" aria-hidden="true"></div>
+          <div class="window-overlay" id="windowOverlay" aria-hidden="true"></div>
+          <div class="door-overlay" id="doorOverlay" aria-hidden="true"></div>
+        </div>
+
+        <div class="vehicle-angle-controls" aria-label="Preview angle">
+          <button class="angle-btn is-active" type="button" data-angle="left">L</button>
+          <button class="angle-btn" type="button" data-angle="rear">R</button>
+          <button class="angle-btn" type="button" data-angle="front">F</button>
+          <button class="angle-btn" type="button" data-angle="cargo">B</button>
+        </div>
+
+        <aside class="vehicle-assistant" aria-label="Booking assistant">
+          <div class="assistant-head">
+            <div><h2>Booking Assistant</h2><p>Inspect the van before you request it.</p></div>
+            <span aria-hidden="true">×</span>
+          </div>
+          <div class="assistant-grid">
+            <button class="assistant-action is-active" type="button" data-focus="rent"><strong>Book this van</strong><span>Request dates</span></button>
+            <button class="assistant-action" type="button" data-focus="damage"><strong>Condition</strong><span>Visual checks</span></button>
+            <button class="assistant-action" type="button" data-focus="load"><strong>Load space</strong><span id="vehicleCapacity">10-12 m³</span></button>
+            <button class="assistant-action" type="button" data-focus="price"><strong>Daily rate</strong><span id="vehicleRate">From £200</span></button>
+          </div>
+          <div class="assistant-command">
+            <p id="vehiclePrompt">Arrange to rent this van for your move.</p>
+            <a id="bookVehicleLink" class="btn btn-primary" href="/booking?van=medium">Book this van</a>
+          </div>
+        </aside>
+
+        <div class="vehicle-side-tools" aria-label="Vehicle controls">
+          <button type="button" class="tool-btn" data-toggle="windows" aria-pressed="false">Windows</button>
+          <button type="button" class="tool-btn" data-toggle="doors" aria-pressed="false">Doors</button>
+          <button type="button" class="tool-btn" data-toggle="lights" aria-pressed="false">Lights</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="vehicle-details-band">
+      <div class="vehicle-detail-card">
+        <h2>Vehicle Details</h2>
+        <div class="vehicle-spec-list">
+          <div><span>Transmission</span><strong>Automatic</strong></div>
+          <div><span>Load Space</span><strong id="detailCapacity">10-12 m³</strong></div>
+          <div><span>Payload</span><strong id="detailPayload">1500 kg</strong></div>
+          <div><span>Estimated Rate</span><strong id="detailRate">From £200/day</strong></div>
+        </div>
+      </div>
+      <div class="vehicle-detail-card">
+        <h2>Hire Status</h2>
+        <p id="vehicleStatus">Use this preview to choose your van. Availability is confirmed by the Breezyee Vans team after your request is submitted.</p>
+        <div class="vehicle-detail-actions">
+          <a id="bookVehicleLinkBottom" class="btn btn-primary" href="/booking?van=medium">Continue to booking</a>
+          <a class="btn btn-outline-dark" href="/contact">Ask a question</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

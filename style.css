@@ -215,7 +215,8 @@ input, select, button, textarea { font-family: var(--font); }
   transition: box-shadow .3s;
 }
 .navbar.scrolled { box-shadow: 0 4px 24px rgba(91,34,176,.1); }
-.nav-container {
+.nav-container,
+.nav-inner {
   width: min(1200px, 92vw); margin-inline: auto;
   height: 100%; display: flex; align-items: center; gap: 28px;
 }
@@ -5024,3 +5025,58 @@ body.is-ready .hero-stats { animation-delay: .4s; }
 @media(max-width:880px){.hero-complete{grid-template-columns:1fr;gap:28px;padding-block:36px}.hero-complete .hero-text{text-align:center}.hero-vehicle{max-width:560px;margin:auto;transform:none}.hero-vehicle img{height:250px}.contact-grid{grid-template-columns:1fr}.contact-card{padding:24px}.hero-stats-inner{gap:12px}.hstat strong{font-size:1.3rem}.nav-links.open{max-height:calc(100dvh - 72px);overflow:auto}.review-dialog{padding:24px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.reveal{opacity:1!important;transform:none!important}}
 .hero.hero-no-img .hero-inner.hero-complete{display:grid;grid-template-columns:1.05fr 1fr;gap:48px}.hero.hero-no-img .hero-inner.hero-complete .hero-vehicle img{object-fit:contain;background:white}@media(max-width:880px){.hero.hero-no-img .hero-inner.hero-complete{grid-template-columns:1fr;gap:28px}}
+
+.vehicle-page{background:#f2f0f6;color:var(--text);padding-top:var(--nav-h)}
+.vehicle-showcase{width:min(1180px,calc(100% - 32px));margin:32px auto;border-radius:34px;background:linear-gradient(145deg,#f7f6fa,#ebe8f2);box-shadow:0 24px 70px rgba(46,22,80,.14);overflow:hidden;min-height:720px;position:relative}
+.vehicle-topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;padding:32px 36px 0}
+.vehicle-back,.vehicle-help,.mode-pill{border:0;border-radius:16px;background:rgba(255,255,255,.72);box-shadow:0 10px 24px rgba(44,25,75,.08);color:var(--text);font-weight:700;text-decoration:none}
+.vehicle-back{display:grid;place-items:center;width:48px;height:48px;font-size:1.25rem}
+.vehicle-help{justify-self:end;padding:15px 18px;font-size:.86rem}
+.vehicle-mode-tabs{display:flex;gap:8px}
+.mode-pill{padding:14px 22px;font-size:.9rem}
+.mode-pill.is-active{background:#ddd9e6;color:var(--purple-dark)}
+.vehicle-stage{position:relative;min-height:650px;padding:34px 36px 56px}
+.vehicle-title-block{position:relative;z-index:2;max-width:440px;margin-left:82px}
+.vehicle-title-block h1{font-size:clamp(2.2rem,4vw,4rem);line-height:1.02;margin:8px 0 10px;color:#111}
+.vehicle-title-block p:not(.sec-tag){color:#5c5964;font-size:1rem;line-height:1.6}
+.vehicle-view-shell{position:absolute;left:110px;right:300px;top:190px;height:330px;display:grid;place-items:center;transition:transform .35s ease}
+.vehicle-view-shell img{position:relative;z-index:2;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 28px 24px rgba(41,31,62,.25));transition:transform .35s ease,filter .35s ease}
+.vehicle-shadow{position:absolute;z-index:1;bottom:24px;width:72%;height:32px;border-radius:50%;background:rgba(39,34,47,.18);filter:blur(12px)}
+.window-overlay,.door-overlay{position:absolute;z-index:3;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.window-overlay{top:70px;left:33%;width:34%;height:56px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.65),rgba(139,111,178,.12));box-shadow:0 18px 24px rgba(255,255,255,.24)}
+.door-overlay{top:128px;left:46%;width:3px;height:128px;background:var(--purple);box-shadow:80px 0 0 rgba(105,48,195,.7)}
+.vehicle-stage.show-windows .window-overlay,.vehicle-stage.show-doors .door-overlay{opacity:1}
+.vehicle-stage.show-lights .vehicle-view-shell img{filter:drop-shadow(0 28px 24px rgba(41,31,62,.25)) drop-shadow(-26px 0 16px rgba(255,224,117,.6))}
+.vehicle-stage[data-angle=rear] .vehicle-view-shell img{transform:scale(.86) rotateY(180deg)}
+.vehicle-stage[data-angle=front] .vehicle-view-shell img{transform:scale(.86)}
+.vehicle-stage[data-angle=cargo] .vehicle-view-shell img{transform:scale(.92) translateY(-6px)}
+.vehicle-angle-controls{position:absolute;z-index:3;left:118px;top:208px;display:flex;gap:8px;background:rgba(255,255,255,.55);border-radius:18px;padding:8px 10px}
+.angle-btn{width:28px;height:28px;border:0;border-radius:999px;background:transparent;color:#111;font-weight:800;cursor:pointer}
+.angle-btn.is-active{background:var(--green,#16a36b);color:#fff}
+.vehicle-assistant{position:absolute;z-index:5;right:56px;top:150px;width:min(320px,calc(100% - 48px));border-radius:24px;background:rgba(255,255,255,.82);box-shadow:0 26px 70px rgba(34,22,56,.18);backdrop-filter:blur(18px);overflow:hidden}
+.assistant-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding:24px;border-bottom:1px solid rgba(40,25,65,.08)}
+.assistant-head h2{font-size:1.05rem;margin:0 0 4px;color:#15121c}
+.assistant-head p{font-size:.82rem;color:#77717f;margin:0}
+.assistant-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:22px}
+.assistant-action{border:0;border-radius:16px;background:rgba(255,255,255,.68);box-shadow:0 10px 22px rgba(47,29,79,.07);padding:14px;text-align:left;cursor:pointer}
+.assistant-action strong,.assistant-action span{display:block}
+.assistant-action strong{font-size:.9rem;color:#17131f}
+.assistant-action span{font-size:.78rem;color:#696171;margin-top:4px}
+.assistant-action.is-active{background:#fff;box-shadow:0 16px 28px rgba(105,48,195,.12)}
+.assistant-command{padding:22px;background:rgba(246,244,250,.84);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.assistant-command p{flex:1 1 150px;margin:0;color:#373241;line-height:1.5}
+.vehicle-side-tools{position:absolute;z-index:6;right:18px;top:282px;display:flex;flex-direction:column;gap:12px}
+.tool-btn{border:0;border-radius:14px;background:rgba(255,255,255,.72);box-shadow:0 10px 22px rgba(47,29,79,.08);padding:13px 10px;width:76px;font-size:.72rem;font-weight:800;color:#322746;cursor:pointer}
+.tool-btn[aria-pressed=true]{background:var(--purple);color:#fff}
+.vehicle-details-band{width:min(1180px,calc(100% - 32px));margin:0 auto 56px;display:grid;grid-template-columns:1.1fr .9fr;gap:22px}
+.vehicle-detail-card{border-radius:24px;background:#fff;box-shadow:0 16px 40px rgba(41,22,70,.08);padding:28px}
+.vehicle-detail-card h2{font-size:1.2rem;margin-bottom:18px;color:#18131f}
+.vehicle-spec-list{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.vehicle-spec-list div{border-radius:16px;background:#f8f6fb;padding:16px}
+.vehicle-spec-list span{display:block;font-size:.76rem;color:#746d7f;margin-bottom:6px}
+.vehicle-spec-list strong{font-size:1rem;color:#18131f}
+.vehicle-detail-card p{color:#5f5869;line-height:1.65;margin-bottom:20px}
+.vehicle-detail-actions{display:flex;gap:12px;flex-wrap:wrap}
+@media(max-width:980px){.vehicle-showcase{min-height:auto}.vehicle-topbar{grid-template-columns:auto 1fr;align-items:start}.vehicle-mode-tabs{grid-column:1/-1;order:3}.vehicle-help{justify-self:end}.vehicle-stage{min-height:auto;padding:28px 22px 32px;display:flex;flex-direction:column;gap:24px}.vehicle-title-block{margin:0}.vehicle-view-shell{position:relative;left:auto;right:auto;top:auto;height:280px;order:2}.vehicle-angle-controls,.vehicle-assistant,.vehicle-side-tools{position:relative;left:auto;right:auto;top:auto;width:auto}.vehicle-angle-controls{order:3;align-self:flex-start}.vehicle-assistant{order:4}.vehicle-side-tools{order:5;flex-direction:row;flex-wrap:wrap}.vehicle-details-band{grid-template-columns:1fr}.vehicle-spec-list{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.vehicle-showcase,.vehicle-details-band{width:100%;margin-inline:0;border-radius:0}.vehicle-topbar{padding:20px 16px 0;gap:12px}.vehicle-help{font-size:.78rem;padding:13px 14px}.mode-pill{padding:12px 16px}.vehicle-view-shell{height:220px}.vehicle-spec-list{grid-template-columns:1fr}.assistant-grid{grid-template-columns:1fr}.vehicle-detail-card{border-radius:0}.tool-btn{width:auto;min-width:92px}.vehicle-title-block h1{font-size:2.35rem}}
+@media(prefers-reduced-motion:reduce){.vehicle-view-shell,.vehicle-view-shell img,.window-overlay,.door-overlay{transition:none}}
