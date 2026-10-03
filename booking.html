@@ -47,9 +47,18 @@
             <h3>Van Hire</h3>
           </div>
 
-          <form class="booking-form" id="bookingForm"><p id="bookingStatus" role="status">Loading vehicle options…</p><p><a href="/login" target="_blank" rel="noopener">Sign in or create an account</a> before submitting driver documents.</p>
+          <form class="booking-form stepped-booking-form" id="bookingForm"><p id="bookingStatus" role="status">Loading vehicle options…</p><p><a href="/login" target="_blank" rel="noopener">Sign in or create an account</a> before submitting driver documents.</p>
 
-            <div class="bk-section-label">Van Details</div>
+            <div class="booking-stepper" aria-label="Booking progress">
+              <button type="button" class="booking-step-dot is-active" data-step-jump="0"><span>1</span>Van</button>
+              <button type="button" class="booking-step-dot" data-step-jump="1"><span>2</span>Journey</button>
+              <button type="button" class="booking-step-dot" data-step-jump="2"><span>3</span>Details</button>
+              <button type="button" class="booking-step-dot" data-step-jump="3"><span>4</span>Driver</button>
+              <button type="button" class="booking-step-dot" data-step-jump="4"><span>5</span>Review</button>
+            </div>
+
+            <section class="booking-step is-active" data-step="0" aria-labelledby="bookingStepVan">
+            <div class="bk-section-label" id="bookingStepVan">Van Details</div>
             <div class="bk-grid">
               <div class="bk-field bk-field-full">
                 <label for="vanSize">Van Size</label>
@@ -61,8 +70,11 @@
                 </select>
               </div>
             </div>
+            <div class="booking-step-actions"><button type="button" class="btn btn-primary booking-next">Continue</button></div>
+            </section>
 
-            <div class="bk-section-label">Move Details</div>
+            <section class="booking-step" data-step="1" aria-labelledby="bookingStepJourney">
+            <div class="bk-section-label" id="bookingStepJourney">Move Details</div>
             <div class="bk-grid">
               <div class="bk-field">
                 <label for="pickup">Pick-up Location</label>
@@ -104,8 +116,11 @@
                 </select>
               </div>
             </div>
+            <div class="booking-step-actions"><button type="button" class="btn btn-outline-dark booking-prev">Back</button><button type="button" class="btn btn-primary booking-next">Continue</button></div>
+            </section>
 
-            <div class="bk-section-label">Your Details</div>
+            <section class="booking-step" data-step="2" aria-labelledby="bookingStepCustomer">
+            <div class="bk-section-label" id="bookingStepCustomer">Your Details</div>
             <div class="bk-grid">
               <div class="bk-field bk-field-full">
                 <label for="custName">Your Name</label>
@@ -122,8 +137,11 @@
                 <input type="tel" id="custPhone" placeholder="+44 7700 000000" required="" autocomplete="tel">
               </div>
             </div>
+            <div class="booking-step-actions"><button type="button" class="btn btn-outline-dark booking-prev">Back</button><button type="button" class="btn btn-primary booking-next">Continue</button></div>
+            </section>
 
-            <div class="bk-section-label">Driver Verification</div>
+            <section class="booking-step" data-step="3" aria-labelledby="bookingStepDriver">
+            <div class="bk-section-label" id="bookingStepDriver">Driver Verification</div>
             <div class="driver-info-box">
               <strong>Licence check required</strong>
               <p>To hire a vehicle with Breezyee Vans, we need to verify your driving licence. Please generate a DVLA check code using the official GOV.UK service and enter it below.</p>
@@ -155,8 +173,12 @@
                 <input type="file" id="licenceBackFile" accept="image/jpeg,image/png,image/webp,application/pdf" required="">
               </div>
             </div>
+            <div class="booking-step-actions"><button type="button" class="btn btn-outline-dark booking-prev">Back</button><button type="button" class="btn btn-primary booking-next">Continue</button></div>
+            </section>
 
+            <section class="booking-step" data-step="4" aria-labelledby="bookingStepReview">
             <!-- Price estimate -->
+            <div class="bk-section-label" id="bookingStepReview">Review & submit</div>
             <div class="price-est-bar" id="priceEstimate">
               <div class="pest-inner">
                 <div class="pest-label">Estimated Price</div>
@@ -174,7 +196,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary bk-submit">Review booking request →</button>
-          <p class="form-note">Protected by reCAPTCHA. Google’s <a href="https://policies.google.com/privacy">Privacy Policy</a> and <a href="https://policies.google.com/terms">Terms of Service</a> apply. Licence files: JPG, PNG, WebP or PDF, up to 5 MB each.</p></form>
+          <div class="booking-step-actions"><button type="button" class="btn btn-outline-dark booking-prev">Back</button></div><p class="form-note">Protected by reCAPTCHA. Google’s <a href="https://policies.google.com/privacy">Privacy Policy</a> and <a href="https://policies.google.com/terms">Terms of Service</a> apply. Licence files: JPG, PNG, WebP or PDF, up to 5 MB each.</p></section></form>
 
           <div class="booking-confirm" id="bookingConfirm" style="display:none">
             <div class="confirm-icon">

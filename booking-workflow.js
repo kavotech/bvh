@@ -12,6 +12,38 @@ export function initBookingWorkflow() {
   let vehicles = [], requestId = sessionStorage.getItem('bv_booking_request') || crypto.randomUUID();
   sessionStorage.setItem('bv_booking_request', requestId);
   submit.disabled = true;
+  const steps = [...form.querySelectorAll('.booking-step')];
+  const dots = [...form.querySelectorAll('.booking-step-dot')];
+  let activeStep = 0;
+  const showStep = index => {
+    activeStep = Math.max(0, Math.min(index, steps.length - 1));
+    steps.forEach((step, idx) => {
+      const active = idx === activeStep;
+      step.classList.toggle('is-active', active);
+      step.hidden = !active;
+    });
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('is-active', idx === activeStep);
+      dot.classList.toggle('is-complete', idx < activeStep);
+      dot.setAttribute('aria-current', idx === activeStep ? 'step' : 'false');
+    });
+    steps[activeStep]?.querySelector('input,select,textarea,button')?.focus({ preventScroll: true });
+  };
+  const validateStep = index => {
+    const fields = [...steps[index].querySelectorAll('input,select,textarea')].filter(field => !field.disabled);
+    for (const field of fields) {
+      if (!field.reportValidity()) return false;
+    }
+    return true;
+  };
+  form.querySelectorAll('.booking-next').forEach(button => button.addEventListener('click', () => {
+    if (validateStep(activeStep)) showStep(activeStep + 1);
+  }));
+  form.querySelectorAll('.booking-prev').forEach(button => button.addEventListener('click', () => showStep(activeStep - 1)));
+  dots.forEach((dot, idx) => dot.addEventListener('click', () => {
+    if (idx <= activeStep || validateStep(activeStep)) showStep(idx);
+  }));
+  showStep(0);
   async function loadVehicles() {
     try {
       if (!supabase) throw new Error('Booking is temporarily unavailable. Please contact us.');
