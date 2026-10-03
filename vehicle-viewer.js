@@ -62,13 +62,65 @@ async function loadVehicle() {
 function initVehicleControls() {
   const stage = document.querySelector('.vehicle-stage');
   if (!stage) return;
+  const shell = document.querySelector('.vehicle-view-shell');
+  const angles = ['left', 'front', 'rear', 'cargo'];
+  let dragStart = 0;
+  let dragFrame = 0;
+  let dragging = false;
+
+  const setFrame = frame => {
+    dragFrame = ((frame % 36) + 36) % 36;
+    const progress = dragFrame / 35;
+    const tilt = Math.sin(progress * Math.PI * 2);
+    const depth = Math.cos(progress * Math.PI * 2);
+    stage.style.setProperty('--spin-scale', String(0.92 + Math.abs(depth) * 0.08));
+    stage.style.setProperty('--spin-skew', `${tilt * 5}deg`);
+    stage.style.setProperty('--spin-brightness', String(0.86 + Math.abs(depth) * 0.14));
+    const angle = dragFrame < 9 ? 'left' : dragFrame < 18 ? 'front' : dragFrame < 27 ? 'rear' : 'cargo';
+    stage.dataset.angle = angle;
+    document.querySelectorAll('.angle-btn').forEach(item => item.classList.toggle('is-active', item.dataset.angle === angle));
+  };
+
+  const beginDrag = event => {
+    dragging = true;
+    dragStart = event.clientX ?? event.touches?.[0]?.clientX ?? 0;
+    shell?.classList.add('is-dragging');
+    shell?.setPointerCapture?.(event.pointerId);
+  };
+
+  const moveDrag = event => {
+    if (!dragging) return;
+    const x = event.clientX ?? event.touches?.[0]?.clientX ?? dragStart;
+    const delta = x - dragStart;
+    if (Math.abs(delta) < 8) return;
+    setFrame(dragFrame + Math.round(delta / 8));
+    dragStart = x;
+    event.preventDefault?.();
+  };
+
+  const endDrag = event => {
+    dragging = false;
+    shell?.classList.remove('is-dragging');
+    if (event?.pointerId !== undefined) shell?.releasePointerCapture?.(event.pointerId);
+  };
 
   document.querySelectorAll('.angle-btn').forEach(button => {
     button.addEventListener('click', () => {
       document.querySelectorAll('.angle-btn').forEach(item => item.classList.toggle('is-active', item === button));
       stage.dataset.angle = button.dataset.angle;
+      setFrame(Math.max(0, angles.indexOf(button.dataset.angle)) * 9);
     });
   });
+
+  if (shell) {
+    shell.addEventListener('pointerdown', beginDrag);
+    shell.addEventListener('pointermove', moveDrag);
+    shell.addEventListener('pointerup', endDrag);
+    shell.addEventListener('pointercancel', endDrag);
+    shell.addEventListener('touchstart', beginDrag, { passive: true });
+    shell.addEventListener('touchmove', moveDrag, { passive: false });
+    shell.addEventListener('touchend', endDrag);
+  }
 
   document.querySelectorAll('.tool-btn').forEach(button => {
     button.addEventListener('click', () => {

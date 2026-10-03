@@ -5169,3 +5169,12 @@ body.is-ready .hero-stats { animation-delay: .4s; }
 .vehicle-bottom-cards{bottom:-88px}
 .vehicle-bottom-card{background:rgba(239,239,239,.8)}
 @media(max-width:820px){.vehicle-app-shell .vehicle-title-block,.vehicle-app-shell .vehicle-angle-controls,.vehicle-app-shell .vehicle-view-shell,.vehicle-app-shell .vehicle-assistant,.vehicle-app-shell .assistant-command,.vehicle-app-shell .vehicle-side-tools{left:auto;right:auto;top:auto}.vehicle-app-shell .vehicle-view-shell{width:100%;height:260px}}
+
+.vehicle-site-nav{box-shadow:0 8px 28px rgba(0,0,0,.08)}
+.vehicle-app-page{padding-top:var(--nav-h);min-height:calc(100dvh - var(--nav-h))}
+.vehicle-app-shell .vehicle-stage{--spin-scale:1;--spin-skew:0deg;--spin-brightness:.95}
+.vehicle-app-shell .vehicle-view-shell{cursor:grab;touch-action:none;user-select:none}
+.vehicle-app-shell .vehicle-view-shell.is-dragging{cursor:grabbing}
+.vehicle-app-shell .vehicle-view-shell img{transform:scale(var(--spin-scale)) skewX(var(--spin-skew));filter:grayscale(1) contrast(.95) brightness(var(--spin-brightness)) drop-shadow(0 28px 13px rgba(0,0,0,.24))}
+.drag-360-hint{position:absolute;left:50%;bottom:6px;z-index:4;transform:translateX(-50%);border-radius:999px;background:rgba(255,255,255,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);padding:7px 12px;font-size:11px;font-weight:700;color:#202020;pointer-events:none}
+@media(max-width:820px){.vehicle-app-page{padding-top:var(--nav-h)}.vehicle-site-nav .btn-nav{display:none}}
