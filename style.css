@@ -5153,3 +5153,19 @@ body.is-ready .hero-stats { animation-delay: .4s; }
 .vehicle-app-page .vehicle-details-band{display:none}
 @media(max-width:1120px){.vehicle-app-shell{width:100vw;height:720px}.vehicle-app-header{padding-inline:20px}.vehicle-app-shell .vehicle-assistant,.vehicle-app-shell .assistant-command{right:76px}}
 @media(max-width:820px){.vehicle-app-page{place-items:start}.vehicle-app-shell{height:auto;min-height:100dvh;overflow:visible}.vehicle-app-header{height:auto;grid-template-columns:1fr;gap:16px;padding:22px}.vehicle-app-shell .vehicle-mode-tabs{justify-self:start}.vehicle-header-tools{justify-content:flex-start}.vehicle-app-shell .vehicle-stage{height:auto;min-height:0;padding:0 22px 28px;display:flex;flex-direction:column;gap:18px}.vehicle-app-shell .vehicle-back,.vehicle-left-rail,.vehicle-app-shell .vehicle-title-block,.vehicle-app-shell .vehicle-angle-controls,.vehicle-app-shell .vehicle-view-shell,.vehicle-app-shell .vehicle-assistant,.vehicle-app-shell .assistant-command,.vehicle-app-shell .vehicle-side-tools,.vehicle-bottom-cards{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:auto}.vehicle-left-rail,.vehicle-app-shell .vehicle-side-tools{flex-direction:row}.vehicle-app-shell .vehicle-title-block{order:1}.vehicle-app-shell .vehicle-angle-controls{order:2}.vehicle-app-shell .vehicle-view-shell{order:3;width:100%;height:260px}.vehicle-app-shell .vehicle-assistant{order:4}.vehicle-app-shell .assistant-command{order:5;grid-template-columns:1fr}.vehicle-app-shell .vehicle-side-tools{order:6}.vehicle-bottom-cards{order:7;grid-template-columns:1fr}.vehicle-app-shell .vehicle-title-block h1{font-size:34px}.vehicle-location{width:auto;padding-inline:16px}.vehicle-settings{display:none}}
+
+.vehicle-app-shell{background:radial-gradient(circle at 63% 50%,#cfcfcf 0 17%,#d8d8d8 43%,#dadada 100%)}
+.vehicle-app-shell .vehicle-title-block{left:109px;top:14px}
+.vehicle-app-shell .vehicle-angle-controls{top:111px}
+.vehicle-app-shell .vehicle-view-shell{left:126px;top:122px;width:690px;height:272px}
+.vehicle-app-shell .vehicle-view-shell img{object-fit:cover;object-position:center;filter:grayscale(1) contrast(.95) brightness(.95) drop-shadow(0 28px 13px rgba(0,0,0,.24));-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 91%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 91%,transparent 100%)}
+.vehicle-app-shell .vehicle-assistant{right:77px;top:19px;width:285px;background:rgba(236,236,236,.82)}
+.vehicle-app-shell .assistant-command{right:77px;top:267px;width:285px}
+.vehicle-app-shell .vehicle-side-tools{right:20px;top:150px}
+.vehicle-app-shell .assistant-action::before{content:'';width:13px;height:13px;left:10px;top:14px;background:#111;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,0 0,22% 22%,22% 78%,78% 78%,78% 22%,22% 22%)}
+.vehicle-app-shell .assistant-action:nth-child(2)::before{border-radius:50%;clip-path:none}
+.vehicle-app-shell .assistant-action:nth-child(3)::before{border-radius:50%;clip-path:polygon(50% 0,100% 22%,100% 78%,50% 100%,0 78%,0 22%)}
+.vehicle-app-shell .assistant-action:nth-child(4)::before{clip-path:polygon(0 20%,100% 0,80% 100%,0 100%)}
+.vehicle-bottom-cards{bottom:-88px}
+.vehicle-bottom-card{background:rgba(239,239,239,.8)}
+@media(max-width:820px){.vehicle-app-shell .vehicle-title-block,.vehicle-app-shell .vehicle-angle-controls,.vehicle-app-shell .vehicle-view-shell,.vehicle-app-shell .vehicle-assistant,.vehicle-app-shell .assistant-command,.vehicle-app-shell .vehicle-side-tools{left:auto;right:auto;top:auto}.vehicle-app-shell .vehicle-view-shell{width:100%;height:260px}}
