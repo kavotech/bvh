@@ -6,8 +6,8 @@ export function template(title, lines) {
   return { subject: title, html, text };
 }
 export function submissionEmails(kind, data, reference) {
-  const lines = [`Hello ${data.name},`, `Reference: ${reference}`, ...(kind === 'booking' ? [`Vehicle: ${data.vehicle_name}`, `Requested pickup: ${data.date} at ${data.time} (UK time)`, `Pickup: ${data.pickup}`, `Destination: ${data.dropoff}`, `Duration: ${data.duration === 'custom' ? 'Custom hire' : data.duration + ' hours'}`, `Estimated price: ${data.price}. Subject to confirmation.`, 'Status: Requested. This is not a confirmed reservation. We will contact you to confirm availability and the final price.'] : [`Enquiry: ${data.service}`, data.message, 'We have received your enquiry and will reply using the contact details you provided.'])];
-  const title = kind === 'booking' ? 'Your booking request has been received' : 'Your enquiry has been received';
+  const lines = [`Hello ${data.name || 'there'},`, `Reference: ${reference}`, ...(kind === 'booking' ? [`Vehicle: ${data.vehicle_name}`, `Collection date and time: ${data.date} at ${data.time} (UK time)`, `Collection: ${data.pickup}`, `Destination: ${data.dropoff}`, `Duration: ${data.duration === 'custom' ? 'Custom hire' : data.duration + ' hours'}`, `Estimated rental price: ${data.price}.`, `Estimated booking deposit: ${data.booking_deposit_pence ? `£${(Number(data.booking_deposit_pence) / 100).toFixed(2)}` : 'To be confirmed'}`, 'Status: Awaiting Approval.', 'No payment has been taken. Vehicle availability and the final hire terms will be confirmed by our team.'] : [`Enquiry: ${data.service}`, data.message, 'We have received your enquiry and will reply using the contact details you provided.'])];
+  const title = kind === 'booking' ? "We've Received Your Breezyee Vans Booking Request" : 'Your enquiry has been received';
   return [
     { recipient: data.email, ...template(title, lines) },
     { recipient: 'info@breezyeevans.co.uk', ...template(`New ${kind} request — ${reference}`, [...lines, `Customer email: ${data.email}`, `Phone: ${data.phone}`]) },

@@ -11,7 +11,7 @@ export default handle(async (req, res) => {
   await rateLimit(req, client, 'submit');
   const requestId = uuid(body.requestId);
   await captcha(body.token, body.kind);
-  let data, driver = null, owner, charges = null;
+  let data, driver = null, owner, charges;
   if (body.kind === 'booking') {
     const user = await userFor(req, client);
     owner = user.id;
@@ -29,7 +29,8 @@ export default handle(async (req, res) => {
       ...window,
       hold_expires_at: holdExpires,
       payment_deadline_at: paymentDeadline,
-      booking_status: 'Awaiting booking deposit',
+      booking_status: 'Pending Approval',
+      approval_status: 'Pending Approval',
       payment_status: 'unpaid',
       hire_price_pence: charges.hire_price_pence,
       booking_deposit_pence: charges.booking_deposit_pence,
@@ -56,13 +57,10 @@ export default handle(async (req, res) => {
     if (error.message?.includes('vehicle_unavailable')) throw new HttpError(409, 'That vehicle has just been reserved for the selected time. Please choose another vehicle or date.');
     throw new Error('Submission persistence failed');
   }
+  if (body.kind === 'booking') {
+    await client.from('bookings').update({ status: 'Pending Approval', booking_status: 'Pending Approval', approval_status: 'Pending Approval' }).eq('reference', saved.reference);
+    await client.from('booking_holds').update({ status: 'cancelled' }).eq('reference', saved.reference).eq('status', 'active');
+  }
   try { await deliverEmails(client, key); } catch { console.warn('email_queue_pending'); }
-  const payment = body.kind === 'booking' && charges ? {
-    paymentPage: `/payment?reference=${encodeURIComponent(saved.reference)}&category=booking_deposit`,
-    amountTotal: charges.initial_payment_pence,
-    currency: 'gbp',
-    category: 'booking_deposit',
-    breakdown: charges,
-  } : null;
-  res.status(200).json({ reference: saved.reference, status: payment ? 'Awaiting booking deposit' : 'Requested', message: payment ? 'Your booking request is saved. Pay the booking deposit to reserve the vehicle.' : 'Your request is saved. Availability is subject to confirmation.', payment });
+  res.status(200).json({ reference: saved.reference, status: body.kind === 'booking' ? 'Pending Approval' : 'Requested', message: body.kind === 'booking' ? "Booking Request Received! We've received your request and our team will review it shortly. You'll receive an email once your booking has been approved. No payment has been taken." : 'Your request is saved. Availability is subject to confirmation.', payment: null });
 });

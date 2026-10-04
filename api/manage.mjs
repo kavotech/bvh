@@ -1,5 +1,6 @@
-import { handle, requestBody, db, userFor, rateLimit, captcha, text, uuid, digest, HttpError } from '../server/core.mjs';
+import { handle, requestBody, db, userFor, rateLimit, captcha, text, uuid, digest, env, HttpError } from '../server/core.mjs';
 import { template, deliverEmails } from '../server/email.mjs';
+import { checkVehicleAvailable } from '../server/booking-payments.mjs';
 export default handle(async (req,res) => {
   const body=requestBody(req), client=db();
   const user=await userFor(req,client);
@@ -11,6 +12,36 @@ export default handle(async (req,res) => {
   const id=text(body.bookingId,'booking reference',100);
   const {data:booking,error}=await client.from('bookings').select('*').eq('id',id).single();
   if(error || (!isAdmin && booking.user_id!==user.id)) throw new HttpError(404,'Booking not found.');
+  if (['approve','reject'].includes(body.action)) {
+    if (!isAdmin) throw new HttpError(403, 'Administrator access required.');
+    const approvalCode = text(body.approvalCode, 'the approval code', 128, 4);
+    if (approvalCode !== env('ADMIN_APPROVAL_CODE')) throw new HttpError(403, 'The administrative verification code is incorrect.');
+    const key = digest([user.id, body.action, id, String(body.rejectionReason || '')]);
+    const pending = /pending|requested|driver verification/i.test(`${booking.status} ${booking.booking_status} ${booking.approval_status || ''}`);
+    if (!pending) throw new HttpError(409, 'This booking has already been reviewed. Refresh the dashboard.');
+    let status = 'Rejected';
+    let title = 'Update on Your Breezyee Vans Booking Request';
+    let detail = String(body.rejectionReason || '').trim().slice(0, 500) || 'We were unable to accept this request at this time.';
+    if (body.action === 'approve') {
+      if (!await checkVehicleAvailable(client, booking.vehicle_id, booking.collection_at, booking.return_at, booking.id)) throw new HttpError(409, 'This vehicle is no longer available for the requested period.');
+      status = 'Approved — Awaiting Deposit';
+      title = 'Your Breezyee Vans Booking Has Been Approved!';
+      detail = `Great news! Your booking request has been approved. To secure your vehicle, complete the booking deposit here: ${process.env.SITE_URL || 'https://www.breezyeevans.co.uk'}/payment?reference=${encodeURIComponent(booking.reference)}&category=booking_deposit. Deposit deadline: ${booking.payment_deadline_at || 'before collection'}.`;
+      await client.from('bookings').update({ status, booking_status: status, approval_status: status, approved_at: new Date().toISOString(), approved_by: user.id, rejected_at: null, rejected_by: null }).eq('id', booking.id);
+      await client.from('booking_holds').update({ status: 'active', expires_at: booking.payment_deadline_at || new Date(Date.now()+86400000).toISOString() }).eq('booking_id', booking.id);
+      await client.from('booking_payments').update({ status: 'requires_payment' }).eq('booking_id', booking.id).eq('category', 'booking_deposit');
+    } else {
+      await client.from('bookings').update({ status, booking_status: status, approval_status: status, rejected_at: new Date().toISOString(), rejected_by: user.id, rejection_reason: detail }).eq('id', booking.id);
+      await client.from('booking_holds').update({ status: 'cancelled' }).eq('booking_id', booking.id);
+      await client.from('booking_payments').update({ status: 'cancelled' }).eq('booking_id', booking.id).eq('category', 'booking_deposit');
+    }
+    await client.from('booking_approval_audit').insert({ booking_id: booking.id, action: body.action === 'approve' ? 'approved' : 'rejected', actor_id: user.id, reason: detail });
+    const content = template(title, [`Hello ${booking.name || 'there'},`, `Reference: ${booking.reference}`, `Vehicle: ${booking.vehicle_name || booking.van_size}`, `Collection: ${booking.date} at ${booking.time} (owner collection location)`, `Destination: ${booking.dropoff}`, `Rental price: ${booking.price}`, `Booking deposit: £${(Number(booking.booking_deposit_pence || 0) / 100).toFixed(2)}`, `Refundable security deposit: £${(Number(booking.security_deposit_pence || 0) / 100).toFixed(2)}`, `Status: ${status}`, detail]);
+    await client.from('email_outbox').insert([{ submission_key: key, recipient: booking.email, ...content }, { submission_key: key, recipient: process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk', ...template(`Booking ${status} — ${booking.reference}`, [`Reference: ${booking.reference}`, `Status: ${status}`, `Reviewed by: ${user.email}`]) }]);
+    try { await deliverEmails(client, key); } catch { console.warn('email_queue_pending'); }
+    res.status(200).json({ message: body.action === 'approve' ? 'Booking approved and payment instructions emailed.' : 'Booking rejected and the customer has been notified.' });
+    return;
+  }
   const key=digest([user.id,uuid(body.requestId)]);
   let status=booking.status, title='Booking update', detail='Contact us if you have any questions.';
   if(body.action==='cancel') { status='Cancellation requested'; title='Cancellation request received'; detail='Your cancellation request has been received. We will contact you about the applicable hire terms. This does not confirm cancellation or a refund.'; }

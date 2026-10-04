@@ -40,11 +40,12 @@ export default handle(async (req, res) => {
   const category = PAYABLE.has(body.category) ? body.category : 'booking_deposit';
   const { data: booking, error } = await client
     .from('bookings')
-    .select('id,reference,user_id,email,name,vehicle_name,van_size,price,date,time,duration,pickup,dropoff,status,booking_status,payment_status,booking_deposit_pence,outstanding_balance_pence,insurance_charge_pence,security_deposit_pence,payment_deadline_at')
+    .select('id,reference,user_id,email,name,vehicle_name,van_size,price,date,time,duration,pickup,dropoff,status,booking_status,approval_status,payment_status,booking_deposit_pence,outstanding_balance_pence,insurance_charge_pence,security_deposit_pence,payment_deadline_at')
     .eq('reference', reference)
     .single();
   if (error || booking.user_id !== user.id || booking.email?.toLowerCase() !== user.email.toLowerCase()) throw new HttpError(404, 'Booking not found.');
   if (/cancel|expired/i.test(`${booking.status} ${booking.booking_status}`)) throw new HttpError(409, 'This booking is not payable online. Please contact us.');
+  if (category === 'booking_deposit' && !/approved|reserved/i.test(`${booking.approval_status || ''} ${booking.status} ${booking.booking_status}`)) throw new HttpError(409, 'This booking is awaiting administrator approval. We will email you when the deposit can be paid.');
 
   let payment;
   if (category === 'final_balance') payment = await ensureFinalPayment(client, booking);

@@ -67,7 +67,7 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     }
     if(url.includes('bv_claim_emails'))return json([]);
     if(url.includes('/rest/v1/booking_payments')) return json({id:'payment',booking_id:'booking',category:'booking_deposit',expected_amount_pence:2500,received_amount_pence:0,currency:'gbp',status:'requires_payment'});
-    if(url.includes('/rest/v1/bookings'))return json({id:'booking',reference:'BV-TEST123',...user,user_id:user.id,name:'Test Customer',vehicle_name:'Test van',price:'£100',status:'Awaiting booking deposit',booking_status:'Awaiting booking deposit',payment_status:'unpaid',booking_deposit_pence:2500,outstanding_balance_pence:7500,insurance_charge_pence:0,security_deposit_pence:25000});
+    if(url.includes('/rest/v1/bookings'))return json({id:'booking',reference:'BV-TEST123',...user,user_id:user.id,name:'Test Customer',vehicle_name:'Test van',price:'£100',status:'Approved — Awaiting Deposit',booking_status:'Approved — Awaiting Deposit',approval_status:'Approved — Awaiting Deposit',payment_status:'unpaid',booking_deposit_pence:2500,outstanding_balance_pence:7500,insurance_charge_pence:0,security_deposit_pence:25000});
     throw new Error('Unexpected test endpoint');
   };
   try {
@@ -85,9 +85,8 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     mode='ok';action='booking';res=response();
     const booking={kind:'booking',requestId,token:'mock',vehicleId,name:'Test Customer',phone:'+44 7300 331603',pickup:'Test pickup',dropoff:'Test destination',date:'2099-01-02',time:'10:00',duration:'24',termsAccepted:true,price:'£0',driver:{full_name:'Test Customer',date_of_birth:'1990-01-01',driving_licence_number:'TEST-ONLY',dvla_check_code:'TESTCODE',licence_front_file:`${user.id}/${requestId}/front.png`,licence_back_file:`${user.id}/${requestId}/back.png`}};
     await submit(request(booking),res);assert.equal(res.code,200);
-    assert.equal(res.body.payment.paymentPage,`/payment?reference=${encodeURIComponent(res.body.reference)}&category=booking_deposit`);
-    assert.equal(res.body.payment.amountTotal,2500);
-    assert.equal(res.body.payment.currency,'gbp');
+    assert.equal(res.body.payment,null);
+    assert.equal(res.body.status,'Pending Approval');
     const unsigned=request(booking);delete unsigned.headers.authorization;res=response();await submit(unsigned,res);assert.equal(res.code,401);
     action='manage';res=response();await manage(request({action:'confirm',token:'mock',requestId,bookingId:'booking'}),res);assert.equal(res.code,403);
     action='register';mode='captcha-fail';res=response();await auth(request({action:'register',email:user.email,token:'mock'}),res);assert.equal(res.code,403);

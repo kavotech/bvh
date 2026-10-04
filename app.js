@@ -43,22 +43,32 @@ async function refreshAuthState() {
 }
 
 const managementRequests = new Map();
-async function manageBooking(bookingId, action, availabilityChecked = false) {
+async function manageBooking(bookingId, action, availabilityChecked = false, extra = {}) {
   const identity = bookingId + ':' + action;
   const requestId = managementRequests.get(identity) || crypto.randomUUID();
   managementRequests.set(identity, requestId);
-  const controls = document.querySelectorAll('.confirm-booking-btn,.cancel-booking-btn,.approve-driver-btn,.reject-driver-btn,.admin-email-action,#invoiceEmailForm button');
+  const controls = document.querySelectorAll('.confirm-booking-btn,.reject-booking-btn,.cancel-booking-btn,.approve-driver-btn,.reject-driver-btn,.admin-email-action,#invoiceEmailForm button');
   controls.forEach(button => button.disabled = true);
   let result;
-  try { result = await post('/api/manage', { bookingId, action, requestId, availabilityChecked }, 'manage'); }
+  try { result = await post('/api/manage', { bookingId, action, requestId, availabilityChecked, ...extra }, 'manage'); }
   finally { controls.forEach(button => button.disabled = false); }
   managementRequests.delete(identity);
   await initDashboardPage(await refreshAuthState());
   return result;
 }
 async function confirmBooking(bookingId) {
-  if (!confirm('Have you checked vehicle availability and agreed the hire details with the customer?')) return;
-  try { await manageBooking(bookingId, 'confirm', true); }
+  const code = prompt('Enter the administrator approval code:');
+  if (!code) return;
+  if (!confirm('Approve this booking request and email the customer a secure deposit payment link?')) return;
+  try { await manageBooking(bookingId, 'approve', true, { approvalCode: code }); }
+  catch (error) { alert(error.message); }
+}
+async function rejectBooking(bookingId) {
+  const code = prompt('Enter the administrator approval code:');
+  if (!code) return;
+  const reason = prompt('Optional rejection reason:') || '';
+  if (!confirm('Reject this booking request?')) return;
+  try { await manageBooking(bookingId, 'reject', false, { approvalCode: code, rejectionReason: reason }); }
   catch (error) { alert(error.message); }
 }
 async function cancelBooking(bookingId) {
@@ -1043,6 +1053,11 @@ async function initDashboardPage(user) {
           ? 'paid'
           : 'successful';
 
+    const customerAction = !isAdmin && /approved.*deposit|awaiting.*payment/i.test(`${status} ${booking.booking_status || ''}`)
+      ? `<a class="btn btn-primary btn-sm" href="/payment?reference=${encodeURIComponent(booking.reference || '')}&category=booking_deposit">Pay booking deposit</a>`
+      : !isAdmin && /deposit_paid|awaiting final|remaining/i.test(`${booking.payment_status || ''} ${status}`)
+        ? `<a class="btn btn-outline btn-sm" href="/payment?reference=${encodeURIComponent(booking.reference || '')}&category=final_balance">Pay remaining balance</a>`
+        : '—';
     return `<tr>
       <td>${escapeHTML(booking.service)}</td>
       <td>${escapeHTML(booking.date)}</td>
@@ -1050,9 +1065,9 @@ async function initDashboardPage(user) {
       <td><span class="admin-status ${statusClass}">${escapeHTML(status)}</span></td>
       <td>${escapeHTML(booking.price || 'GBP 0')}</td>
       ${isAdmin ? `<td>
-        <button class="admin-btn-icon confirm-booking-btn" data-id="${escapeHTML(booking.id)}" title="Confirm checked availability">Confirm</button>
-        <button class="admin-btn-icon cancel-booking-btn" data-id="${escapeHTML(booking.id)}" title="Cancel booking">Cancel</button>
-      </td>` : ''}
+        <button class="admin-btn-icon confirm-booking-btn" data-id="${escapeHTML(booking.id)}" title="Approve booking request">Approve</button>
+        <button class="admin-btn-icon reject-booking-btn" data-id="${escapeHTML(booking.id)}" title="Reject booking request">Reject</button>
+      </td>` : `<td>${customerAction}</td>`}
     </tr>`;
   }).join('');
 
@@ -1074,7 +1089,7 @@ async function initDashboardPage(user) {
   }
   if (tableBody) {
     tableBody.innerHTML = bookings.length === 0
-      ? `<tr><td colspan="${isAdmin ? '6' : '5'}" class="txt-dim">No bookings found yet.</td></tr>`
+      ? `<tr><td colspan="6" class="txt-dim">No bookings found yet.</td></tr>`
       : isInvoicePage ? invoiceRows : bookingRows;
   }
 
@@ -1082,6 +1097,9 @@ async function initDashboardPage(user) {
   if (isAdmin) {
     tableBody?.querySelectorAll('.confirm-booking-btn').forEach(btn => {
       btn.addEventListener('click', () => confirmBooking(btn.dataset.id));
+    });
+    tableBody?.querySelectorAll('.reject-booking-btn').forEach(btn => {
+      btn.addEventListener('click', () => rejectBooking(btn.dataset.id));
     });
 
     tableBody?.querySelectorAll('.cancel-booking-btn').forEach(btn => {
