@@ -11,9 +11,10 @@ For a fresh database, run these in order:
 5. `20261003_fleet_images.sql`
 6. `20261003_stripe_payments.sql`
 7. `20261003_booking_payment_system.sql`
+8. `20261003_dynamic_deposits_admin_auth.sql`
 
 For the current production database, run only the new incremental migration:
 
-1. `20261003_booking_payment_system.sql`
+1. `20261003_dynamic_deposits_admin_auth.sql`
 
-This migration is additive: it extends `cars` and `bookings`, creates payment, hold, refund, settings, inspection and Stripe webhook event tables, replaces `bv_submit` with the payment-aware version, and adds `bv_vehicle_available`. Review it in Supabase SQL editor before applying. Do not run destructive schema resets against production.
+The latest migration is additive: it adds a booking deposit percentage, optional deposit cap, vehicle-specific refundable security deposit fields, and repairs the explicitly authorised admin account confirmation state. Review it in Supabase SQL editor before applying. Do not run destructive schema resets against production.

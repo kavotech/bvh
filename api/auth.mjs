@@ -59,10 +59,11 @@ export default handle(async (req, res) => {
     const existing = await findUserByEmail(admin, address);
     if (!existing && !shouldCreateUser) throw new HttpError(400, 'No account was found for this email. Create an account first.');
     if (existing && Object.keys(metadata).length) await admin.auth.admin.updateUserById(existing.id, { user_metadata: { ...(existing.user_metadata || {}), ...metadata } });
+    const isAdminAddress = address.toLowerCase() === adminEmail;
     const result = await admin.auth.admin.generateLink({
       type: 'magiclink',
       email: address,
-      options: { redirectTo: `${site()}/login`, data: { ...(existing?.user_metadata || {}), ...metadata, password_set: existing?.user_metadata?.password_set === true } },
+      options: { redirectTo: `${site()}/login`, data: { ...(existing?.user_metadata || {}), ...metadata, password_set: isAdminAddress || existing?.user_metadata?.password_set === true } },
     });
     if (result.error || !result.data?.properties?.email_otp) throw new HttpError(400, 'Unable to create a one-time code. Please wait before trying again.');
     await sendOtpEmail(address, result.data.properties.email_otp);
@@ -74,7 +75,7 @@ export default handle(async (req, res) => {
     const token = text(body.otp, 'your one-time code', 12, 6).replace(/\s+/g, '');
     const result = await anon.auth.verifyOtp({ email: address, token, type: 'email' });
     if (result.error || !result.data.session || !result.data.user?.email_confirmed_at) throw new HttpError(401, 'That code could not be verified. Check the latest email and try again.');
-    res.status(200).json({ session: { access_token: result.data.session.access_token, refresh_token: result.data.session.refresh_token }, requiresPasswordSetup: result.data.user.user_metadata?.password_set !== true });
+    res.status(200).json({ session: { access_token: result.data.session.access_token, refresh_token: result.data.session.refresh_token }, requiresPasswordSetup: address.toLowerCase() !== adminEmail && result.data.user.user_metadata?.password_set !== true });
     return;
   }
 

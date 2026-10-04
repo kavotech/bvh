@@ -11,6 +11,12 @@ function poundsToPenceInput(value, label) {
   return Math.round(amount * 100);
 }
 
+function percentToBpsInput(value, label) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount < 0 || amount > 100) throw new HttpError(400, `Please check ${label}.`);
+  return Math.round(amount * 100);
+}
+
 export default handle(async (req, res) => {
   const body = requestBody(req);
   const client = db();
@@ -26,9 +32,10 @@ export default handle(async (req, res) => {
   if (body.action === 'update') {
     const payload = {
       id: true,
-      booking_deposit_pence: poundsToPenceInput(body.bookingDeposit, 'booking deposit'),
+      booking_deposit_percent_bps: percentToBpsInput(body.bookingDepositPercent, 'booking deposit percentage'),
+      booking_deposit_cap_pence: poundsToPenceInput(body.bookingDepositCap || 0, 'booking deposit cap'),
       security_deposit_pence: poundsToPenceInput(body.securityDeposit, 'security deposit'),
-      insurance_percent_bps: Math.round(Number(body.insurancePercent) * 100),
+      insurance_percent_bps: percentToBpsInput(body.insurancePercent, 'insurance percentage'),
       insurance_enabled: body.insuranceEnabled === true,
       insurance_disclosure: String(body.insuranceDisclosure || '').trim().slice(0, 2000),
       hold_minutes: Math.max(5, Math.min(1440, Math.round(Number(body.holdMinutes) || 15))),

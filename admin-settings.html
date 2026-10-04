@@ -26,7 +26,9 @@
       </section>
     <section class="admin-panel contact-card"><h2>Payment settings</h2><p>Configure booking deposit, refundable security deposit and insurance charging. Leave insurance disabled until the insurer, policy terms and required disclosures are confirmed.</p>
       <form id="paymentSettingsForm" class="admin-settings-list">
-        <label>Booking deposit (£)<input id="settingBookingDeposit" type="number" min="0" step="0.01" required></label>
+        <label>Booking deposit percentage<input id="settingBookingDepositPercent" type="number" min="0" max="100" step="0.01" required></label>
+        <label>Optional booking deposit cap (£)<input id="settingBookingDepositCap" type="number" min="0" step="0.01" aria-describedby="bookingDepositCapHelp"></label>
+        <small id="bookingDepositCapHelp" class="txt-dim">Leave as 0 for no cap. The deposit is always capped at the hire price.</small>
         <label>Refundable security deposit (£)<input id="settingSecurityDeposit" type="number" min="0" step="0.01" required></label>
         <label>Insurance percentage<input id="settingInsurancePercent" type="number" min="0" max="100" step="0.01" required></label>
         <label class="terms-check"><input id="settingInsuranceEnabled" type="checkbox"><span>Enable insurance charge online</span></label>

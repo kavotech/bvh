@@ -64,9 +64,10 @@ export function initBookingWorkflow() {
       select.replaceChildren(new Option('Select a vehicle', ''));
       const requested = new URLSearchParams(location.search).get('van');
       for (const vehicle of vehicles) {
-        const label = `${vehicle.model} (£${vehicle.price_daily}/day)${vehicle.available === false ? ' — unavailable for selected time' : ''}`;
+        const label = `${vehicle.model} (${vehicle.price_display || `£${vehicle.price_daily}`}/day)${vehicle.available === false ? ' — unavailable for selected time' : ''}`;
         const option = new Option(label, vehicle.id);
         option.dataset.daily = vehicle.price_daily;
+        option.dataset.dailyPence = vehicle.daily_rate_pence;
         option.dataset.model = vehicle.model;
         option.disabled = vehicle.available === false;
         select.add(option);

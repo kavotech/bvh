@@ -33,7 +33,9 @@ if(form) {
     e.preventDefault();const button=form.querySelector('[type=submit]');button.disabled=true;button.textContent='Saving…';
     try {
       if(!supabase || !window.saveCarToSupabase) throw new Error('Fleet storage is unavailable.');
-      const data={model:document.getElementById('carModel').value.trim(),type:document.getElementById('carType').value,price_daily:Number(document.getElementById('carPrice').value),capacity:document.getElementById('carCapacity').value.trim(),payload:Number(document.getElementById('carPayload').value),description:document.getElementById('carDesc').value.trim(),is_active:document.getElementById('carActive').checked};
+      const securityDepositValue=document.getElementById('carSecurityDeposit')?.value;
+      const securityDepositPence=securityDepositValue===''||securityDepositValue==null?null:Math.round(Number(securityDepositValue)*100);
+      const data={model:document.getElementById('carModel').value.trim(),type:document.getElementById('carType').value,price_daily:Number(document.getElementById('carPrice').value),daily_rate_pence:Math.round(Number(document.getElementById('carPrice').value)*100),capacity:document.getElementById('carCapacity').value.trim(),payload:Number(document.getElementById('carPayload').value),description:document.getElementById('carDesc').value.trim(),security_deposit_pence:securityDepositPence,security_deposit_policy:document.getElementById('carSecurityPolicy')?.value.trim()||null,is_active:document.getElementById('carActive').checked};
       if(selectedFile) {
         const extension={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[selectedFile.type];
         const path=`${crypto.randomUUID()}.${extension}`;

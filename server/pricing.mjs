@@ -2,6 +2,8 @@ import { HttpError } from './core.mjs';
 
 export const DEFAULT_PAYMENT_SETTINGS = Object.freeze({
   booking_deposit_pence: 5000,
+  booking_deposit_percent_bps: 2500,
+  booking_deposit_cap_pence: 0,
   security_deposit_pence: 25000,
   insurance_percent_bps: 2000,
   insurance_enabled: false,
@@ -30,6 +32,8 @@ export function normalisePaymentSettings(settings = {}) {
   };
   return {
     booking_deposit_pence: intField('booking_deposit_pence', 0, 1000000),
+    booking_deposit_percent_bps: intField('booking_deposit_percent_bps', 0, 10000),
+    booking_deposit_cap_pence: intField('booking_deposit_cap_pence', 0, 1000000),
     security_deposit_pence: intField('security_deposit_pence', 0, 1000000),
     insurance_percent_bps: intField('insurance_percent_bps', 0, 10000),
     insurance_enabled: merged.insurance_enabled === true,
@@ -53,7 +57,10 @@ export function calculateBookingCharges(hirePricePence, settingsInput = {}, { re
   const settings = normalisePaymentSettings(settingsInput);
   const hire = Number(hirePricePence);
   if (!Number.isSafeInteger(hire) || hire <= 0) throw new HttpError(400, 'This booking needs a confirmed hire price before payment.');
-  const bookingDepositPence = Math.min(settings.booking_deposit_pence, hire);
+  const percentageDeposit = Math.round(hire * settings.booking_deposit_percent_bps / 10000);
+  const uncappedDeposit = settings.booking_deposit_percent_bps > 0 ? percentageDeposit : settings.booking_deposit_pence;
+  const cappedDeposit = settings.booking_deposit_cap_pence > 0 ? Math.min(uncappedDeposit, settings.booking_deposit_cap_pence) : uncappedDeposit;
+  const bookingDepositPence = Math.min(Math.max(cappedDeposit, 0), hire);
   const outstandingHireBalancePence = Math.max(hire - bookingDepositPence, 0);
   if (requireInsurance && !settings.insurance_enabled) {
     throw new HttpError(409, 'Insurance charges are not available online until Breezyee Vans confirms the insurer, policy terms and required disclosures. Please contact us to complete this booking.');

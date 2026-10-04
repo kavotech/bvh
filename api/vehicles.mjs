@@ -1,15 +1,18 @@
 import { handle, requestBody, db, rateLimit, captcha, HttpError } from '../server/core.mjs';
 import { checkVehicleAvailable } from '../server/booking-payments.mjs';
+import { penceToDisplay } from '../server/pricing.mjs';
 
 function publicVehicle(car, available = true) {
-  const daily = Number.isSafeInteger(Number(car.daily_rate_pence)) && Number(car.daily_rate_pence) > 0 ? Math.round(Number(car.daily_rate_pence) / 100) : Number(car.price_daily);
+  const dailyRatePence = Number.isSafeInteger(Number(car.daily_rate_pence)) && Number(car.daily_rate_pence) > 0 ? Number(car.daily_rate_pence) : Math.round(Number(car.price_daily) * 100);
   return {
     id: car.id,
     model: car.model,
     type: car.type,
     category: car.category || car.type,
-    price_daily: daily,
-    daily_rate_pence: Number.isSafeInteger(Number(car.daily_rate_pence)) ? Number(car.daily_rate_pence) : Math.round(Number(car.price_daily) * 100),
+    price_daily: dailyRatePence / 100,
+    price_display: penceToDisplay(dailyRatePence),
+    daily_rate_pence: dailyRatePence,
+    security_deposit_pence: Number.isSafeInteger(Number(car.security_deposit_pence)) ? Number(car.security_deposit_pence) : null,
     capacity: car.capacity,
     payload: car.payload,
     description: car.description,
@@ -26,7 +29,7 @@ export default handle(async (req, res) => {
   await captcha(body.token, 'vehicles');
   const { data, error } = await client
     .from('cars')
-    .select('id,model,type,category,price_daily,daily_rate_pence,capacity,payload,description,image_url,is_active,published')
+    .select('id,model,type,category,price_daily,daily_rate_pence,security_deposit_pence,capacity,payload,description,image_url,is_active,published')
     .eq('is_active', true)
     .order('price_daily', { ascending: true });
   if (error) throw new HttpError(503, 'Vehicle selection is temporarily unavailable. Please call +44 7300 331603.');

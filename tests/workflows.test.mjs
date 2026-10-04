@@ -17,9 +17,9 @@ const driver={user_id:user.id,full_name:'Test Customer',date_of_birth:'1990-01-0
 
 test('server pricing ignores submitted price and validates dates, terms and active fleet',()=>{
   const now=new Date('2026-10-03T10:00:00Z');
-  assert.equal(validateBooking({...body,price:'£0'},user,car,now).price,'£100');
-  assert.equal(validateBooking({...body,duration:'4'},user,car,now).price,'£50');
-  assert.equal(validateBooking({...body,duration:'48'},user,car,now).price,'£200');
+  assert.equal(validateBooking({...body,price:'£0'},user,car,now).price,'£100.00');
+  assert.equal(validateBooking({...body,duration:'4'},user,car,now).price,'£50.00');
+  assert.equal(validateBooking({...body,duration:'48'},user,car,now).price,'£200.00');
   assert.equal(validateBooking({...body,duration:'custom'},user,car,now).price,'Quote required');
   for(const change of [{date:'2026-01-01'},{date:'2027-02-30'},{time:'99:99'},{termsAccepted:false},{duration:'0'},{phone:'<script>'}]) assert.throws(()=>validateBooking({...body,...change},user,car,now));
   assert.throws(()=>validateBooking(body,user,{...car,is_active:false},now));
@@ -69,7 +69,7 @@ test('Stripe helpers parse GBP amounts and verify webhook signatures',()=>{
   assert.throws(()=>verifyStripeSignature(body,`t=${timestamp},v1=bad`,secret));
 });
 test('two-stage payment allocation matches the £200 rental example',()=>{
-  const charges=calculateBookingCharges(20000,{booking_deposit_pence:5000,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:true});
+  const charges=calculateBookingCharges(20000,{booking_deposit_percent_bps:2500,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:true});
   assert.equal(charges.booking_deposit_pence,5000);
   assert.equal(charges.outstanding_hire_balance_pence,15000);
   assert.equal(charges.insurance_charge_pence,4000);
@@ -77,10 +77,35 @@ test('two-stage payment allocation matches the £200 rental example',()=>{
   assert.equal(charges.initial_payment_pence,5000);
   assert.equal(charges.final_payment_pence,44000);
   assert.equal(charges.hire_price_pence + charges.insurance_charge_pence + charges.security_deposit_pence,49000);
-  const lowValue=calculateBookingCharges(3000,{booking_deposit_pence:5000,security_deposit_pence:25000,insurance_percent_bps:0,insurance_enabled:false});
-  assert.equal(lowValue.booking_deposit_pence,3000);
-  assert.equal(lowValue.outstanding_hire_balance_pence,0);
-  assert.throws(()=>calculateBookingCharges(20000,{booking_deposit_pence:5000,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:false},{requireInsurance:true}),{status:409});
+  const lowValue=calculateBookingCharges(3000,{booking_deposit_percent_bps:2500,security_deposit_pence:25000,insurance_percent_bps:0,insurance_enabled:false});
+  assert.equal(lowValue.booking_deposit_pence,750);
+  assert.equal(lowValue.outstanding_hire_balance_pence,2250);
+  const capped=calculateBookingCharges(3000,{booking_deposit_percent_bps:10000,booking_deposit_cap_pence:0,security_deposit_pence:25000,insurance_percent_bps:0,insurance_enabled:false});
+  assert.equal(capped.booking_deposit_pence,3000);
+  assert.equal(capped.outstanding_hire_balance_pence,0);
+  assert.throws(()=>calculateBookingCharges(20000,{booking_deposit_percent_bps:2500,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:false},{requireInsurance:true}),{status:409});
+});
+test('dynamic booking deposit examples and actual fleet duration prices are calculated in pence',()=>{
+  for(const [hire,deposit] of [[2000,500],[4000,1000],[8000,2000],[12000,3000],[20000,5000],[40000,10000]]) {
+    const charges=calculateBookingCharges(hire,{booking_deposit_percent_bps:2500,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:true});
+    assert.equal(charges.booking_deposit_pence,deposit);
+    assert.equal(charges.outstanding_hire_balance_pence,hire-deposit);
+    assert.equal(charges.insurance_charge_pence,Math.round(hire*0.2));
+    assert.equal(charges.final_payment_pence,hire-deposit+Math.round(hire*0.2)+25000);
+  }
+  const fleet=[
+    {daily:10000, prices:{2:2500,4:5000,8:10000,24:10000,48:20000,72:30000}},
+    {daily:20000, prices:{2:5000,4:10000,8:20000,24:20000,48:40000,72:60000}},
+    {daily:35000, prices:{2:8750,4:17500,8:35000,24:35000,48:70000,72:105000}},
+  ];
+  for(const vehicle of fleet) {
+    for(const [duration,hire] of Object.entries(vehicle.prices)) {
+      const booking=calculateBookingCharges(hire,{booking_deposit_percent_bps:2500,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:false});
+      assert.equal(booking.booking_deposit_pence,Math.round(hire*0.25), `${vehicle.daily}/${duration}`);
+      assert.equal(booking.security_deposit_pence,25000);
+      assert.equal(booking.insurance_charge_pence,0);
+    }
+  }
 });
 test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and lease email work',async()=>{
   const pg=new PGlite();
@@ -88,11 +113,15 @@ test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and leas
     await pg.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create schema storage;
       create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql as $$ select null::uuid $$;
       create function auth.jwt() returns jsonb language sql as $$ select '{}'::jsonb $$;
+      alter table auth.users add column email text;
+      alter table auth.users add column email_confirmed_at timestamptz;
+      alter table auth.users add column raw_user_meta_data jsonb default '{}'::jsonb;
+      alter table auth.users add column updated_at timestamptz;
       create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
       create table storage.objects(id uuid,bucket_id text,name text);
       create function storage.foldername(text) returns text[] language sql as $$ select string_to_array($1,'/') $$;
-      insert into auth.users values ('${user.id}');`);
-    for(const file of ['create_cars_table.sql','create_driver_verifications.sql','20261003_production_workflows.sql','20261003_booking_management.sql','20261003_fleet_images.sql','20261003_stripe_payments.sql','20261003_booking_payment_system.sql']) await pg.exec(readFileSync(new URL(`../supabase_migrations/${file}`,import.meta.url),'utf8'));
+      insert into auth.users(id,email,raw_user_meta_data) values ('${user.id}','info@breezyeevans.co.uk','{}');`);
+    for(const file of ['create_cars_table.sql','create_driver_verifications.sql','20261003_production_workflows.sql','20261003_booking_management.sql','20261003_fleet_images.sql','20261003_stripe_payments.sql','20261003_booking_payment_system.sql','20261003_dynamic_deposits_admin_auth.sql']) await pg.exec(readFileSync(new URL(`../supabase_migrations/${file}`,import.meta.url),'utf8'));
     await pg.exec(`insert into cars(id,model,type,price_daily,capacity,payload,is_active,daily_rate_pence,published)
       values('${car.id}','${car.model}','${car.type}',100,'2-3 m3',750,true,10000,true) on conflict (id) do nothing`);
     const data=validateBooking(body,user,car,new Date('2026-10-03'));
@@ -139,3 +168,5 @@ test('Resend failures leave queued work retryable and successes record provider 
   }),1);
   assert.equal(updates[0].provider_id,'resend-receipt');
 });
+
+

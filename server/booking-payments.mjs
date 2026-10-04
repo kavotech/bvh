@@ -44,5 +44,9 @@ export function calculateChargesForCar(car, duration, settings) {
     : Math.round(Number(car.price_daily) * 100);
   const hirePricePence = calculateHirePricePence(dailyRatePence, duration);
   if (!hirePricePence) return null;
-  return calculateBookingCharges(hirePricePence, settings);
+  const vehicleSecurityDeposit = Number(car.security_deposit_pence);
+  const mergedSettings = Number.isSafeInteger(vehicleSecurityDeposit) && vehicleSecurityDeposit >= 0
+    ? { ...settings, security_deposit_pence: vehicleSecurityDeposit }
+    : settings;
+  return calculateBookingCharges(hirePricePence, mergedSettings);
 }

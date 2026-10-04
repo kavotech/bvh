@@ -1,4 +1,5 @@
 import { HttpError, text, email } from './core.mjs';
+import { calculateHirePricePence, penceToDisplay } from './pricing.mjs';
 export function validateEnquiry(body) {
   return { name: text(body.name, 'your name', 100, 2), email: email(body.email), phone: text(body.phone, 'your phone number', 30, 7), message: text(body.message, 'your message', 4000, 10), service: text(body.service || 'General enquiry', 'service', 80) };
 }
@@ -13,9 +14,8 @@ export function validateBooking(body, user, car, now = new Date(), extras = {}) 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().slice(0,10) !== date || date < ukToday || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new HttpError(400, 'Please choose a valid future booking date and time.');
   if (date === ukToday && time <= new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hour12: false }).format(now)) throw new HttpError(400, 'Please choose a future pickup time.');
   if (body.termsAccepted !== true) throw new HttpError(400, 'Please accept the hire terms.');
-  const hours = Number(body.duration);
-  const daily = Number.isSafeInteger(dailyRatePence) && dailyRatePence > 0 ? dailyRatePence / 100 : priceDaily;
-  const price = body.duration === 'custom' ? 'Quote required' : `£${Math.ceil(daily * (hours >= 24 ? hours / 24 : hours / 8))}`;
+  const dailyPence = Number.isSafeInteger(dailyRatePence) && dailyRatePence > 0 ? dailyRatePence : Math.round(priceDaily * 100);
+  const price = body.duration === 'custom' ? 'Quote required' : penceToDisplay(calculateHirePricePence(dailyPence, body.duration));
   const name = text(body.name, 'your name', 100, 2);
   const phone = text(body.phone, 'your phone number', 30, 7);
   if (!/^[+\d ()-]{7,30}$/.test(phone)) throw new HttpError(400, 'Please check your phone number.');

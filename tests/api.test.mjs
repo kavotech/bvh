@@ -50,11 +50,11 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     }
     if(url.includes('api.stripe.com/v1/payment_intents')) {
       const payload=new URLSearchParams(options.body);
-      assert.equal(payload.get('amount'),'5000');assert.equal(payload.get('currency'),'gbp');
+      assert.equal(payload.get('amount'),'2500');assert.equal(payload.get('currency'),'gbp');
       assert.equal(options.headers['Idempotency-Key'],'booking-payment:BV-TEST123:booking_deposit');
-      return json({id:'pi_test',client_secret:'pi_test_secret',amount:5000,currency:'gbp',status:'requires_payment'});
+      return json({id:'pi_test',client_secret:'pi_test_secret',amount:2500,currency:'gbp',status:'requires_payment'});
     }
-    if(url.includes('/rest/v1/business_settings')) return json({id:true,booking_deposit_pence:5000,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:false,hold_minutes:15,payment_deadline_hours:24});
+    if(url.includes('/rest/v1/business_settings')) return json({id:true,booking_deposit_pence:5000,booking_deposit_percent_bps:2500,booking_deposit_cap_pence:0,security_deposit_pence:25000,insurance_percent_bps:2000,insurance_enabled:false,hold_minutes:15,payment_deadline_hours:24});
     if(url.includes('bv_vehicle_available')) return json(true);
     if(url.includes('/rest/v1/cars')) return json({id:vehicleId,model:'Test van',type:'small',price_daily:100,is_active:true});
     if(url.includes('/storage/v1/object/list')) return json([{name:'front.png',metadata:{size:100}},{name:'back.png',metadata:{size:100}}]);
@@ -66,8 +66,8 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
       return json({reference:payload.p_reference});
     }
     if(url.includes('bv_claim_emails'))return json([]);
-    if(url.includes('/rest/v1/booking_payments')) return json({id:'payment',booking_id:'booking',category:'booking_deposit',expected_amount_pence:5000,received_amount_pence:0,currency:'gbp',status:'requires_payment'});
-    if(url.includes('/rest/v1/bookings'))return json({id:'booking',reference:'BV-TEST123',...user,user_id:user.id,name:'Test Customer',vehicle_name:'Test van',price:'£100',status:'Awaiting booking deposit',booking_status:'Awaiting booking deposit',payment_status:'unpaid',booking_deposit_pence:5000,outstanding_balance_pence:5000,insurance_charge_pence:0,security_deposit_pence:25000});
+    if(url.includes('/rest/v1/booking_payments')) return json({id:'payment',booking_id:'booking',category:'booking_deposit',expected_amount_pence:2500,received_amount_pence:0,currency:'gbp',status:'requires_payment'});
+    if(url.includes('/rest/v1/bookings'))return json({id:'booking',reference:'BV-TEST123',...user,user_id:user.id,name:'Test Customer',vehicle_name:'Test van',price:'£100',status:'Awaiting booking deposit',booking_status:'Awaiting booking deposit',payment_status:'unpaid',booking_deposit_pence:2500,outstanding_balance_pence:7500,insurance_charge_pence:0,security_deposit_pence:25000});
     throw new Error('Unexpected test endpoint');
   };
   try {
@@ -86,7 +86,7 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     const booking={kind:'booking',requestId,token:'mock',vehicleId,name:'Test Customer',phone:'+44 7300 331603',pickup:'Test pickup',dropoff:'Test destination',date:'2099-01-02',time:'10:00',duration:'24',termsAccepted:true,price:'£0',driver:{full_name:'Test Customer',date_of_birth:'1990-01-01',driving_licence_number:'TEST-ONLY',dvla_check_code:'TESTCODE',licence_front_file:`${user.id}/${requestId}/front.png`,licence_back_file:`${user.id}/${requestId}/back.png`}};
     await submit(request(booking),res);assert.equal(res.code,200);
     assert.equal(res.body.payment.paymentPage,`/payment?reference=${encodeURIComponent(res.body.reference)}&category=booking_deposit`);
-    assert.equal(res.body.payment.amountTotal,5000);
+    assert.equal(res.body.payment.amountTotal,2500);
     assert.equal(res.body.payment.currency,'gbp');
     const unsigned=request(booking);delete unsigned.headers.authorization;res=response();await submit(unsigned,res);assert.equal(res.code,401);
     action='manage';res=response();await manage(request({action:'confirm',token:'mock',requestId,bookingId:'booking'}),res);assert.equal(res.code,403);
@@ -94,8 +94,9 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     action='start_otp';mode='ok';calls=[];res=response();await auth(request({action:'start_otp',email:user.email,token:'mock',signup:true,fullName:'Test Customer',phone:'+44 7300 331603',postcode:'SW1A 1AA'}),res);assert.equal(res.code,200);assert.match(res.body.message,/one-time code/);assert.ok(calls.some(x=>x.includes('/auth/v1/admin/generate_link')));assert.ok(calls.some(x=>x.includes('api.resend.com/emails')));assert.ok(!calls.some(x=>x.includes('/auth/v1/otp')));
     action='login';mode='ok';res=response();await auth(request({action:'login',email:user.email,token:'mock',password:' password with spaces '}),res);assert.equal(res.code,200);assert.equal(res.body.session.access_token,'test-access');
     action='verify_otp';res=response();await auth(request({action:'verify_otp',email:user.email,token:'mock',otp:'123456'}),res);assert.equal(res.code,200);assert.equal(res.body.session.access_token,'otp-access');
-    action='payment';res=response();await createPaymentIntent(request({reference:'BV-TEST123',token:'mock'}),res);assert.equal(res.code,200);assert.equal(res.body.clientSecret,'pi_test_secret');assert.equal(res.body.amountTotal,5000);
+    action='payment';res=response();await createPaymentIntent(request({reference:'BV-TEST123',token:'mock'}),res);assert.equal(res.code,200);assert.equal(res.body.clientSecret,'pi_test_secret');assert.equal(res.body.amountTotal,2500);
   } finally {globalThis.fetch=original;}
 });
+
 
 

@@ -15,7 +15,7 @@ export default handle(async (req, res) => {
   if (body.kind === 'booking') {
     const user = await userFor(req, client);
     owner = user.id;
-    const { data: car, error } = await client.from('cars').select('id,model,type,price_daily,daily_rate_pence,is_active,published').eq('id', uuid(body.vehicleId)).single();
+    const { data: car, error } = await client.from('cars').select('id,model,type,price_daily,daily_rate_pence,security_deposit_pence,is_active,published').eq('id', uuid(body.vehicleId)).single();
     if (error || car?.published === false) throw new HttpError(400, 'Please select a listed vehicle.');
     const settings = await readBusinessSettings(client);
     charges = calculateChargesForCar(car, body.duration, settings);

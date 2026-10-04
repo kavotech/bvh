@@ -83,7 +83,8 @@ async function initPaymentSettingsPage(user) {
   }
   const money = pence => (Number(pence || 0) / 100).toFixed(2);
   const hydrate = settings => {
-    document.getElementById('settingBookingDeposit').value = money(settings.booking_deposit_pence);
+    document.getElementById('settingBookingDepositPercent').value = (Number(settings.booking_deposit_percent_bps ?? 2500) / 100).toString();
+    document.getElementById('settingBookingDepositCap').value = money(settings.booking_deposit_cap_pence);
     document.getElementById('settingSecurityDeposit').value = money(settings.security_deposit_pence);
     document.getElementById('settingInsurancePercent').value = (Number(settings.insurance_percent_bps || 0) / 100).toString();
     document.getElementById('settingInsuranceEnabled').checked = settings.insurance_enabled === true;
@@ -106,7 +107,8 @@ async function initPaymentSettingsPage(user) {
     try {
       const result = await post('/api/settings', {
         action: 'update',
-        bookingDeposit: document.getElementById('settingBookingDeposit').value,
+        bookingDepositPercent: document.getElementById('settingBookingDepositPercent').value,
+        bookingDepositCap: document.getElementById('settingBookingDepositCap').value,
         securityDeposit: document.getElementById('settingSecurityDeposit').value,
         insurancePercent: document.getElementById('settingInsurancePercent').value,
         insuranceEnabled: document.getElementById('settingInsuranceEnabled').checked,
@@ -294,15 +296,15 @@ function calcPrice() {
     if (sumTotal) sumTotal.textContent = dash;
     return;
   }
-  const hrs      = parseFloat(duration);
-  const isDays   = hrs >= 24;
-  const daily = Number(document.getElementById('vanSize')?.selectedOptions[0]?.dataset.daily);
-  const r = daily ? { daily, hourly: daily / 8 } : RATES[van];
-  if (!r) return;
-  const vanCost  = isDays ? r.daily * (hrs / 24) : r.hourly * hrs;
-  const drCost   = 0;
-  const hlpCost  = 0;
-  const total    = `£${Math.ceil(vanCost + drCost + hlpCost).toLocaleString()}`;
+  const hrs = parseFloat(duration);
+  const isDays = hrs >= 24;
+  const option = document.getElementById('vanSize')?.selectedOptions[0];
+  const dailyPence = Number(option?.dataset.dailyPence);
+  const fallback = RATES[van];
+  const baseDailyPence = Number.isSafeInteger(dailyPence) && dailyPence > 0 ? dailyPence : fallback ? Math.round(fallback.daily * 100) : 0;
+  if (!baseDailyPence) return;
+  const vanCostPence = Math.ceil(baseDailyPence * (isDays ? hrs / 24 : hrs / 8));
+  const total = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(vanCostPence / 100);
   priceEl.textContent = total;
   if (sumTotal) sumTotal.textContent = total;
 }
@@ -528,6 +530,7 @@ async function initCarsPage(user) {
   // A failed write must never appear to have saved a fleet change.
   function validateCar(carData) {
     if (!carData.model?.trim() || !['small','medium','xl'].includes(carData.type) || !Number.isFinite(Number(carData.price_daily)) || Number(carData.price_daily) <= 0) throw new Error('Check the vehicle model, type and daily rate.');
+    if (carData.security_deposit_pence != null && (!Number.isSafeInteger(Number(carData.security_deposit_pence)) || Number(carData.security_deposit_pence) < 0)) throw new Error('Check the refundable security deposit.');
     if (carData.image_url && !/^\/(?!\/)[a-zA-Z0-9/_.-]+$/.test(carData.image_url) && !/^https:\/\/[^\s<>"']+$/.test(carData.image_url)) throw new Error('Use a valid HTTPS image URL or an existing /image path.');
   }
   window.saveCarToSupabase = async carData => {
@@ -594,7 +597,7 @@ function renderAdminCarsTable(cars) {
       </td>
       <td><strong>${escapeHTML(car.model)}</strong></td>
       <td><span class="car-badge ${typeBadgeClasses[car.type]}">${typeLabels[car.type]}</span></td>
-      <td><strong>£${escapeHTML(car.price_daily)}</strong>/day</td>
+      <td><strong>£${escapeHTML(car.price_daily)}</strong>/day<br><small>Deposit ${car.security_deposit_pence == null ? 'default' : new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(Number(car.security_deposit_pence) / 100)}</small></td>
       <td>${escapeHTML(car.capacity)} • ${escapeHTML(car.payload)} kg</td>
       <td><span class="status-badge ${car.is_active ? 'status-active' : 'status-inactive'}">${car.is_active ? 'Active' : 'Inactive'}</span></td>
       <td>
@@ -703,6 +706,10 @@ async function editCar(id) {
   document.getElementById('carPrice').value = car.price_daily;
   document.getElementById('carCapacity').value = car.capacity;
   document.getElementById('carPayload').value = car.payload;
+  const securityDeposit = document.getElementById('carSecurityDeposit');
+  if (securityDeposit) securityDeposit.value = car.security_deposit_pence == null ? '' : (Number(car.security_deposit_pence) / 100).toFixed(2);
+  const securityPolicy = document.getElementById('carSecurityPolicy');
+  if (securityPolicy) securityPolicy.value = car.security_deposit_policy || '';
   document.getElementById('carDesc').value = car.description || '';
   document.getElementById('carActive').checked = car.is_active;
 
@@ -908,11 +915,13 @@ function initLoginPage(user) {
   const authStatus = document.getElementById('authStatus');
   const emailField = document.getElementById('authEmail');
   const otpField = document.getElementById('authOtp');
+  const resendButton = document.getElementById('auth-resend');
   const signupFields = loginPage.querySelectorAll('.signup-only');
   const otpFields = loginPage.querySelectorAll('.otp-only');
   let authMode = 'signIn';
   let otpSent = false;
   let pendingEmail = '';
+  let resendAvailableAt = 0;
 
   function normaliseEmail(value) {
     const email = value.trim();
@@ -944,6 +953,7 @@ function initLoginPage(user) {
     authMode = nextMode;
     otpSent = false;
     pendingEmail = '';
+    resendAvailableAt = 0;
     if (emailField) emailField.disabled = false;
     if (otpField) otpField.value = '';
     renderMode();
@@ -952,6 +962,34 @@ function initLoginPage(user) {
   authToggle.addEventListener('click', () => {
     resetOtpState(otpSent ? authMode : (authMode === 'signIn' ? 'signUp' : 'signIn'));
   });
+  resendButton?.addEventListener('click', async event => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const now = Date.now();
+    const authEmail = pendingEmail || normaliseEmail(emailField?.value || '');
+    if (!authEmail) {
+      authStatus.textContent = 'Enter your email before requesting a new code.';
+      return;
+    }
+    if (now < resendAvailableAt) {
+      authStatus.textContent = `Please wait ${Math.ceil((resendAvailableAt - now) / 1000)} seconds before requesting another code.`;
+      return;
+    }
+    resendButton.disabled = true;
+    try {
+      authStatus.textContent = 'Sending a fresh one-time code…';
+      const response = await post('/api/auth', { action: 'start_otp', email: authEmail, signup: authMode === 'signUp' }, 'start_otp');
+      pendingEmail = authEmail;
+      otpSent = true;
+      resendAvailableAt = Date.now() + 60000;
+      renderMode(response.message || 'A fresh one-time code has been sent.');
+      otpField?.focus();
+    } catch (error) {
+      authStatus.textContent = error.message || 'Unable to resend the code.';
+    } finally {
+      setTimeout(() => { resendButton.disabled = false; }, Math.max(0, resendAvailableAt - Date.now()));
+    }
+  }, { capture: true });
   renderMode();
 
   authForm.addEventListener('submit', async e => {
@@ -982,6 +1020,7 @@ function initLoginPage(user) {
         const response = await post('/api/auth', { action: 'start_otp', email: authEmail, signup: authMode === 'signUp', fullName, dob, phone, postcode }, 'start_otp');
         pendingEmail = authEmail;
         otpSent = true;
+        resendAvailableAt = Date.now() + 60000;
         renderMode(response.message || 'We sent a one-time code to your email.');
         otpField?.focus();
         return;
