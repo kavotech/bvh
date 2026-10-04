@@ -1,4 +1,4 @@
-import { env } from './core.mjs';
+import { env, HttpError } from './core.mjs';
 export const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 export function template(title, lines) {
   const text = `${title}\n\n${lines.join('\n')}\n\nBreezyee Vans\n+44 7300 331603\ninfo@breezyeevans.co.uk\nhttps://www.breezyeevans.co.uk`;
@@ -14,12 +14,26 @@ export function submissionEmails(kind, data, reference) {
   ];
 }
 export async function sendResendEmail(job, idempotencyKey, fetcher = fetch) {
-  const response = await fetcher('https://api.resend.com/emails', {
-    method: 'POST', headers: { Authorization: `Bearer ${env('RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
-    body: JSON.stringify({ from: 'Breezyee Vans <no-reply@breezyeevans.co.uk>', to: [job.recipient], reply_to: 'info@breezyeevans.co.uk', subject: job.subject, html: job.html, text: job.text }), signal: AbortSignal.timeout(10000),
+  const payload = from => ({ from, to: [job.recipient], reply_to: 'info@breezyeevans.co.uk', subject: job.subject, html: job.html, text: job.text });
+  const send = (from, key = idempotencyKey) => fetcher('https://api.resend.com/emails', {
+    method: 'POST', headers: { Authorization: `Bearer ${env('RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': key },
+    body: JSON.stringify(payload(from)), signal: AbortSignal.timeout(10000),
   });
-  if (!response.ok) throw new Error('Email provider rejected request');
-  const { id } = await response.json();
+  let response = await send('Breezyee Vans <no-reply@breezyeevans.co.uk>');
+  let result = await response.json().catch(() => ({}));
+  const domainUnverified = response.status === 403 && /domain is not verified/i.test(String(result.message || ''));
+  const recipient = String(job.recipient || '').toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk').toLowerCase();
+  if (domainUnverified && recipient === adminEmail) {
+    console.warn('resend_domain_unverified_admin_fallback');
+    response = await send('Breezyee Vans <onboarding@resend.dev>', `${idempotencyKey}:fallback`);
+    result = await response.json().catch(() => ({}));
+  }
+  if (!response.ok) {
+    if (domainUnverified) throw new HttpError(503, 'Email delivery is not fully configured yet. Verify breezyeevans.co.uk in Resend, then try again.');
+    throw new HttpError(503, 'Email delivery is temporarily unavailable. Please try again or call +44 7300 331603.');
+  }
+  const { id } = result;
   if (!id) throw new Error('Email provider returned no receipt');
   return id;
 }
