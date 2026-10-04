@@ -91,7 +91,7 @@ export function initBookingWorkflow() {
     if (!form.reportValidity()) return;
     const vehicle = vehicles.find(item => item.id === select.value);
     if (!vehicle) return;
-    document.getElementById('reviewDetails').textContent = `${vehicle.model}\n${value('bookDate')} at ${value('bookTime')} (UK time)\n${value('pickup')} → ${value('dropoff')}\n${value('custName')} · ${value('custEmail')}\nEstimated price: ${document.getElementById('estimatedPrice').textContent}\nThis is a request, not a confirmed reservation. Secure payment is the next step.`;
+    document.getElementById('reviewDetails').textContent = `${vehicle.model}\n${value('bookDate')} at ${value('bookTime')} (UK time)\nOwner collection location → ${value('dropoff')}\n${value('custName')} · ${value('custEmail')}\nEstimated price: ${document.getElementById('estimatedPrice').textContent}\nThis is a request, not a confirmed reservation. Secure payment is the next step.`;
     review.showModal();
   });
   document.getElementById('editBooking')?.addEventListener('click', () => review.close());
@@ -122,7 +122,7 @@ export function initBookingWorkflow() {
       const back = await upload('licenceBackFile', data.user.id);
       const result = await post('/api/submit', {
         kind: 'booking', requestId, vehicleId: select.value, name: value('custName'), phone: value('custPhone'),
-        pickup: value('pickup'), dropoff: value('dropoff'), date: value('bookDate'), time: value('bookTime'), duration: value('duration'), termsAccepted: document.getElementById('termsAccepted').checked,
+        dropoff: value('dropoff'), date: value('bookDate'), time: value('bookTime'), duration: value('duration'), termsAccepted: document.getElementById('termsAccepted').checked,
         driver: { full_name: value('driverFullName'), date_of_birth: value('driverDateOfBirth'), driving_licence_number: value('driverLicenceNumber'), dvla_check_code: value('dvlaCheckCode'), licence_front_file: front, licence_back_file: back },
       }, 'booking');
       review.close(); form.style.display = 'none';
