@@ -54,6 +54,7 @@
 @media (max-width:850px) { .payment-grid { grid-template-columns:1fr; }.payment-side-card { position:static; order:-1; }.payment-side-head { grid-template-columns:1fr auto; align-items:center; }.payment-side-head .sec-tag,.payment-side-head>span:last-child { grid-column:1; }.payment-side-head>strong { grid-column:2; grid-row:1 / span 2; }.payment-side-list { grid-template-columns:repeat(2,1fr); }.payment-side-list>div { display:grid; gap:3px; }.payment-side-list strong { text-align:left; } }
 @media (max-width:560px) { .payment-hero { padding:36px 0 68px; }.payment-progress { padding:0; }.payment-step-marker { font-size:.67rem; }.payment-step-marker b { width:31px; height:31px; font-size:.75rem; }.payment-progress-line { top:15px; left:10%; right:10%; }.payment-detail-grid { grid-template-columns:1fr; }.payment-detail-wide { grid-column:auto; }.payment-main-card { border-radius:22px; }.payment-side-card { border-radius:20px; padding:19px; }.payment-actions { flex-direction:column-reverse; }.payment-actions .btn { width:100%; }.payment-submit { position:sticky; bottom:12px; z-index:5; box-shadow:0 10px 30px rgba(91,33,182,.3); } }
 @media (prefers-reduced-motion:reduce) { .payment-step-panel,.payment-result,.payment-van-illustration { animation:none!important; } }
+.payment-price-explanation { margin:12px 0 0; color:#716980; font-size:.78rem; line-height:1.55; }
 html,body{overflow-x:hidden}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

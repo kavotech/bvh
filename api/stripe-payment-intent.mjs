@@ -93,6 +93,7 @@ export default handle(async (req, res) => {
       refundableSecurityDeposit: penceToDisplay(booking.security_deposit_pence || 0),
     },
     stripeEnvironment: stripeMode,
+    publishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
     booking: { date: booking.date, time: booking.time, duration: booking.duration, pickup: booking.pickup, dropoff: booking.dropoff },
   });
 });
