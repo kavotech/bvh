@@ -40,7 +40,7 @@ export default handle(async (req, res) => {
   const category = PAYABLE.has(body.category) ? body.category : 'booking_deposit';
   const { data: booking, error } = await client
     .from('bookings')
-    .select('id,reference,user_id,email,name,vehicle_name,van_size,price,status,booking_status,payment_status,booking_deposit_pence,outstanding_balance_pence,insurance_charge_pence,security_deposit_pence,payment_deadline_at')
+    .select('id,reference,user_id,email,name,vehicle_name,van_size,price,date,time,duration,pickup,dropoff,status,booking_status,payment_status,booking_deposit_pence,outstanding_balance_pence,insurance_charge_pence,security_deposit_pence,payment_deadline_at')
     .eq('reference', reference)
     .single();
   if (error || booking.user_id !== user.id || booking.email?.toLowerCase() !== user.email.toLowerCase()) throw new HttpError(404, 'Booking not found.');
@@ -83,6 +83,7 @@ export default handle(async (req, res) => {
     amountTotal: intent.amount,
     currency: intent.currency,
     vehicle: booking.vehicle_name || booking.van_size,
+    customerEmail: booking.email,
     price: penceToDisplay(payment.expected_amount_pence),
     breakdown: {
       hirePrice: penceToDisplay(Number(booking.booking_deposit_pence || 0) + Number(booking.outstanding_balance_pence || 0)),
@@ -92,5 +93,6 @@ export default handle(async (req, res) => {
       refundableSecurityDeposit: penceToDisplay(booking.security_deposit_pence || 0),
     },
     stripeEnvironment: stripeMode,
+    booking: { date: booking.date, time: booking.time, duration: booking.duration, pickup: booking.pickup, dropoff: booking.dropoff },
   });
 });

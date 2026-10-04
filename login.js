@@ -5,8 +5,6 @@ const page = document.getElementById('loginPage');
 const form = document.getElementById('authForm');
 const email = document.getElementById('authEmail');
 const password = document.getElementById('authPassword');
-const fullName = document.getElementById('authFullName');
-const phone = document.getElementById('authPhone');
 const submit = document.getElementById('authSubmit');
 const status = document.getElementById('authStatus');
 const heading = document.getElementById('authHeading');
@@ -29,7 +27,7 @@ if (page) {
   passwordToggle?.addEventListener('click', () => { const visible = password.type === 'text'; password.type = visible ? 'password' : 'text'; passwordToggle.textContent = visible ? 'Show' : 'Hide'; passwordToggle.setAttribute('aria-pressed', String(!visible)); });
   toggle?.addEventListener('click', () => { mode = mode === 'login' ? 'register' : 'login'; render(); setStatus(''); });
   reset?.addEventListener('click', async event => { event.preventDefault(); const address = email.value.trim(); if (!address || !address.includes('@')) { setStatus('Enter your email first, then choose forgot password.', true); return; } reset.disabled = true; try { const result = await post('/api/auth', { action: 'reset', email: address }, 'reset'); setStatus(result.message); } catch (error) { setStatus(error.message, true); } finally { reset.disabled = false; } });
-  form?.addEventListener('submit', async event => { event.preventDefault(); if (!supabase) return; submit.disabled = true; setStatus(mode === 'register' ? 'Creating your secure account…' : 'Signing you in…'); try { const payload = { action: mode, email: email.value.trim(), password: password.value }; if (mode === 'register') Object.assign(payload, { fullName: fullName.value.trim(), phone: phone.value.trim(), postcode: document.getElementById('authPostcode')?.value.trim() }); await completeSession(await post('/api/auth', payload, mode)); } catch (error) { setStatus(error.message || 'Sign-in failed. Please try again.', true); } finally { submit.disabled = false; } });
+  form?.addEventListener('submit', async event => { event.preventDefault(); if (!supabase) return; submit.disabled = true; setStatus(mode === 'register' ? 'Creating your secure account…' : 'Signing you in…'); try { await completeSession(await post('/api/auth', { action: mode, email: email.value.trim(), password: password.value }, mode)); } catch (error) { setStatus(error.message || 'Sign-in failed. Please try again.', true); } finally { submit.disabled = false; } });
   supabase?.auth.getSession().then(({ data }) => { if (data.session) window.location.href = nextUrl(data.session.user); });
   render();
 }

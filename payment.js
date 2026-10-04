@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars -- result payload is reserved for future receipt details. */
 import { post } from './forms.js';
 import { supabase } from './supabase.js';
 
@@ -7,134 +8,26 @@ const params = new URLSearchParams(window.location.search);
 const reference = params.get('reference') || '';
 const stored = (() => { try { return JSON.parse(sessionStorage.getItem('bv_pending_payment') || '{}'); } catch { return {}; } })();
 const category = params.get('category') || stored.category || 'booking_deposit';
-const paymentStatus = document.getElementById('paymentStatus');
-const refEl = document.getElementById('paymentReference');
-const amountEl = document.getElementById('paymentAmount');
-const vehicleEl = document.getElementById('paymentVehicle');
-const bookingStatusEl = document.getElementById('paymentBookingStatus');
-const form = document.getElementById('paymentForm');
+const statusEl = document.getElementById('paymentStatus');
 const payButton = document.getElementById('payWithStripe');
-const paymentPanel = document.querySelector('.payment-panel');
+const form = document.getElementById('paymentForm');
+let stripe; let elements; let clientSecret; let currentStep = 1; let paymentReady = false;
 
-let stripe;
-let elements;
-let clientSecret;
+const $ = id => document.getElementById(id);
+function formatAmount(amount, currency = 'gbp') { if (!Number.isFinite(Number(amount))) return stored.price || '—'; return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency.toUpperCase() }).format(Number(amount) / 100); }
+function setStatus(message, tone = '') { if (statusEl) { statusEl.textContent = message; statusEl.className = `payment-status ${tone}`.trim(); } }
+function paymentReturnPath() { return `${window.location.pathname}${window.location.search}`; }
+function redirectToLogin() { sessionStorage.setItem('bv_pending_payment', JSON.stringify({ reference: reference || stored.reference, price: $('paymentAmount')?.textContent || stored.price, category })); window.location.href = `/login?returnTo=${encodeURIComponent(paymentReturnPath())}`; }
+async function requireSession() { if (!supabase) throw new Error('Authentication is unavailable. Please contact us.'); const { data } = await supabase.auth.getSession(); if (!data.session) { setStatus('Please sign in to continue to secure payment.', 'notice'); redirectToLogin(); return null; } return data.session; }
+function setStep(step) { currentStep = step; document.querySelectorAll('.payment-step-panel').forEach(panel => panel.classList.toggle('active', Number(panel.dataset.step) === step)); document.querySelectorAll('.payment-step-marker').forEach(marker => { const target = Number(marker.dataset.stepTarget); marker.classList.toggle('active', target === step); marker.classList.toggle('complete', target < step); }); document.querySelector('.payment-flow')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (step === 4 && !paymentReady) preparePaymentElement().catch(error => { setStatus(error.message, 'error'); }); }
+function showResult(kind, data = {}) { const result = $('paymentResult'); if (!result) return; const content = { success: { icon: '✓', title: 'Payment successful', text: 'Your booking payment has been received. We’ll contact you with availability and collection details.', className: 'payment-result-success', action: `<a class="btn btn-primary" href="/user-dashboard">View my booking</a>` }, pending: { icon: '…', title: 'Payment processing', text: 'Your payment is awaiting confirmation. You can safely close this page; we’ll update your booking when Stripe confirms it.', className: 'payment-result-pending', action: `<a class="btn btn-primary" href="/user-dashboard">View booking status</a>` }, failed: { icon: '!', title: 'Your payment has failed', text: 'We couldn’t complete your payment. Please try again or use a different payment method.', className: 'payment-result-failed', action: `<button class="btn btn-primary" id="retryPayment" type="button">Try payment again</button>` } }[kind]; result.hidden = false; result.className = `payment-result ${content.className}`; result.innerHTML = `<div class="payment-van-illustration" aria-hidden="true"><span>${content.icon}</span><i></i><b></b></div><h2>${content.title}</h2><p>${content.text}</p><p class="payment-result-ref">Reference: <strong>${reference || 'Pending'}</strong></p><div class="payment-result-actions">${content.action}<a class="btn btn-outline" href="/booking">Back to booking</a><a class="payment-support" href="tel:+447300331603">Call support</a></div>`; document.querySelectorAll('.payment-step-panel,.payment-progress,.payment-side-card').forEach(el => { el.hidden = true; }); $('retryPayment')?.addEventListener('click', () => { result.hidden = true; document.querySelectorAll('.payment-step-panel,.payment-progress,.payment-side-card').forEach(el => { el.hidden = false; }); setStep(4); }); }
+function populateBooking(result) { const booking = result.booking || {}; $('paymentReference').textContent = result.reference || reference || 'Pending'; $('sideReference').textContent = result.reference || reference || 'Pending'; $('paymentVehicle').textContent = result.vehicle || 'Van hire'; $('paymentDates').textContent = booking.date ? `${booking.date}${booking.time ? ` · ${booking.time}` : ''}` : 'Requested dates'; $('paymentDuration').textContent = booking.duration === 'custom' ? 'Custom hire' : booking.duration ? `${booking.duration} hours` : '—'; $('paymentPickup').textContent = booking.pickup || '—'; $('paymentDropoff').textContent = booking.dropoff || '—'; $('paymentCustomer').textContent = result.customerEmail || 'Your signed-in account'; $('paymentBookingStatus').textContent = result.categoryLabel || 'Awaiting payment'; $('sideAmount').textContent = result.price || formatAmount(result.amountTotal, result.currency); $('sideDue').textContent = result.price || formatAmount(result.amountTotal, result.currency); const breakdown = result.breakdown || {}; $('breakdownHire').textContent = breakdown.hirePrice || '—'; $('breakdownDeposit').textContent = breakdown.bookingDeposit || '—'; $('breakdownInsurance').textContent = breakdown.insurance || '£0'; $('breakdownSecurity').textContent = breakdown.refundableSecurityDeposit || '—'; $('breakdownRemaining').textContent = breakdown.outstandingBalance || '—'; $('paymentAmount').textContent = result.price || formatAmount(result.amountTotal, result.currency); $('sideRemaining').textContent = breakdown.outstandingBalance || '—'; }
+async function preparePaymentElement() { if (!reference) throw new Error('Missing booking reference. Please return to your booking confirmation.'); const session = await requireSession(); if (!session) return; if (!STRIPE_PUBLISHABLE_KEY) throw new Error('Stripe publishable key is not configured yet.'); if (!window.Stripe) throw new Error('Stripe.js did not load. Refresh the page or contact us.'); setStatus('Preparing secure payment…', 'notice'); const result = await post('/api/stripe-payment-intent', { reference, category }, 'payment'); const keyMode = STRIPE_PUBLISHABLE_KEY.startsWith('pk_live_') ? 'live' : STRIPE_PUBLISHABLE_KEY.startsWith('pk_test_') ? 'test' : ''; if (!keyMode || (result.stripeEnvironment && keyMode !== result.stripeEnvironment) || (STRIPE_FRONTEND_MODE && keyMode !== STRIPE_FRONTEND_MODE)) throw new Error('Stripe payment configuration is inconsistent. Please contact support before trying again.'); populateBooking(result); stripe = window.Stripe(STRIPE_PUBLISHABLE_KEY); elements = stripe.elements({ clientSecret: result.clientSecret, appearance: { theme: 'stripe', variables: { colorPrimary: '#7c3aed', colorText: '#1f1733', borderRadius: '14px', fontFamily: 'Poppins, system-ui, sans-serif' } } }); elements.create('payment', { layout: 'tabs' }).mount('#paymentElement'); clientSecret = result.clientSecret; paymentReady = true; payButton.textContent = `Pay ${formatAmount(result.amountTotal, result.currency)}`; payButton.disabled = false; setStatus('Choose a payment method to continue.', 'notice'); }
+async function refreshStatus() { const session = await requireSession(); if (!session) return; try { const result = await post('/api/payment-status', { reference, category }, 'payment_status'); populateBooking(result); if (result.paid) { sessionStorage.removeItem('bv_pending_payment'); showResult('success', result); } else if (/processing|pending/i.test(`${result.paymentStatus} ${result.status}`)) showResult('pending', result); else showResult('failed', result); } catch (error) { setStatus(error.message, 'error'); } }
 
-function paymentReturnPath() {
-  return `${window.location.pathname}${window.location.search}`;
-}
+document.querySelectorAll('[data-next-step]').forEach(button => button.addEventListener('click', () => { const next = Number(button.dataset.nextStep); if (next === 4 && !$('paymentTerms').checked) { setStatus('Please accept the hire terms before continuing.', 'error'); $('paymentTerms').focus(); return; } setStep(next); }));
+document.querySelectorAll('[data-prev-step]').forEach(button => button.addEventListener('click', () => setStep(Number(button.dataset.prevStep))));
+document.querySelectorAll('[data-step-target]').forEach(button => button.addEventListener('click', () => { const target = Number(button.dataset.stepTarget); if (target <= currentStep) setStep(target); }));
+form?.addEventListener('submit', async event => { event.preventDefault(); if (!stripe || !elements || !clientSecret) return; payButton.disabled = true; setStatus('Checking payment details…', 'notice'); const { error: submitError } = await elements.submit(); if (submitError) { setStatus(submitError.message || 'Please check your payment details.', 'error'); showResult('failed'); return; } setStatus('Confirming payment securely…', 'notice'); const { error } = await stripe.confirmPayment({ elements, clientSecret, confirmParams: { return_url: `${window.location.origin}/payment?reference=${encodeURIComponent(reference)}&category=${encodeURIComponent(category)}` } }); if (error) { setStatus(error.message || 'Payment could not be confirmed. Please try again.', 'error'); showResult('failed'); } });
 
-function redirectToLogin() {
-  sessionStorage.setItem('bv_pending_payment', JSON.stringify({ reference: reference || stored.reference, price: amountEl?.textContent || stored.price, category }));
-  window.location.href = `/login?returnTo=${encodeURIComponent(paymentReturnPath())}`;
-}
-
-async function requireSession() {
-  if (!supabase) throw new Error('Authentication is unavailable. Please contact us.');
-  const { data } = await supabase.auth.getSession();
-  if (!data.session) {
-    setStatus('Please sign in to continue to secure payment.');
-    redirectToLogin();
-    return null;
-  }
-  return data.session;
-}
-
-function formatAmount(amount, currency = 'gbp') {
-  if (!Number.isFinite(Number(amount))) return stored.price || '—';
-  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency.toUpperCase() }).format(Number(amount) / 100);
-}
-
-function setStatus(message) {
-  if (paymentStatus) paymentStatus.textContent = message;
-}
-
-if (refEl) refEl.textContent = reference || stored.reference || 'Pending';
-if (amountEl && stored.price) amountEl.textContent = stored.price;
-if (!reference && stored.reference) window.history.replaceState(null, '', `/payment?reference=${encodeURIComponent(stored.reference)}`);
-
-async function refreshStatus() {
-  if (!reference || !params.get('payment_intent_client_secret')) return;
-  try {
-    const session = await requireSession();
-    if (!session) return;
-    const result = await post('/api/payment-status', { reference, category }, 'payment_status');
-    if (bookingStatusEl) bookingStatusEl.textContent = result.status;
-    if (result.paid) {
-      setStatus(`Payment received for ${result.reference}. We will contact you to confirm availability and collection details.`);
-      sessionStorage.removeItem('bv_pending_payment');
-      payButton.disabled = true;
-      payButton.textContent = 'Payment received';
-    } else {
-      setStatus(`Payment returned to Breezyee Vans. Current booking status: ${result.status}.`);
-    }
-  } catch (error) {
-    setStatus(error.message);
-  }
-}
-
-async function preparePaymentElement() {
-  if (!reference) throw new Error('Missing booking reference. Please return to your booking confirmation.');
-  const session = await requireSession();
-  if (!session) return;
-  if (!STRIPE_PUBLISHABLE_KEY) throw new Error('Stripe publishable key is not configured yet.');
-  if (!window.Stripe) throw new Error('Stripe.js did not load. Refresh the page or contact us.');
-  const result = await post('/api/stripe-payment-intent', { reference, category }, 'payment');
-  const keyMode = STRIPE_PUBLISHABLE_KEY.startsWith('pk_live_') ? 'live' : STRIPE_PUBLISHABLE_KEY.startsWith('pk_test_') ? 'test' : '';
-  if (!keyMode || (result.stripeEnvironment && keyMode !== result.stripeEnvironment) || (STRIPE_FRONTEND_MODE && keyMode !== STRIPE_FRONTEND_MODE)) {
-    throw new Error('Stripe payment configuration is inconsistent. Please contact support before trying again.');
-  }
-  clientSecret = result.clientSecret;
-  stripe = window.Stripe(STRIPE_PUBLISHABLE_KEY);
-  elements = stripe.elements({
-    clientSecret,
-    appearance: {
-      theme: 'stripe',
-      variables: { colorPrimary: '#5b22b0', colorText: '#241438', borderRadius: '14px', fontFamily: 'Poppins, system-ui, sans-serif' },
-    },
-  });
-  const paymentElement = elements.create('payment', { layout: 'tabs' });
-  paymentElement.mount('#paymentElement');
-  if (amountEl) amountEl.textContent = result.price || formatAmount(result.amountTotal, result.currency);
-  if (vehicleEl) vehicleEl.textContent = result.vehicle || 'Van hire';
-  if (bookingStatusEl) bookingStatusEl.textContent = result.categoryLabel || 'Awaiting payment';
-  payButton.textContent = `Pay ${formatAmount(result.amountTotal, result.currency)}`;
-  payButton.disabled = false;
-  paymentPanel?.classList.add('payment-card-ready');
-  setStatus('Enter your payment details below.');
-}
-
-form?.addEventListener('submit', async event => {
-  event.preventDefault();
-  if (!stripe || !elements || !clientSecret) return;
-  payButton.disabled = true;
-  setStatus('Checking payment details…');
-  const { error: submitError } = await elements.submit();
-  if (submitError) {
-    setStatus(submitError.message || 'Please check your payment details.');
-    payButton.disabled = false;
-    return;
-  }
-  setStatus('Confirming payment securely…');
-  const { error } = await stripe.confirmPayment({
-    elements,
-    clientSecret,
-    confirmParams: { return_url: `${window.location.origin}/payment?reference=${encodeURIComponent(reference)}&category=${encodeURIComponent(category)}` },
-  });
-  if (error) {
-    setStatus(error.message || 'Payment could not be confirmed. Please try again.');
-    payButton.disabled = false;
-  }
-});
-
-payButton.disabled = true;
-if (params.get('payment_intent_client_secret')) {
-  setStatus('Checking payment status…');
-  refreshStatus();
-} else {
-  setStatus('Preparing secure payment…');
-  preparePaymentElement().catch(error => {
-    setStatus(error.message);
-    payButton.disabled = true;
-  });
-}
+if ($('paymentReference')) $('paymentReference').textContent = reference || stored.reference || 'Pending'; if ($('sideReference')) $('sideReference').textContent = reference || stored.reference || 'Pending'; if (params.get('payment_intent_client_secret')) { setStatus('Checking payment status…', 'notice'); refreshStatus(); } else { setStatus('Loading your booking summary…', 'notice'); preparePaymentElement().catch(error => { setStatus(error.message, 'error'); }); }

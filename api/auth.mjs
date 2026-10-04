@@ -89,11 +89,13 @@ export default handle(async (req, res) => {
   if (body.action === 'register') {
     const existing = await findUserByEmail(admin, address);
     if (existing) throw new HttpError(409, 'An account already exists for this email. Request a one-time code to sign in.');
+    const userMetadata = { password_set: true };
+    if (body.fullName) userMetadata.full_name = text(body.fullName, 'your name', 100, 2);
     const created = await admin.auth.admin.createUser({
       email: address,
       password,
       email_confirm: true,
-      user_metadata: { full_name: text(body.fullName, 'your name', 100, 2), phone: text(body.phone, 'phone number', 30, 7), postcode: text(body.postcode, 'postcode', 12, 3), password_set: true },
+      user_metadata: userMetadata,
     });
     if (created.error) throw new HttpError(400, 'Unable to process this request. Please wait before trying again.');
     const result = await anon.auth.signInWithPassword({ email: address, password });
