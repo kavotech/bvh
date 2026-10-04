@@ -1,4 +1,3 @@
-import { supabase } from './supabase.js';
 import { getToken } from './forms.js';
 const params = new URLSearchParams(location.search); const reference = params.get('reference');
 const reviewToken = params.get('token');
