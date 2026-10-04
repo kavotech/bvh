@@ -3,7 +3,8 @@ import { post } from './forms.js';
 import { supabase } from './supabase.js';
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
-const STRIPE_FRONTEND_MODE = String(import.meta.env.VITE_STRIPE_ENVIRONMENT || '').toLowerCase();
+// The backend response is authoritative; this value is intentionally unused for mode decisions.
+const STRIPE_FRONTEND_MODE = '';
 const params = new URLSearchParams(window.location.search);
 const reference = params.get('reference') || '';
 const stored = (() => { try { return JSON.parse(sessionStorage.getItem('bv_pending_payment') || '{}'); } catch { return {}; } })();
