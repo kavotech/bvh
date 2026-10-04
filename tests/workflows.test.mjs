@@ -55,7 +55,7 @@ test('email templates escape customer content and distinguish requests from rese
   const jobs=submissionEmails('booking',{...body,...user,name:'Test',vehicle_name:car.model,price:'£100'},'BV-TEST');
   assert.equal(jobs.length,2);
   assert.match(jobs[0].text,/No payment has been taken|not a confirmed reservation/);
-  assert.equal(jobs[1].recipient,'info@breezyeevans.co.uk');
+  assert.equal(jobs[1].recipient,'info@breezyeemoves.co.uk');
 });
 test('Stripe helpers parse GBP amounts and verify webhook signatures',()=>{
   assert.equal(parseMoneyToPence('£100'),10000);

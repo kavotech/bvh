@@ -2,7 +2,8 @@ import { env, HttpError } from './core.mjs';
 export const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 export function template(title, lines) {
   const text = `${title}\n\n${lines.join('\n')}\n\nBreezyee Vans\n+44 7300 331603\ninfo@breezyeevans.co.uk\nhttps://www.breezyeevans.co.uk`;
-  const html = `<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:#f5f0ff;font-family:Arial,sans-serif;color:#2d2540"><table role="presentation" width="100%"><tr><td align="center" style="padding:24px 12px"><table role="presentation" width="100%" style="max-width:600px;background:white;border-radius:16px"><tr><td style="padding:28px;background:#5b22b0;color:white;font-size:24px">Breezyee Vans</td></tr><tr><td style="padding:28px;line-height:1.65;overflow-wrap:anywhere"><h1 style="font-size:24px">${escape(title)}</h1>${lines.map(line => `<p>${escape(line)}</p>`).join('')}<hr><p>Call <a href="tel:+447300331603">+44 7300 331603</a><br><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></p><a href="https://www.breezyeevans.co.uk">Visit Breezyee Vans</a></td></tr></table></td></tr></table></body></html>`;
+  const htmlLine = line => escape(line).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#5b22b0;font-weight:700">Review this booking</a>');
+  const html = `<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:#f5f0ff;font-family:Arial,sans-serif;color:#2d2540"><table role="presentation" width="100%"><tr><td align="center" style="padding:24px 12px"><table role="presentation" width="100%" style="max-width:600px;background:white;border-radius:16px"><tr><td style="padding:28px;background:#5b22b0;color:white;font-size:24px">Breezyee Vans</td></tr><tr><td style="padding:28px;line-height:1.65;overflow-wrap:anywhere"><h1 style="font-size:24px">${escape(title)}</h1>${lines.map(line => `<p>${htmlLine(line)}</p>`).join('')}<hr><p>Call <a href="tel:+447300331603">+44 7300 331603</a><br><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></p><a href="https://www.breezyeevans.co.uk">Visit Breezyee Vans</a></td></tr></table></td></tr></table></body></html>`;
   return { subject: title, html, text };
 }
 export function submissionEmails(kind, data, reference) {
@@ -10,7 +11,7 @@ export function submissionEmails(kind, data, reference) {
   const title = kind === 'booking' ? "We've Received Your Breezyee Vans Booking Request" : 'Your enquiry has been received';
   return [
     { recipient: data.email, ...template(title, lines) },
-    { recipient: 'info@breezyeevans.co.uk', ...template(`New ${kind} request — ${reference}`, [...lines, `Customer email: ${data.email}`, `Phone: ${data.phone}`]) },
+    { recipient: process.env.ADMIN_EMAIL || 'info@breezyeemoves.co.uk', ...template(kind === 'booking' ? 'New Breezyee Vans Booking Request — Review Required' : `New ${kind} request — ${reference}`, kind === 'booking' ? [`Hi Olushola Fadipe,`, `You have received a new booking request from ${data.name || 'a customer'}.`, `Booking reference: ${reference}`, `Customer email: ${data.email}`, `Phone: ${data.phone}`, `Please sign in and review, then approve or decline this request: ${process.env.SITE_URL || 'https://www.breezyeevans.co.uk'}/dashboard?booking=${encodeURIComponent(reference)}`, ...lines.slice(2)] : [...lines, `Customer email: ${data.email}`, `Phone: ${data.phone}`]) },
   ];
 }
 export async function sendResendEmail(job, idempotencyKey, fetcher = fetch) {
@@ -23,7 +24,7 @@ export async function sendResendEmail(job, idempotencyKey, fetcher = fetch) {
   let result = await response.json().catch(() => ({}));
   const domainUnverified = response.status === 403 && /domain is not verified/i.test(String(result.message || ''));
   const recipient = String(job.recipient || '').toLowerCase();
-  const adminEmail = (process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk').toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || 'info@breezyeemoves.co.uk').toLowerCase();
   if (domainUnverified && recipient === adminEmail) {
     console.warn('resend_domain_unverified_admin_fallback');
     response = await send('Breezyee Vans <onboarding@resend.dev>', `${idempotencyKey}:fallback`);

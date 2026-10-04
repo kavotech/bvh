@@ -46,7 +46,7 @@ export default handle(async (req, res) => {
   await rateLimit(req, admin, 'auth', address);
   await captcha(body.token, body.action);
   const anon = createClient(env('VITE_SUPABASE_URL'), env('VITE_SUPABASE_ANON_KEY'), { auth: { persistSession: false, autoRefreshToken: false } });
-  const adminEmail = (process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk').toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || 'info@breezyeemoves.co.uk').toLowerCase();
   const password = body.password;
 
   if (body.action === 'start_otp') {

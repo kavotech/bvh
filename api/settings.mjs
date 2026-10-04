@@ -2,7 +2,7 @@ import { handle, requestBody, db, userFor, rateLimit, captcha, HttpError } from 
 import { readBusinessSettings } from '../server/booking-payments.mjs';
 
 function isAdmin(user) {
-  return user.email?.toLowerCase() === (process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk').toLowerCase();
+  return user.email?.toLowerCase() === (process.env.ADMIN_EMAIL || 'info@breezyeemoves.co.uk').toLowerCase();
 }
 
 function poundsToPenceInput(value, label) {
