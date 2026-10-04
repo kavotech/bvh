@@ -11,7 +11,7 @@ export function submissionEmails(kind, data, reference) {
   const title = kind === 'booking' ? "We've Received Your Breezyee Vans Booking Request" : 'Your enquiry has been received';
   return [
     { recipient: data.email, ...template(title, lines) },
-    { recipient: process.env.ADMIN_NOTIFICATION_EMAIL || 'info@breezyeevans.co.uk', ...template(kind === 'booking' ? 'New Breezyee Vans Booking Request — Review Required' : `New ${kind} request — ${reference}`, kind === 'booking' ? [`Hi Olushola Fadipe,`, `You have received a booking request from ${data.name || 'a customer'}.`, `Booking reference: ${reference}`, `Customer email: ${data.email}`, `Phone: ${data.phone}`, `Please sign in and review, then approve or decline this request: ${process.env.SITE_URL || 'https://www.breezyeevans.co.uk'}/dashboard?booking=${encodeURIComponent(reference)}`, ...lines.slice(2)] : [...lines, `Customer email: ${data.email}`, `Phone: ${data.phone}`]) },
+    { recipient: process.env.ADMIN_NOTIFICATION_EMAIL || 'info@breezyeevans.co.uk', ...template(kind === 'booking' ? 'New Breezyee Vans Booking Request — Review Required' : `New ${kind} request — ${reference}`, kind === 'booking' ? [`Hi Olushola Fadipe,`, `You have received a booking request from ${data.name || 'a customer'}.`, `Booking reference: ${reference}`, `Customer email: ${data.email}`, `Phone: ${data.phone}`, `Please sign in and review, then approve or decline this request: ${process.env.SITE_URL || 'https://www.breezyeevans.co.uk'}/admin-booking-review.html?reference=${encodeURIComponent(reference)}`, ...lines.slice(2)] : [...lines, `Customer email: ${data.email}`, `Phone: ${data.phone}`]) },
   ];
 }
 export async function sendResendEmail(job, idempotencyKey, fetcher = fetch) {
