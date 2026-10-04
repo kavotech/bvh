@@ -13,7 +13,7 @@ create table if not exists public.booking_approval_audit (
   id uuid primary key default gen_random_uuid(),
   booking_id uuid not null references public.bookings(id) on delete cascade,
   action text not null check (action in ('approved','rejected')),
-  actor_id uuid not null,
+  actor_id uuid,
   reason text not null default '',
   created_at timestamptz not null default now()
 );

@@ -1,16 +1,19 @@
 import { handle, requestBody, db, userFor, rateLimit, captcha, text, uuid, digest, env, HttpError } from '../server/core.mjs';
 import { template, deliverEmails } from '../server/email.mjs';
 import { checkVehicleAvailable } from '../server/booking-payments.mjs';
+import { verifyReviewToken } from '../server/review-token.mjs';
 export default handle(async (req,res) => {
   const body=requestBody(req), client=db();
-  const user=await userFor(req,client);
-  const isAdmin=user.email.toLowerCase()===(process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk').toLowerCase();
-  await rateLimit(req,client,'manage',user.id);
+  const directReview = ['approve','reject'].includes(body.action) && typeof body.reviewToken === 'string';
+  const user=directReview ? null : await userFor(req,client);
+  const isAdmin=directReview || user.email.toLowerCase()===(process.env.ADMIN_EMAIL || 'info@breezyeevans.co.uk').toLowerCase();
+  await rateLimit(req,client,'manage',user?.id || `review:${body.reviewToken}`);
   await captcha(body.token,'manage');
   if(!['cancel','confirm','cancel_confirm','invoice','reminder','confirmation','approve','reject'].includes(body.action)) throw new HttpError(400,'Invalid booking action.');
   if(body.action!=='cancel' && !isAdmin) throw new HttpError(403,'Administrator access required.');
   const id=text(body.bookingId,'booking reference',100);
   const {data:booking,error}=await client.from('bookings').select('*').eq('id',id).single();
+  if (directReview && (!booking || !verifyReviewToken(body.reviewToken, booking.reference))) throw new HttpError(403, 'This review link has expired or is invalid.');
   if(error || (!isAdmin && booking.user_id!==user.id)) throw new HttpError(404,'Booking not found.');
   if (['approve','reject'].includes(body.action)) {
     if (!isAdmin) throw new HttpError(403, 'Administrator access required.');
@@ -27,17 +30,17 @@ export default handle(async (req,res) => {
       status = 'Approved — Awaiting Deposit';
       title = 'Your Breezyee Vans Booking Has Been Approved!';
       detail = `Great news! Your booking request has been approved. To secure your vehicle, complete the booking deposit here: ${process.env.SITE_URL || 'https://www.breezyeevans.co.uk'}/payment?reference=${encodeURIComponent(booking.reference)}&category=booking_deposit. Deposit deadline: ${booking.payment_deadline_at || 'before collection'}.`;
-      await client.from('bookings').update({ status, booking_status: status, approval_status: status, approved_at: new Date().toISOString(), approved_by: user.id, rejected_at: null, rejected_by: null }).eq('id', booking.id);
+      await client.from('bookings').update({ status, booking_status: status, approval_status: status, approved_at: new Date().toISOString(), approved_by: user?.id || null, rejected_at: null, rejected_by: null }).eq('id', booking.id);
       await client.from('booking_holds').update({ status: 'active', expires_at: booking.payment_deadline_at || new Date(Date.now()+86400000).toISOString() }).eq('booking_id', booking.id);
       await client.from('booking_payments').update({ status: 'requires_payment' }).eq('booking_id', booking.id).eq('category', 'booking_deposit');
     } else {
-      await client.from('bookings').update({ status, booking_status: status, approval_status: status, rejected_at: new Date().toISOString(), rejected_by: user.id, rejection_reason: detail }).eq('id', booking.id);
+      await client.from('bookings').update({ status, booking_status: status, approval_status: status, rejected_at: new Date().toISOString(), rejected_by: user?.id || null, rejection_reason: detail }).eq('id', booking.id);
       await client.from('booking_holds').update({ status: 'cancelled' }).eq('booking_id', booking.id);
       await client.from('booking_payments').update({ status: 'cancelled' }).eq('booking_id', booking.id).eq('category', 'booking_deposit');
     }
-    await client.from('booking_approval_audit').insert({ booking_id: booking.id, action: body.action === 'approve' ? 'approved' : 'rejected', actor_id: user.id, reason: detail });
+    await client.from('booking_approval_audit').insert({ booking_id: booking.id, action: body.action === 'approve' ? 'approved' : 'rejected', actor_id: user?.id || null, reason: detail });
     const content = template(title, [`Hello ${booking.name || 'there'},`, `Reference: ${booking.reference}`, `Vehicle: ${booking.vehicle_name || booking.van_size}`, `Collection: ${booking.date} at ${booking.time} (owner collection location)`, `Destination: ${booking.dropoff}`, `Rental price: ${booking.price}`, `Booking deposit: £${(Number(booking.booking_deposit_pence || 0) / 100).toFixed(2)}`, `Refundable security deposit: £${(Number(booking.security_deposit_pence || 0) / 100).toFixed(2)}`, `Status: ${status}`, detail]);
-    await client.from('email_outbox').insert([{ submission_key: key, recipient: booking.email, ...content }, { submission_key: key, recipient: process.env.ADMIN_NOTIFICATION_EMAIL || 'info@breezyeevans.co.uk', ...template(`Booking ${status} — ${booking.reference}`, [`Reference: ${booking.reference}`, `Status: ${status}`, `Reviewed by: ${user.email}`]) }]);
+    await client.from('email_outbox').insert([{ submission_key: key, recipient: booking.email, ...content }, { submission_key: key, recipient: process.env.ADMIN_NOTIFICATION_EMAIL || 'info@breezyeevans.co.uk', ...template(`Booking ${status} — ${booking.reference}`, [`Reference: ${booking.reference}`, `Status: ${status}`, `Reviewed by: ${user?.email || 'secure review link'}`]) }]);
     try { await deliverEmails(client, key); } catch { console.warn('email_queue_pending'); }
     res.status(200).json({ message: body.action === 'approve' ? 'Booking approved and payment instructions emailed.' : 'Booking rejected and the customer has been notified.' });
     return;
