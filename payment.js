@@ -2,6 +2,7 @@ import { post } from './forms.js';
 import { supabase } from './supabase.js';
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
+const STRIPE_FRONTEND_MODE = String(import.meta.env.VITE_STRIPE_ENVIRONMENT || '').toLowerCase();
 const params = new URLSearchParams(window.location.search);
 const reference = params.get('reference') || '';
 const stored = (() => { try { return JSON.parse(sessionStorage.getItem('bv_pending_payment') || '{}'); } catch { return {}; } })();
@@ -79,6 +80,10 @@ async function preparePaymentElement() {
   if (!STRIPE_PUBLISHABLE_KEY) throw new Error('Stripe publishable key is not configured yet.');
   if (!window.Stripe) throw new Error('Stripe.js did not load. Refresh the page or contact us.');
   const result = await post('/api/stripe-payment-intent', { reference, category }, 'payment');
+  const keyMode = STRIPE_PUBLISHABLE_KEY.startsWith('pk_live_') ? 'live' : STRIPE_PUBLISHABLE_KEY.startsWith('pk_test_') ? 'test' : '';
+  if (!keyMode || (result.stripeEnvironment && keyMode !== result.stripeEnvironment) || (STRIPE_FRONTEND_MODE && keyMode !== STRIPE_FRONTEND_MODE)) {
+    throw new Error('Stripe payment configuration is inconsistent. Please contact support before trying again.');
+  }
   clientSecret = result.clientSecret;
   stripe = window.Stripe(STRIPE_PUBLISHABLE_KEY);
   elements = stripe.elements({

@@ -969,6 +969,9 @@ async function initDashboardPage(user) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
   };
+  document.querySelectorAll('.admin-date-chip').forEach(el => {
+    el.textContent = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date());
+  });
 
   const formatMoney = value => `GBP ${Math.round(value).toLocaleString()}`;
   const parseMoney = value => {

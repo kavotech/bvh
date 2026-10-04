@@ -65,7 +65,7 @@ document.getElementById('resetForm')?.addEventListener('submit', async event => 
     const { error } = await supabase.auth.updateUser({ password, data: { ...userMeta, password_set: true } });
     if (error) throw new Error('Unable to reset your password. Request a new reset link.');
     await supabase.auth.signOut();
-    status.textContent = 'Password updated. You can now sign in with a one-time code and use password recovery if needed.';
+    status.textContent = 'Password updated. You can now sign in securely with your email and password.';
     event.target.reset();
   } catch (error) { status.textContent = error.message; }
   finally { button.disabled = false; }

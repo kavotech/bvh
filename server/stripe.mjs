@@ -7,6 +7,17 @@ function stripeSecret() {
   return env('STRIPE_SECRET_KEY');
 }
 
+export function stripeEnvironment() {
+  const secret = stripeSecret();
+  const actual = secret.startsWith('sk_live') ? 'live' : secret.startsWith('sk_test') ? 'test' : null;
+  if (!actual) throw new HttpError(503, 'Stripe is not configured with a valid secret key. Please contact support.');
+  const configured = String(process.env.STRIPE_ENVIRONMENT || '').trim().toLowerCase();
+  const production = process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production';
+  if (production && !['live', 'test'].includes(configured)) throw new HttpError(503, 'Stripe payment mode is not configured for this deployment. Please contact support.');
+  if (configured && configured !== actual) throw new HttpError(503, 'Stripe payment configuration is inconsistent. Please contact support.');
+  return actual;
+}
+
 export function parseMoneyToPence(price) {
   if (typeof price !== 'string') return null;
   const match = price.trim().match(/^£(\d+)(?:\.(\d{1,2}))?$/);
@@ -19,6 +30,7 @@ export function parseMoneyToPence(price) {
 }
 
 export async function stripeRequest(path, params, idempotencyKey, fetcher = fetch) {
+  stripeEnvironment();
   const body = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== null) body.append(key, String(value));

@@ -1,5 +1,5 @@
 import { handle, requestBody, db, rateLimit, captcha, userFor, text, HttpError } from '../server/core.mjs';
-import { createBookingPaymentIntent } from '../server/stripe.mjs';
+import { createBookingPaymentIntent, stripeEnvironment } from '../server/stripe.mjs';
 import { paymentCategoryLabel, penceToDisplay } from '../server/pricing.mjs';
 
 const PAYABLE = new Set(['booking_deposit', 'final_balance', 'remaining_balance', 'insurance_charge', 'security_deposit', 'additional_charge']);
@@ -31,6 +31,7 @@ async function ensureFinalPayment(client, booking) {
 
 export default handle(async (req, res) => {
   const body = requestBody(req);
+  const stripeMode = stripeEnvironment();
   const client = db();
   const user = await userFor(req, client);
   await rateLimit(req, client, 'payment', user.id);
@@ -90,5 +91,6 @@ export default handle(async (req, res) => {
       insurance: penceToDisplay(booking.insurance_charge_pence || 0),
       refundableSecurityDeposit: penceToDisplay(booking.security_deposit_pence || 0),
     },
+    stripeEnvironment: stripeMode,
   });
 });
