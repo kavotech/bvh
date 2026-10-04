@@ -19,7 +19,7 @@ export default handle(async (req,res) => {
     if (!isAdmin) throw new HttpError(403, 'Administrator access required.');
     const approvalCode = text(body.approvalCode, 'the approval code', 128, 4);
     if (approvalCode !== env('ADMIN_APPROVAL_CODE')) throw new HttpError(403, 'The administrative verification code is incorrect.');
-    const key = digest([user.id, body.action, id, String(body.rejectionReason || '')]);
+    const key = digest([user?.id || body.reviewToken, body.action, id, String(body.rejectionReason || '')]);
     const pending = /pending|requested|driver verification/i.test(`${booking.status} ${booking.booking_status} ${booking.approval_status || ''}`);
     if (!pending) throw new HttpError(409, 'This booking has already been reviewed. Refresh the dashboard.');
     let status = 'Rejected';

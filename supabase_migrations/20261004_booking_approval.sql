@@ -18,6 +18,7 @@ create table if not exists public.booking_approval_audit (
   created_at timestamptz not null default now()
 );
 create index if not exists booking_approval_audit_booking_idx on public.booking_approval_audit(booking_id, created_at desc);
+alter table public.booking_approval_audit alter column actor_id drop not null;
 alter table public.booking_approval_audit enable row level security;
 revoke all on public.booking_approval_audit from anon, authenticated;
 grant all on public.booking_approval_audit to service_role;
