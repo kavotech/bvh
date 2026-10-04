@@ -19,6 +19,26 @@ let stripe;
 let elements;
 let clientSecret;
 
+function paymentReturnPath() {
+  return `${window.location.pathname}${window.location.search}`;
+}
+
+function redirectToLogin() {
+  sessionStorage.setItem('bv_pending_payment', JSON.stringify({ reference: reference || stored.reference, price: amountEl?.textContent || stored.price, category }));
+  window.location.href = `/login?returnTo=${encodeURIComponent(paymentReturnPath())}`;
+}
+
+async function requireSession() {
+  if (!supabase) throw new Error('Authentication is unavailable. Please contact us.');
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) {
+    setStatus('Please sign in to continue to secure payment.');
+    redirectToLogin();
+    return null;
+  }
+  return data.session;
+}
+
 function formatAmount(amount, currency = 'gbp') {
   if (!Number.isFinite(Number(amount))) return stored.price || '—';
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency.toUpperCase() }).format(Number(amount) / 100);
@@ -35,8 +55,8 @@ if (!reference && stored.reference) window.history.replaceState(null, '', `/paym
 async function refreshStatus() {
   if (!reference || !params.get('payment_intent_client_secret')) return;
   try {
-    const { data } = supabase ? await supabase.auth.getSession() : { data: {} };
-    if (!data.session) throw new Error('Sign in to confirm payment status.');
+    const session = await requireSession();
+    if (!session) return;
     const result = await post('/api/payment-status', { reference, category }, 'payment_status');
     if (bookingStatusEl) bookingStatusEl.textContent = result.status;
     if (result.paid) {
@@ -54,6 +74,8 @@ async function refreshStatus() {
 
 async function preparePaymentElement() {
   if (!reference) throw new Error('Missing booking reference. Please return to your booking confirmation.');
+  const session = await requireSession();
+  if (!session) return;
   if (!STRIPE_PUBLISHABLE_KEY) throw new Error('Stripe publishable key is not configured yet.');
   if (!window.Stripe) throw new Error('Stripe.js did not load. Refresh the page or contact us.');
   const result = await post('/api/stripe-payment-intent', { reference, category }, 'payment');

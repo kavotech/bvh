@@ -50,15 +50,6 @@ if (enquiry) {
     finally { button.disabled = false; }
   });
 }
-for (const action of ['reset','resend']) {
-  document.getElementById(`auth-${action}`)?.addEventListener('click', async event => {
-    const status = document.getElementById('authStatus');
-    event.target.disabled = true;
-    try { const apiAction = action === 'resend' ? 'start_otp' : action; const result = await post('/api/auth', { action: apiAction, email: document.getElementById('authEmail').value }, apiAction); status.textContent = result.message; }
-    catch (error) { status.textContent = error.message; }
-    finally { event.target.disabled = false; }
-  });
-}
 document.getElementById('resetForm')?.addEventListener('submit', async event => {
   event.preventDefault();
   const button = event.target.querySelector('button');
@@ -80,9 +71,10 @@ document.getElementById('resetForm')?.addEventListener('submit', async event => 
   finally { button.disabled = false; }
 });
 
-const protectedForms = '#bookingForm,#enquiryForm,#authForm,#resetForm,#auth-reset,#auth-resend';
+const protectedForms = '#bookingForm,#enquiryForm,#resetForm';
 if (siteKey && document.querySelector(protectedForms)) {
   const loadBadge = () => ensureCaptchaLoaded().catch(() => {});
   if ('requestIdleCallback' in window) requestIdleCallback(loadBadge, { timeout: 2500 });
   else setTimeout(loadBadge, 900);
 }
+

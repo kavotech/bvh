@@ -108,7 +108,11 @@ export function initBookingWorkflow() {
     reviewStatus.textContent = 'Securely submitting your request…';
     try {
       const { data } = await supabase.auth.getUser();
-      if (!data.user?.email_confirmed_at) throw new Error('Please sign in with a verified email address before submitting. Your form is still here.');
+      if (!data.user?.email_confirmed_at) {
+        sessionStorage.setItem('bv_booking_request', requestId);
+        window.location.href = `/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return;
+      }
       if (value('custEmail').toLowerCase() !== data.user.email.toLowerCase()) throw new Error('Use your signed-in email address for this booking.');
       const front = await upload('licenceFrontFile', data.user.id);
       const back = await upload('licenceBackFile', data.user.id);

@@ -882,7 +882,6 @@ function renderSpecsCards(cars, container) {
 window.addEventListener('load', async () => {
   document.body.classList.add('is-ready');
   const user = await refreshAuthState();
-  initLoginPage(user);
   initBookingPage(user);
   initDashboardPage(user);
   initPaymentSettingsPage(user);
@@ -895,159 +894,6 @@ window.addEventListener('load', async () => {
         loadCarsForFleetPage();
   }
 });
-
-function initLoginPage(user) {
-  const loginPage = document.getElementById('loginPage');
-  if (!loginPage) return;
-  if (user) {
-    document.getElementById('authStatus').textContent = 'Already signed in. Redirecting to your dashboard…';
-    setTimeout(() => {
-      window.location.href = isAdminUser(user) ? 'dashboard.html' : 'user-dashboard.html';
-    }, 900);
-    return;
-  }
-
-  const authForm = document.getElementById('authForm');
-  const authToggle = document.getElementById('authToggle');
-  const authHeading = document.getElementById('authHeading');
-  const authModeHint = document.getElementById('authModeHint');
-  const authSubmit = document.getElementById('authSubmit');
-  const authStatus = document.getElementById('authStatus');
-  const emailField = document.getElementById('authEmail');
-  const otpField = document.getElementById('authOtp');
-  const resendButton = document.getElementById('auth-resend');
-  const signupFields = loginPage.querySelectorAll('.signup-only');
-  const otpFields = loginPage.querySelectorAll('.otp-only');
-  let authMode = 'signIn';
-  let otpSent = false;
-  let pendingEmail = '';
-  let resendAvailableAt = 0;
-
-  function normaliseEmail(value) {
-    const email = value.trim();
-    return email.toLowerCase() === 'admin' ? ADMIN_EMAIL : email;
-  }
-
-  function renderMode(message) {
-    signupFields.forEach(field => {
-      field.style.display = authMode === 'signUp' && !otpSent ? 'block' : 'none';
-    });
-    otpFields.forEach(field => {
-      field.style.display = otpSent ? 'block' : 'none';
-    });
-    if (emailField) emailField.disabled = otpSent;
-    if (authMode === 'signIn') {
-      authHeading.textContent = otpSent ? 'Enter your one-time code' : 'Sign in to your account';
-      authModeHint.textContent = 'New here?';
-      authToggle.textContent = otpSent ? 'Use another email' : 'Create an account';
-    } else {
-      authHeading.textContent = otpSent ? 'Enter your signup code' : 'Create your account';
-      authModeHint.textContent = 'Already registered?';
-      authToggle.textContent = otpSent ? 'Use another email' : 'Sign in';
-    }
-    authSubmit.textContent = otpSent ? 'Verify code' : 'Send one-time code';
-    authStatus.textContent = message || (otpSent ? 'Check your email and enter the code we sent.' : 'Enter your email and we’ll send a secure one-time code.');
-  }
-
-  function resetOtpState(nextMode = authMode) {
-    authMode = nextMode;
-    otpSent = false;
-    pendingEmail = '';
-    resendAvailableAt = 0;
-    if (emailField) emailField.disabled = false;
-    if (otpField) otpField.value = '';
-    renderMode();
-  }
-
-  authToggle.addEventListener('click', () => {
-    resetOtpState(otpSent ? authMode : (authMode === 'signIn' ? 'signUp' : 'signIn'));
-  });
-  resendButton?.addEventListener('click', async event => {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    const now = Date.now();
-    const authEmail = pendingEmail || normaliseEmail(emailField?.value || '');
-    if (!authEmail) {
-      authStatus.textContent = 'Enter your email before requesting a new code.';
-      return;
-    }
-    if (now < resendAvailableAt) {
-      authStatus.textContent = `Please wait ${Math.ceil((resendAvailableAt - now) / 1000)} seconds before requesting another code.`;
-      return;
-    }
-    resendButton.disabled = true;
-    try {
-      authStatus.textContent = 'Sending a fresh one-time code…';
-      const response = await post('/api/auth', { action: 'start_otp', email: authEmail, signup: authMode === 'signUp' }, 'start_otp');
-      pendingEmail = authEmail;
-      otpSent = true;
-      resendAvailableAt = Date.now() + 60000;
-      renderMode(response.message || 'A fresh one-time code has been sent.');
-      otpField?.focus();
-    } catch (error) {
-      authStatus.textContent = error.message || 'Unable to resend the code.';
-    } finally {
-      setTimeout(() => { resendButton.disabled = false; }, Math.max(0, resendAvailableAt - Date.now()));
-    }
-  }, { capture: true });
-  renderMode();
-
-  authForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const rawEmail = emailField?.value.trim() || '';
-    const authEmail = normaliseEmail(rawEmail);
-    if (!authEmail) return;
-
-    if (!supabase) {
-      authStatus.textContent = 'Authentication is not configured. Please contact support.';
-      return;
-    }
-
-    const fullName = document.getElementById('authFullName')?.value.trim();
-    const dob = document.getElementById('authDob')?.value;
-    const phone = document.getElementById('authPhone')?.value.trim();
-    const postcode = document.getElementById('authPostcode')?.value.trim();
-
-    if (!otpSent && authMode === 'signUp' && (!fullName || !dob || !phone || !postcode)) {
-      authStatus.textContent = 'Please complete all required signup fields.';
-      return;
-    }
-
-    authSubmit.disabled = true;
-    try {
-      if (!otpSent) {
-        authStatus.textContent = 'Sending your one-time code…';
-        const response = await post('/api/auth', { action: 'start_otp', email: authEmail, signup: authMode === 'signUp', fullName, dob, phone, postcode }, 'start_otp');
-        pendingEmail = authEmail;
-        otpSent = true;
-        resendAvailableAt = Date.now() + 60000;
-        renderMode(response.message || 'We sent a one-time code to your email.');
-        otpField?.focus();
-        return;
-      }
-
-      const otp = otpField?.value.trim() || '';
-      if (!otp) {
-        authStatus.textContent = 'Enter the one-time code from your email.';
-        return;
-      }
-      authStatus.textContent = 'Verifying your code…';
-      const response = await post('/api/auth', { action: 'verify_otp', email: pendingEmail || authEmail, otp }, 'verify_otp');
-      const result = await supabase.auth.setSession(response.session);
-      if (result.error) throw result.error;
-      if (response.requiresPasswordSetup) {
-        window.location.href = 'reset-password.html?setup=1';
-        return;
-      }
-      const signedInUser = result.data?.user;
-      window.location.href = isAdminUser(signedInUser) ? 'dashboard.html' : 'user-dashboard.html';
-    } catch (error) {
-      authStatus.textContent = error.message || 'Unable to continue. Please try again.';
-    } finally {
-      authSubmit.disabled = false;
-    }
-  });
-}
 
 function initBookingPage(user) {
   const bookingFormExists = document.getElementById('bookingForm');
@@ -1516,3 +1362,4 @@ async function initDashboardPage(user) {
       .subscribe();
   }
 }
+
