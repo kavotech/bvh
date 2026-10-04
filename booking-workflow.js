@@ -10,6 +10,7 @@ export function initBookingWorkflow() {
   const review = document.getElementById('bookingReview');
   const confirm = document.getElementById('submitReviewedBooking');
   let vehicles = [], requestId = sessionStorage.getItem('bv_booking_request') || crypto.randomUUID();
+  let vehicleLoadSequence = 0;
   sessionStorage.setItem('bv_booking_request', requestId);
   submit.disabled = true;
   const steps = [...form.querySelectorAll('.booking-step')];
@@ -57,8 +58,11 @@ export function initBookingWorkflow() {
   }
 
   async function loadVehicles() {
+    const loadSequence = ++vehicleLoadSequence;
+    const previousVehicle = select.value;
     try {
       const result = await post('/api/vehicles', vehicleWindowPayload(), 'vehicles');
+      if (loadSequence !== vehicleLoadSequence) return;
       if (!result.vehicles?.length) throw new Error('No vehicles are available online right now. Please call +44 7300 331603.');
       vehicles = result.vehicles;
       select.replaceChildren(new Option('Select a vehicle', ''));
@@ -71,7 +75,7 @@ export function initBookingWorkflow() {
         option.dataset.model = vehicle.model;
         option.disabled = vehicle.available === false;
         select.add(option);
-        if (requested === vehicle.type || requested === vehicle.id) select.value = vehicle.id;
+        if (vehicle.available !== false && (requested === vehicle.type || requested === vehicle.id || previousVehicle === vehicle.id)) select.value = vehicle.id;
       }
       submit.disabled = false;
       select.dispatchEvent(new Event('change'));
