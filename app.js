@@ -1,6 +1,3 @@
-function fleetImageUrl(value) { return ({'/van-small.jpg':'/van-small.webp','/van-medium.jpg':'/van-medium.webp','/van-large.png':'/van-large.webp'})[value] || value || '/van-small.webp'; }
-function vehicleDetailUrl(car) { return `/vehicle?van=${encodeURIComponent(car.id?.startsWith('fallback-') ? car.type : car.id || car.type)}`; }
-function escapeHTML(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 /* ============================================================
    BREEZYEE VANS — App JS
    ============================================================ */
@@ -8,8 +5,12 @@ import { supabase, ADMIN_EMAIL } from './supabase.js';
 import { post } from './forms.js';
 import { initBookingWorkflow } from './booking-workflow.js';
 import { initVehicleViewer } from './vehicle-viewer.js';
+import { FALLBACK_CARS, fleetImageUrl } from './fleet-data.js';
 initBookingWorkflow();
 initVehicleViewer();
+
+function vehicleDetailUrl(car) { return `/vehicle?van=${encodeURIComponent(car.id?.startsWith('fallback-') ? car.type : car.id || car.type)}`; }
+function escapeHTML(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 let currentUser = null;
 let bookingsRealtimeChannel = null;
@@ -442,42 +443,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 let carsData = [];
 let carsRealtimeChannel = null;
 
-// Fallback fleet data in case Supabase isn't configured yet
-const FALLBACK_CARS = [
-  {
-    id: 'fallback-1',
-    model: 'Citroen Berlingo',
-    type: 'small',
-    price_daily: 100,
-    capacity: '2–3 m³',
-    payload: 750,
-    description: 'Best for light loads and deliveries. Compact, nimble, and easy to park in the city.',
-    image_url: '/van-small.jpg',
-    is_active: true
-  },
-  {
-    id: 'fallback-2',
-    model: 'Mercedes Sprinter',
-    type: 'medium',
-    price_daily: 200,
-    capacity: '10–12 m³',
-    payload: 1500,
-    description: 'Ideal for bulky items and business transport. Spacious, powerful, and built to perform.',
-    image_url: '/van-medium.jpg',
-    is_active: true
-  },
-  {
-    id: 'fallback-3',
-    model: 'Iveco Daily Luton',
-    type: 'xl',
-    price_daily: 350,
-    capacity: '18–20 m³',
-    payload: 2000,
-    description: 'Maximum capacity for the biggest jobs. Large furniture, bulky loads, zero compromises.',
-    image_url: '/van-large.png',
-    is_active: true
-  }
-];
 
 async function loadCarsFromSupabase() {
   // Check if Supabase is configured
