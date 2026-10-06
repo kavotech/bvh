@@ -2880,6 +2880,9 @@ body.is-ready .hero-stats { animation-delay: .4s; }
 .admin-export-button {
   background: var(--console-ink);
   color: #fff;
+  border: 0;
+  font-family: var(--font);
+  cursor: pointer;
 }
 .admin-kpi-grid {
   display: grid;
