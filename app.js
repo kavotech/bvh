@@ -1037,13 +1037,15 @@ async function initDashboardPage(user) {
   }
 
   const verificationStatusLabel = verification => {
-    const status = verification?.verification_status || 'PENDING';
+    if (!verification) return '⚪ Not Submitted';
+    const status = verification.verification_status || 'PENDING';
     if (status === 'APPROVED') return '🟢 Approved';
     if (status === 'REJECTED') return '🔴 Rejected';
     return '🟡 Pending Review';
   };
   const verificationStatusClass = verification => {
-    const status = verification?.verification_status || 'PENDING';
+    if (!verification) return 'neutral';
+    const status = verification.verification_status || 'PENDING';
     if (status === 'APPROVED') return 'paid';
     if (status === 'REJECTED') return 'cancelled';
     return 'pending';
@@ -1057,7 +1059,7 @@ async function initDashboardPage(user) {
 
   const invoiceRows = bookings.slice(0, 10).map((booking, index) => {
     const customer = booking.name || booking.email || 'Customer';
-    return `<tr><td>${escapeHTML(customer)}</td><td>${escapeHTML(booking.email)}</td><td>${escapeHTML(booking.service)}</td><td>${escapeHTML(booking.price || 'GBP 0')}</td><td><button class="admin-email-action" type="button" data-email-action="invoice" data-booking-index="${index}">Invoice</button><button class="admin-email-action ghost" type="button" data-email-action="reminder" data-booking-index="${index}">Reminder</button></td></tr>`;
+    return `<tr><td>${escapeHTML(customer)}</td><td>${escapeHTML(booking.email)}</td><td>${escapeHTML(booking.service)}</td><td>${escapeHTML(booking.price || '£0')}</td><td><button class="admin-email-action" type="button" data-email-action="invoice" data-booking-index="${index}">Invoice</button><button class="admin-email-action ghost" type="button" data-email-action="reminder" data-booking-index="${index}">Reminder</button></td></tr>`;
   }).join('');
 
   const bookingRows = bookings.slice(0, 10).map(booking => {
@@ -1082,7 +1084,7 @@ async function initDashboardPage(user) {
       <td>${escapeHTML(booking.date)}</td>
       <td>${escapeHTML(booking.van_size)}</td>
       <td><span class="admin-status ${statusClass}">${escapeHTML(status)}</span></td>
-      <td>${escapeHTML(booking.price || 'GBP 0')}</td>
+      <td>${escapeHTML(booking.price || '£0')}</td>
       ${isAdmin ? `<td>
         <button class="admin-btn-icon confirm-booking-btn" data-id="${escapeHTML(booking.id)}" title="Approve booking request">Approve</button>
         <button class="admin-btn-icon reject-booking-btn" data-id="${escapeHTML(booking.id)}" title="Reject booking request">Reject</button>
@@ -1108,7 +1110,9 @@ async function initDashboardPage(user) {
   }
   if (tableBody) {
     tableBody.innerHTML = bookings.length === 0
-      ? `<tr><td colspan="6" class="txt-dim">No bookings found yet.</td></tr>`
+      ? (isUserDashboard
+          ? `<tr><td colspan="6"><div class="empty-state"><strong>No bookings yet</strong><p>When you book a van, it will show up here with its status, dates and payment details.</p><a class="btn btn-primary btn-sm" href="/booking">Book your first van</a></div></td></tr>`
+          : `<tr><td colspan="6" class="txt-dim">No bookings found yet.</td></tr>`)
       : isInvoicePage ? invoiceRows : bookingRows;
   }
 
