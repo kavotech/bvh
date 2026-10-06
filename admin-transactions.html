@@ -12,21 +12,18 @@
     <aside class="admin-console-sidebar">
       <a href="/" class="admin-console-brand"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
       <div class="admin-owner-card"><span>Admin account</span><strong class="admin-owner-name">Mr Olushola Fadipe</strong><small id="dashboardSyncStatus">Connecting to Supabase</small></div>
-      <nav class="admin-console-menu"><span>Main Menu</span><a href="/dashboard"><b>DB</b>Dashboard</a><a href="/admin-analytics"><b>AN</b>Analytics <small>20</small></a><a href="/admin-transactions" class="active"><b>TR</b>Transactions</a><a href="/admin-invoices"><b>IN</b>Invoices</a></nav>
-      <nav class="admin-console-menu"><span>Management</span><a href="/admin-cars"><b>FL</b>Fleet Cars</a><a href="/admin-cars"><b>PR</b>Pricing</a><a href="/admin-driver-checks"><b>DR</b>Drivers</a></nav>
+      <nav class="admin-console-menu"><span>Main Menu</span><a href="/dashboard"><b>DB</b>Dashboard</a><a href="/admin-transactions" class="active"><b>TR</b>Transactions</a><a href="/admin-invoices"><b>IN</b>Invoices</a><a href="/admin-analytics"><b>AN</b>Analytics</a></nav>
+      <nav class="admin-console-menu"><span>Fleet &amp; Drivers</span><a href="/admin-cars"><b>FL</b>Fleet Cars</a><a href="/admin-driver-checks"><b>DR</b>Driver Checks</a></nav>
       <nav class="admin-console-menu"><span>General</span><a href="/admin-settings"><b>ST</b>Settings</a><a href="/contact"><b>HP</b>Help Desk</a><a href="#" id="signOutLink"><b>LO</b>Log out</a></nav>
       <div class="admin-upgrade-card"><strong>Admin Pro</strong><p>Review every booking transaction in one queue.</p><a href="/admin-settings">Upgrade</a></div>
     </aside>
     <main id="main" class="admin-console-main">
       <header class="admin-console-topbar"><div class="admin-console-actions"><span class="admin-live-pill" id="dashboardLastSync">Syncing...</span><div class="admin-console-avatar" id="headerAvatar">A</div></div></header>
       <section class="admin-console-hero"><div><h1>Transactions</h1><p>Review booking payments, upcoming jobs, pending work, and recently created requests.</p></div><div class="admin-hero-actions"><span class="admin-date-chip">Live queue</span><a class="admin-export-button" href="/booking">Create Booking</a></div></section>
-      <section class="admin-kpi-grid"><article class="admin-kpi-card"><h2>Total Bookings</h2><strong id="dashboardBookingsCount">0</strong><p>All captured jobs</p></article><article class="admin-kpi-card"><h2>Pending Jobs</h2><strong id="dashboardPendingCount">0</strong><p>Needs admin action</p></article><article class="admin-kpi-card"><h2>Revenue</h2><strong id="dashboardRevenue">GBP 0</strong><p>Total booking value</p></article></section>
+      <section class="admin-kpi-grid"><article class="admin-kpi-card"><h2>Total Bookings</h2><strong id="dashboardBookingsCount">0</strong><p>All captured jobs</p></article><article class="admin-kpi-card"><h2>Pending Jobs</h2><strong id="dashboardPendingCount">0</strong><p>Needs admin action</p></article><article class="admin-kpi-card"><h2>Revenue</h2><strong id="dashboardRevenue">£0</strong><p>Recorded paid amount</p></article></section>
       <section class="admin-panel admin-table-panel">
         <div class="admin-panel-header"><h2>All Transactions</h2><div class="admin-panel-tools"><a href="/admin-invoices">Invoices</a></div></div>
         <div class="admin-table-wrap"><table class="admin-history-table"><thead><tr><th>Activity</th><th>Date</th><th>Van</th><th>Status</th><th>Price</th><th class="admin-actions-header">Actions</th></tr></thead><tbody id="bookingsTableBody"><tr><td colspan="6" class="txt-dim">Loading transactions...</td></tr></tbody></table></div>
-      </section>
-      <section class="admin-analytics-grid" id="recurring">
-
       </section>
     </main>
   </div>

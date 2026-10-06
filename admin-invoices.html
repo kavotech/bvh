@@ -12,15 +12,15 @@
     <aside class="admin-console-sidebar">
       <a href="/" class="admin-console-brand"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
       <div class="admin-owner-card"><span>Admin account</span><strong class="admin-owner-name">Mr Olushola Fadipe</strong><small id="dashboardSyncStatus">Connecting to Supabase</small></div>
-      <nav class="admin-console-menu"><span>Main Menu</span><a href="/dashboard"><b>DB</b>Dashboard</a><a href="/admin-analytics"><b>AN</b>Analytics <small>20</small></a><a href="/admin-transactions"><b>TR</b>Transactions</a><a href="/admin-invoices" class="active"><b>IN</b>Invoices</a></nav>
-      <nav class="admin-console-menu"><span>Management</span><a href="/admin-cars"><b>FL</b>Fleet Cars</a><a href="/admin-cars"><b>PR</b>Pricing</a><a href="/admin-driver-checks"><b>DR</b>Drivers</a></nav>
+      <nav class="admin-console-menu"><span>Main Menu</span><a href="/dashboard"><b>DB</b>Dashboard</a><a href="/admin-transactions"><b>TR</b>Transactions</a><a href="/admin-invoices" class="active"><b>IN</b>Invoices</a><a href="/admin-analytics"><b>AN</b>Analytics</a></nav>
+      <nav class="admin-console-menu"><span>Fleet &amp; Drivers</span><a href="/admin-cars"><b>FL</b>Fleet Cars</a><a href="/admin-driver-checks"><b>DR</b>Driver Checks</a></nav>
       <nav class="admin-console-menu"><span>General</span><a href="/admin-settings"><b>ST</b>Settings</a><a href="/contact"><b>HP</b>Help Desk</a><a href="#" id="signOutLink"><b>LO</b>Log out</a></nav>
       <div class="admin-upgrade-card"><strong>Admin Pro</strong><p>Keep payment requests clean and visible.</p><a href="/admin-settings">Upgrade</a></div>
     </aside>
     <main id="main" class="admin-console-main">
       <header class="admin-console-topbar"><div class="admin-console-actions"><span class="admin-live-pill" id="dashboardLastSync">Syncing...</span><div class="admin-console-avatar" id="headerAvatar">A</div></div></header>
       <section class="admin-console-hero"><div><h1>Booking notifications</h1><p>Send booking details, status updates and reminders using the stored booking record.</p></div><div class="admin-hero-actions"><span class="admin-date-chip">Billing</span><a class="admin-export-button" href="#invoiceComposer">Compose Email</a></div></section>
-      <section class="admin-kpi-grid"><article class="admin-kpi-card"><h2>Recorded paid amount</h2><strong id="dashboardRevenue">GBP 0</strong><p>Existing paid records only</p></article><article class="admin-kpi-card"><h2>Customers</h2><strong id="dashboardCustomersCount">0</strong><p>Billing contacts</p></article></section>
+      <section class="admin-kpi-grid"><article class="admin-kpi-card"><h2>Recorded paid amount</h2><strong id="dashboardRevenue">£0</strong><p>Existing paid records only</p></article><article class="admin-kpi-card"><h2>Customers</h2><strong id="dashboardCustomersCount">0</strong><p>Billing contacts</p></article></section>
       <section class="admin-console-grid">
         <article class="admin-panel admin-invoice-composer" id="invoiceComposer">
           <div class="admin-panel-header"><h2>Booking notification</h2><span id="invoiceEmailStatus">Select a booking</span></div>

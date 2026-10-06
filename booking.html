@@ -136,35 +136,82 @@
             <div class="bk-section-label" id="bookingStepDriver">Driver Verification</div>
             <div class="driver-info-box">
               <strong>Licence check required</strong>
-              <p>To hire a vehicle with Breezyee Vans, we need to verify your driving licence. Please generate a DVLA check code using the official GOV.UK service and enter it below.</p>
-              <a class="btn btn-outline btn-sm" href="https://www.gov.uk/view-driving-licence" target="_blank" rel="noopener">Get DVLA Check Code</a>
+              <p>UK law requires us to verify your driving licence before handover. We need both your DVLA check code and clear photos of your licence — complete the two steps below.</p>
             </div>
-            <div class="bk-grid">
-              <div class="bk-field bk-field-full">
-                <label for="driverFullName">Full Legal Name</label>
-                <input type="text" id="driverFullName" placeholder="As shown on your driving licence" required="">
+
+            <div class="driver-verify-card">
+              <div class="driver-verify-card-head">
+                <span class="driver-verify-step">1</span>
+                <div>
+                  <h3>Your details &amp; DVLA check code</h3>
+                  <p>Generate a free, one-time check code using the official GOV.UK service, then enter your details below.</p>
+                </div>
               </div>
-              <div class="bk-field">
-                <label for="driverDateOfBirth">Date of Birth</label>
-                <input type="date" id="driverDateOfBirth" required="">
-              </div>
-              <div class="bk-field">
-                <label for="driverLicenceNumber">Driving Licence Number</label>
-                <input type="text" id="driverLicenceNumber" placeholder="16 character licence number" autocomplete="off" required="">
-              </div>
-              <div class="bk-field bk-field-full">
-                <label for="dvlaCheckCode">DVLA Check Code</label>
-                <input type="text" id="dvlaCheckCode" placeholder="Enter your DVLA check code" autocomplete="off" required="">
-              </div>
-              <div class="bk-field">
-                <label for="licenceFrontFile">Driving Licence Front</label>
-                <input type="file" id="licenceFrontFile" accept="image/jpeg,image/png,image/webp,application/pdf" required="">
-              </div>
-              <div class="bk-field">
-                <label for="licenceBackFile">Driving Licence Back</label>
-                <input type="file" id="licenceBackFile" accept="image/jpeg,image/png,image/webp,application/pdf" required="">
+              <a class="btn btn-outline btn-sm" href="https://www.gov.uk/view-driving-licence" target="_blank" rel="noopener">Get DVLA Check Code ↗</a>
+              <div class="bk-grid" style="margin-top:18px">
+                <div class="bk-field bk-field-full">
+                  <label for="driverFullName">Full Legal Name</label>
+                  <input type="text" id="driverFullName" placeholder="As shown on your driving licence" required="">
+                </div>
+                <div class="bk-field">
+                  <label for="driverDateOfBirth">Date of Birth</label>
+                  <input type="date" id="driverDateOfBirth" required="">
+                </div>
+                <div class="bk-field">
+                  <label for="driverLicenceNumber">Driving Licence Number</label>
+                  <input type="text" id="driverLicenceNumber" placeholder="16 character licence number" autocomplete="off" required="">
+                </div>
+                <div class="bk-field bk-field-full">
+                  <label for="dvlaCheckCode">DVLA Check Code</label>
+                  <input type="text" id="dvlaCheckCode" placeholder="Enter your DVLA check code" autocomplete="off" required="">
+                </div>
               </div>
             </div>
+
+            <div class="driver-verify-card">
+              <div class="driver-verify-card-head">
+                <span class="driver-verify-step">2</span>
+                <div>
+                  <h3>Upload your licence photos</h3>
+                  <p>Clear, well-lit photos of the front and back of your licence. JPG, PNG, WebP or PDF, up to 5 MB each.</p>
+                </div>
+              </div>
+              <div class="licence-upload-grid">
+                <div class="licence-upload" data-licence-upload="licenceFrontFile">
+                  <div class="licence-upload-zone">
+                    <input type="file" id="licenceFrontFile" class="licence-upload-input" accept="image/jpeg,image/png,image/webp,application/pdf" required="">
+                    <span class="licence-upload-icon" aria-hidden="true">⬆</span>
+                    <strong>Licence — front</strong>
+                    <small>Tap to choose a photo or PDF</small>
+                  </div>
+                  <div class="licence-upload-preview" hidden="">
+                    <span class="licence-upload-thumb" aria-hidden="true"></span>
+                    <div class="licence-upload-meta">
+                      <strong class="licence-upload-filename">—</strong>
+                      <small class="licence-upload-status">Ready to upload</small>
+                    </div>
+                    <button type="button" class="licence-upload-remove">Remove</button>
+                  </div>
+                </div>
+                <div class="licence-upload" data-licence-upload="licenceBackFile">
+                  <div class="licence-upload-zone">
+                    <input type="file" id="licenceBackFile" class="licence-upload-input" accept="image/jpeg,image/png,image/webp,application/pdf" required="">
+                    <span class="licence-upload-icon" aria-hidden="true">⬆</span>
+                    <strong>Licence — back</strong>
+                    <small>Tap to choose a photo or PDF</small>
+                  </div>
+                  <div class="licence-upload-preview" hidden="">
+                    <span class="licence-upload-thumb" aria-hidden="true"></span>
+                    <div class="licence-upload-meta">
+                      <strong class="licence-upload-filename">—</strong>
+                      <small class="licence-upload-status">Ready to upload</small>
+                    </div>
+                    <button type="button" class="licence-upload-remove">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="booking-step-actions"><button type="button" class="btn btn-outline-dark booking-prev">Back</button><button type="button" class="btn btn-primary booking-next">Continue</button></div>
             </section>
 

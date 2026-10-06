@@ -10,10 +10,7 @@
 <body id="dashboardPage" class="admin-console-page"><a class="skip-link" href="#main">Skip to content</a>
   <div class="admin-console-shell">
     <aside class="admin-console-sidebar">
-      <a href="/" class="admin-console-brand">
-        <span class="admin-console-brand-mark">BV</span>
-        <strong>Breezyee</strong>
-      </a>
+      <a href="/" class="admin-console-brand"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
       <div class="admin-owner-card">
         <span>Admin account</span>
         <strong class="admin-owner-name">Mr Olushola Fadipe</strong>
@@ -22,16 +19,14 @@
       <nav class="admin-console-menu">
         <span>Main Menu</span>
         <a href="/dashboard" class="active"><b>DB</b>Dashboard</a>
-        <a href="/admin-driver-checks"><b>DV</b>Driver Checks</a>
-        <a href="/admin-analytics"><b>AN</b>Analytics <small>20</small></a>
         <a href="/admin-transactions"><b>TR</b>Transactions</a>
         <a href="/admin-invoices"><b>IN</b>Invoices</a>
+        <a href="/admin-analytics"><b>AN</b>Analytics</a>
       </nav>
       <nav class="admin-console-menu">
-        <span>Features</span>
-        <a href="/admin-transactions#recurring"><b>RC</b>Recurring <small>16</small></a>
-
-        <a href="/contact"><b>FB</b>Feedback</a>
+        <span>Fleet &amp; Drivers</span>
+        <a href="/admin-cars"><b>FL</b>Fleet Cars</a>
+        <a href="/admin-driver-checks"><b>DR</b>Driver Checks</a>
       </nav>
       <nav class="admin-console-menu">
         <span>General</span>
@@ -42,7 +37,7 @@
       <div class="admin-upgrade-card">
         <strong>Admin Pro</strong>
         <p>Faster control for bookings, customers, and fleet activity.</p>
-        <a href="/admin-settings">Upgrade</a>
+        <a href="/admin-settings">Workspace settings</a>
       </div>
     </aside>
 
@@ -83,7 +78,7 @@
             <div><b>PN</b><span>Pending</span><strong id="dashboardPendingCount">0</strong><small>Needs review</small></div>
             <div><b>CU</b><span>Customers</span><strong id="dashboardCustomersCount">0</strong><small>Unique contacts</small></div>
             <div><b>CO</b><span>Completed</span><strong id="dashboardCompletedCount">0</strong><small>Confirmed jobs</small></div>
-            <div><b>MO</b><span>This month</span><strong id="dashboardMonthlyRevenue">GBP 0</strong><small>Synced value</small></div>
+            <div><b>MO</b><span>This month</span><strong id="dashboardMonthlyRevenue">£0</strong><small>Synced value</small></div>
           </div>
         </article>
 
@@ -144,7 +139,7 @@
           <div class="admin-command-grid">
             <div><span>Jobs Today</span><strong id="dashboardTodayCount">0</strong><small>Scheduled for today</small></div>
             <div><span>Overdue Follow-ups</span><strong id="dashboardOverdueCount">0</strong><small>Pending over 3 days</small></div>
-            <div><span>Average Booking</span><strong id="dashboardAverageBooking">GBP 0</strong><small>Across all requests</small></div>
+            <div><span>Average Booking</span><strong id="dashboardAverageBooking">£0</strong><small>Across all requests</small></div>
             <div><span>Conversion Health</span><strong id="dashboardConversionRate">0%</strong><small>Confirmed vs total</small></div>
           </div>
         </article>
