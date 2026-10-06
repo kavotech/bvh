@@ -1,10 +1,12 @@
 import { supabase, DRIVER_DOC_BUCKET } from './supabase.js';
 import { post } from './forms.js';
+import { fleetImageUrl } from './fleet-data.js';
 
 export function initBookingWorkflow() {
   const form = document.getElementById('bookingForm');
   if (!form) return;
   const select = document.getElementById('vanSize');
+  const pickerGrid = document.getElementById('vanPickerGrid');
   const status = document.getElementById('bookingStatus');
   const submit = form.querySelector('[type=submit]');
   const review = document.getElementById('bookingReview');
@@ -100,6 +102,50 @@ export function initBookingWorkflow() {
     return { start: start.toISOString(), end: end.toISOString() };
   }
 
+  function syncVanPickerSelection() {
+    pickerGrid?.querySelectorAll('.van-picker-card').forEach(card => {
+      const isSelected = card.dataset.vehicleId === select.value;
+      card.classList.toggle('is-selected', isSelected);
+      card.setAttribute('aria-pressed', String(isSelected));
+      const button = card.querySelector('.van-picker-select');
+      if (button && !card.classList.contains('is-unavailable')) button.textContent = isSelected ? 'Selected ✓' : 'Select this van';
+    });
+  }
+
+  function renderVanPicker() {
+    if (!pickerGrid) return;
+    if (!vehicles.length) { pickerGrid.innerHTML = '<p class="txt-dim">No vans are available online right now. Please call +44 7300 331603.</p>'; return; }
+    const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    pickerGrid.innerHTML = vehicles.map(vehicle => {
+      const unavailable = vehicle.available === false;
+      const price = vehicle.price_display || `£${vehicle.price_daily}/day`;
+      return `<article class="van-picker-card${unavailable ? ' is-unavailable' : ''}" data-vehicle-id="${vehicle.id}" role="button" tabindex="${unavailable ? '-1' : '0'}" aria-pressed="false" aria-disabled="${unavailable}">
+        <div class="van-picker-image" style="background-image:url('${escapeHTML(fleetImageUrl(vehicle.image_url))}')"></div>
+        <div class="van-picker-body">
+          <h4>${escapeHTML(vehicle.model)}</h4>
+          <p>${escapeHTML(vehicle.description || '')}</p>
+          <div class="van-picker-specs">
+            ${vehicle.capacity ? `<span>${escapeHTML(vehicle.capacity)}</span>` : ''}
+            ${vehicle.payload ? `<span>${escapeHTML(vehicle.payload)} kg</span>` : ''}
+            <span>Automatic</span>
+          </div>
+          <div class="van-picker-foot">
+            <strong>${escapeHTML(price)}${vehicle.price_display ? '' : '/day'}</strong>
+            <button type="button" class="btn btn-sm btn-outline van-picker-select" ${unavailable ? 'disabled' : ''}>${unavailable ? 'Unavailable for these dates' : 'Select this van'}</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+    pickerGrid.querySelectorAll('.van-picker-card:not(.is-unavailable)').forEach(card => {
+      const choose = () => { select.value = card.dataset.vehicleId; select.dispatchEvent(new Event('change')); };
+      card.addEventListener('click', choose);
+      card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(); } });
+    });
+    syncVanPickerSelection();
+  }
+
+  select.addEventListener('change', syncVanPickerSelection);
+
   async function loadVehicles() {
     const loadSequence = ++vehicleLoadSequence;
     const previousVehicle = select.value;
@@ -121,6 +167,7 @@ export function initBookingWorkflow() {
         if (vehicle.available !== false && (requested === vehicle.type || requested === vehicle.id || previousVehicle === vehicle.id)) select.value = vehicle.id;
       }
       submit.disabled = false;
+      renderVanPicker();
       select.dispatchEvent(new Event('change'));
       const unavailable = vehicles.filter(vehicle => vehicle.available === false).length;
       status.textContent = unavailable ? 'Some vehicles are unavailable for that time. Choose an available van and sign in before submitting.' : 'Live vehicle selection loaded. Sign in before submitting driver documents.';
