@@ -5,6 +5,7 @@ export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
 export const site = () => process.env.SITE_URL || 'https://www.breezyeevans.co.uk';
+export const DRIVER_DOC_BUCKET = 'driver-verification-documents';
 export function env(name) {
   if (!process.env[name]) throw new HttpError(503, 'This service is temporarily unavailable. Please call +44 7300 331603.');
   return process.env[name];

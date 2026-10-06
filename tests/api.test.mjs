@@ -21,9 +21,9 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     if(url.includes('bv_rate_limit')) return json(mode!=='limited');
     if(url.includes('/auth/v1/admin/generate_link')) {
       const payload=JSON.parse(options.body);
-      assert.equal(payload.type,'magiclink');
+      assert.equal(payload.type,'recovery');
       assert.equal(payload.email,user.email);
-      return json({...user,user_metadata:{password_set:false},email_otp:'123456',action_link:'https://www.breezyeevans.co.uk/login',hashed_token:'hash',redirect_to:'https://www.breezyeevans.co.uk/login',verification_type:'magiclink'});
+      return json({...user,user_metadata:{password_set:false},action_link:'https://www.breezyeevans.co.uk/reset-password',hashed_token:'hash',redirect_to:'https://www.breezyeevans.co.uk/reset-password',verification_type:'recovery'});
     }
     if(url.includes('/auth/v1/admin/users')) {
       assert.equal(options.method,'GET');
@@ -33,7 +33,6 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
       const payload=JSON.parse(options.body);
       assert.equal(payload.from,'Breezyee Vans <no-reply@breezyeevans.co.uk>');
       assert.deepEqual(payload.to,[user.email]);
-      assert.match(payload.text,/123456/);
       assert.equal(options.headers['Idempotency-Key'].length,64);
       return json({id:'resend-auth-test'});
     }
@@ -42,11 +41,6 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     if(url.includes('/auth/v1/token')) {
       assert.equal(JSON.parse(options.body).password,' password with spaces ');
       return json({access_token:'test-access',refresh_token:'test-refresh',expires_in:3600,token_type:'bearer',user});
-    }
-    if(url.includes('/auth/v1/verify')) {
-      const payload=JSON.parse(options.body);
-      assert.equal(payload.type,'email');assert.equal(payload.token,'123456');
-      return json({access_token:'otp-access',refresh_token:'otp-refresh',expires_in:3600,token_type:'bearer',user});
     }
     if(url.includes('api.stripe.com/v1/payment_intents')) {
       const payload=new URLSearchParams(options.body);
@@ -90,9 +84,8 @@ test('API submission ordering, persistence failure, CAPTCHA rejection and author
     const unsigned=request(booking);delete unsigned.headers.authorization;res=response();await submit(unsigned,res);assert.equal(res.code,401);
     action='manage';res=response();await manage(request({action:'confirm',token:'mock',requestId,bookingId:'booking'}),res);assert.equal(res.code,403);
     action='register';mode='captcha-fail';res=response();await auth(request({action:'register',email:user.email,token:'mock'}),res);assert.equal(res.code,403);
-    action='start_otp';mode='ok';calls=[];res=response();await auth(request({action:'start_otp',email:user.email,token:'mock',signup:true,fullName:'Test Customer',phone:'+44 7300 331603',postcode:'SW1A 1AA'}),res);assert.equal(res.code,200);assert.match(res.body.message,/one-time code/);assert.ok(calls.some(x=>x.includes('/auth/v1/admin/generate_link')));assert.ok(calls.some(x=>x.includes('api.resend.com/emails')));assert.ok(!calls.some(x=>x.includes('/auth/v1/otp')));
     action='login';mode='ok';res=response();await auth(request({action:'login',email:user.email,token:'mock',password:' password with spaces '}),res);assert.equal(res.code,200);assert.equal(res.body.session.access_token,'test-access');
-    action='verify_otp';res=response();await auth(request({action:'verify_otp',email:user.email,token:'mock',otp:'123456'}),res);assert.equal(res.code,200);assert.equal(res.body.session.access_token,'otp-access');
+    action='reset';calls=[];res=response();await auth(request({action:'reset',email:user.email,token:'mock'}),res);assert.equal(res.code,200);assert.match(res.body.message,/email/);assert.ok(!calls.some(x=>x.includes('/auth/v1/admin/generate_link')));
     action='payment';res=response();await createPaymentIntent(request({reference:'BV-TEST123',token:'mock'}),res);assert.equal(res.code,200);assert.equal(res.body.clientSecret,'pi_test_secret');assert.equal(res.body.amountTotal,2500);
   } finally {globalThis.fetch=original;}
 });

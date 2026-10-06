@@ -1,4 +1,4 @@
-import { handle, requestBody, db, rateLimit, captcha, userFor, uuid, digest, HttpError } from '../server/core.mjs';
+import { handle, requestBody, db, rateLimit, captcha, userFor, uuid, digest, HttpError, DRIVER_DOC_BUCKET } from '../server/core.mjs';
 import { validateBooking, validateEnquiry, validateDriver } from '../server/validation.mjs';
 import { submissionEmails, deliverEmails } from '../server/email.mjs';
 import { calculateChargesForCar, bookingWindow, checkVehicleAvailable, readBusinessSettings } from '../server/booking-payments.mjs';
@@ -41,7 +41,7 @@ export default handle(async (req, res) => {
       price: penceToDisplay(charges.hire_price_pence),
     });
     driver = validateDriver(body, user, requestId);
-    const { data: files, error: fileError } = await client.storage.from('driver-verification-documents').list(`${user.id}/${requestId}`);
+    const { data: files, error: fileError } = await client.storage.from(DRIVER_DOC_BUCKET).list(`${user.id}/${requestId}`);
     if (fileError || ![driver.licence_front_file, driver.licence_back_file].every(path => files?.some(file => file.name === path.split('/').pop() && file.metadata?.size <= 5 * 1024 * 1024))) throw new HttpError(400, 'Please upload both licence documents, each under 5 MB.');
   } else {
     data = validateEnquiry(body);

@@ -1,4 +1,4 @@
-import { handle, requestBody, db, text, HttpError } from '../server/core.mjs';
+import { handle, requestBody, db, text, HttpError, DRIVER_DOC_BUCKET } from '../server/core.mjs';
 import { verifyReviewToken } from '../server/review-token.mjs';
 
 export default handle(async (req, res) => {
@@ -13,7 +13,7 @@ export default handle(async (req, res) => {
   for (const key of ['licence_front_file', 'licence_back_file']) {
     const path = driver?.[key];
     if (path) {
-      const { data } = await client.storage.from('driver-verification-documents').createSignedUrl(path, 600);
+      const { data } = await client.storage.from(DRIVER_DOC_BUCKET).createSignedUrl(path, 600);
       if (data?.signedUrl) documents[key] = data.signedUrl;
     }
   }

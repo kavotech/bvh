@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js';
+import { supabase, DRIVER_DOC_BUCKET } from './supabase.js';
 import { post } from './forms.js';
 
 export function initBookingWorkflow() {
@@ -37,6 +37,49 @@ export function initBookingWorkflow() {
     }
     return true;
   };
+
+  form.querySelectorAll('[data-licence-upload]').forEach(wrapper => {
+    const input = wrapper.querySelector('.licence-upload-input');
+    const zone = wrapper.querySelector('.licence-upload-zone');
+    const preview = wrapper.querySelector('.licence-upload-preview');
+    const thumb = wrapper.querySelector('.licence-upload-thumb');
+    const filename = wrapper.querySelector('.licence-upload-filename');
+    const statusEl = wrapper.querySelector('.licence-upload-status');
+    let objectUrl = null;
+    const reset = () => {
+      if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+      input.value = '';
+      zone.hidden = false;
+      preview.hidden = true;
+      thumb.style.backgroundImage = '';
+      thumb.textContent = '';
+    };
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      if (!file) { reset(); return; }
+      const maxSize = 5 * 1024 * 1024;
+      if (!/^image\/(jpeg|png|webp)$|^application\/pdf$/.test(file.type) || file.size > maxSize) {
+        statusEl.textContent = 'Use a JPG, PNG, WebP or PDF under 5 MB.';
+        reset();
+        return;
+      }
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (file.type === 'application/pdf') {
+        thumb.style.backgroundImage = '';
+        thumb.textContent = 'PDF';
+      } else {
+        objectUrl = URL.createObjectURL(file);
+        thumb.style.backgroundImage = `url("${objectUrl}")`;
+        thumb.textContent = '';
+      }
+      filename.textContent = file.name;
+      statusEl.textContent = 'Ready to upload';
+      zone.hidden = true;
+      preview.hidden = false;
+    });
+    wrapper.querySelector('.licence-upload-remove')?.addEventListener('click', reset);
+  });
+
   form.querySelectorAll('.booking-next').forEach(button => button.addEventListener('click', () => {
     if (validateStep(activeStep)) showStep(activeStep + 1);
   }));
@@ -101,7 +144,7 @@ export function initBookingWorkflow() {
     if (!file || !extensions[file.type] || file.size > 5 * 1024 * 1024) throw new Error('Upload a JPG, PNG, WebP or PDF under 5 MB for each licence side.');
     const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await file.arrayBuffer())), b => b.toString(16).padStart(2,'0')).join('');
     const path = `${userId}/${requestId}/${id}-${hash}.${extensions[file.type]}`;
-    const { error } = await supabase.storage.from('driver-verification-documents').upload(path, file, { contentType: file.type, upsert: false });
+    const { error } = await supabase.storage.from(DRIVER_DOC_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
     if (error && String(error.statusCode) !== '409') throw new Error('Unable to securely upload your documents. Please try again.');
     return path;
   }

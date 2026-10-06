@@ -983,7 +983,7 @@ async function initDashboardPage(user) {
     el.textContent = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date());
   });
 
-  const formatMoney = value => `GBP ${Math.round(value).toLocaleString()}`;
+  const formatMoney = value => `£${Math.round(value).toLocaleString()}`;
   const parseMoney = value => {
     if (typeof value === 'number') return value;
     const parsed = Number(String(value || '').replace(/[^\d.]/g, ''));
@@ -1163,7 +1163,7 @@ async function initDashboardPage(user) {
   });
   if (weeklyCountEl) weeklyCountEl.textContent = weeklyBookings.length;
 
-  const totalRevenue = bookings.filter(b => b.status === 'Paid').reduce((sum, b) => sum + parseMoney(b.price), 0);
+  const totalRevenue = bookings.reduce((sum, b) => sum + (Number(b.paid_total_pence) || 0) / 100, 0);
   const pendingBookings = bookings.filter(b => /requested|pending/i.test(b.status || ''));
   const completedBookings = bookings.filter(b => {
     const status = (b.status || '').toLowerCase();
@@ -1175,10 +1175,10 @@ async function initDashboardPage(user) {
     const created = b.created_at ? new Date(b.created_at) : null;
     return created && (Date.now() - created.getTime()) > 3 * 24 * 60 * 60 * 1000;
   });
-  const currentMonthRevenue = bookings.filter(b => b.status === 'Paid').reduce((sum, booking) => {
+  const currentMonthRevenue = bookings.reduce((sum, booking) => {
     const created = booking.created_at ? new Date(booking.created_at) : null;
     if (!created || created.getMonth() !== now.getMonth() || created.getFullYear() !== now.getFullYear()) return sum;
-    return sum + parseMoney(booking.price);
+    return sum + (Number(booking.paid_total_pence) || 0) / 100;
   }, 0);
   const revenueGoal = Math.max(25000, totalRevenue * 1.25);
   const monthlyProgress = Math.min(100, Math.round((currentMonthRevenue / revenueGoal) * 100)) || 0;
@@ -1354,8 +1354,8 @@ async function initDashboardPage(user) {
   const monthlyTotals = Array.from({ length: 12 }, () => 0);
   bookings.forEach(booking => {
     const created = booking.created_at ? new Date(booking.created_at) : booking.date ? new Date(booking.date) : null;
-    if (!created || created.getFullYear() !== now.getFullYear() || booking.status !== 'Paid') return;
-    monthlyTotals[created.getMonth()] += parseMoney(booking.price);
+    if (!created || created.getFullYear() !== now.getFullYear()) return;
+    monthlyTotals[created.getMonth()] += (Number(booking.paid_total_pence) || 0) / 100;
   });
   const maxMonth = Math.max(...monthlyTotals, 1);
   document.querySelectorAll('[data-month-bar]').forEach((bar, index) => {
