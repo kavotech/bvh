@@ -11,6 +11,7 @@ initVehicleViewer();
 
 function vehicleDetailUrl(car) { return `/vehicle?van=${encodeURIComponent(car.id?.startsWith('fallback-') ? car.type : car.id || car.type)}`; }
 function escapeHTML(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const VAN_EMOJIS = { small: '🚐', medium: '🚛', xl: '🚚' };
 
 let currentUser = null;
 let bookingsRealtimeChannel = null;
@@ -557,17 +558,11 @@ function renderAdminCarsTable(cars) {
     xl: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
   };
 
-  const vanEmojis = {
-    small: '🚐',
-    medium: '🚛',
-    xl: '🚚'
-  };
-
   tableBody.innerHTML = cars.map(car => `
     <tr>
       <td>
         <div class="car-thumb" style="background: ${car.image_url ? `url(&quot;${escapeHTML(car.image_url)}&quot;)` : gradientColors[car.type]}; background-size: cover; background-position: center;">
-          ${!car.image_url ? `<span>${vanEmojis[car.type] || '🚐'}</span>` : ''}
+          ${!car.image_url ? `<span>${VAN_EMOJIS[car.type] || '🚐'}</span>` : ''}
         </div>
       </td>
       <td><strong>${escapeHTML(car.model)}</strong></td>
@@ -613,16 +608,10 @@ function renderAdminCarsPreview(cars) {
     xl: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
   };
 
-  const vanEmojis = {
-    small: '🚐',
-    medium: '🚛',
-    xl: '🚚'
-  };
-
   previewGrid.innerHTML = cars.map(car => `
     <div class="car-preview-card">
       <div class="car-preview-img" style="background: ${car.image_url ? `url(&quot;${escapeHTML(car.image_url)}&quot;)` : gradientColors[car.type]}; background-size: cover; background-position: center;">
-        ${!car.image_url ? `<span style="font-size: 3rem;">${vanEmojis[car.type] || '🚐'}</span>` : ''}
+        ${!car.image_url ? `<span style="font-size: 3rem;">${VAN_EMOJIS[car.type] || '🚐'}</span>` : ''}
       </div>
       <div class="car-preview-info">
         <h4>${escapeHTML(car.model)}</h4>
@@ -770,16 +759,10 @@ function renderFleetCards(cars, container) {
     xl: 'Maximum capacity for the biggest jobs. Large furniture, bulky loads, zero compromises.'
   };
 
-  const fallbackIcons = {
-    small: '🚐',
-    medium: '🚛',
-    xl: '🚚'
-  };
-
   container.innerHTML = cars.map(car => `
     <div class="van-card reveal ${car.type === 'medium' ? 'van-featured' : ''}">
       <div class="van-card-image van-card-image-loading">
-        <div class="van-card-image-fallback">${fallbackIcons[car.type] || '🚐'}</div>
+        <div class="van-card-image-fallback">${VAN_EMOJIS[car.type] || '🚐'}</div>
         <img
           src="${escapeHTML(fleetImageUrl(car.image_url))}"
           alt="${escapeHTML(car.model)}"
