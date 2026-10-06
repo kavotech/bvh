@@ -2962,7 +2962,7 @@ body.is-ready .hero-stats { animation-delay: .4s; }
   display: inline-grid;
   place-items: center;
   border-radius: 10px;
-  background: #e9f6f0;
+  background: var(--console-mint, #e9f6f0);
   color: var(--console-green-dark);
   font-size: .68rem;
   font-weight: 900;
