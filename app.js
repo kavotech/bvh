@@ -1200,31 +1200,39 @@ async function initDashboardPage(user) {
             name: booking.name || 'Unknown',
             email: email,
             bookings: 0,
-            totalSpent: 0
+            totalSpent: 0,
+            lastLogin: null,
           };
         }
         customerData[email].bookings++;
         customerData[email].totalSpent += parseMoney(booking.price);
       });
 
-      const customerRows = Object.values(customerData).map(customer => `
-        <tr>
-          <td>${escapeHTML(customer.name)}</td>
-          <td>${escapeHTML(customer.email)}</td>
-          <td>${customer.bookings}</td>
-          <td>${formatMoney(customer.totalSpent)}</td>
-          <td>
-            <a href="mailto:${escapeHTML(customer.email)}">Contact</a>
-          </td>
-        </tr>
-      `).join('');
+      const renderCustomerRows = () => {
+        const rows = Object.values(customerData).map(customer => `
+          <tr>
+            <td>${escapeHTML(customer.name)}</td>
+            <td>${escapeHTML(customer.email)}</td>
+            <td>${customer.bookings}</td>
+            <td>${formatMoney(customer.totalSpent)}</td>
+            <td>${customer.lastLogin ? new Date(customer.lastLogin).toLocaleString() : '<span class="txt-dim">Never signed in</span>'}</td>
+            <td>
+              <a href="mailto:${escapeHTML(customer.email)}">Contact</a>
+            </td>
+          </tr>
+        `).join('');
+        customersTableBody.innerHTML = Object.keys(customerData).length === 0
+          ? '<tr><td colspan="6" class="txt-dim">No customers found yet.</td></tr>'
+          : rows;
+      };
+      renderCustomerRows();
 
-      customersTableBody.innerHTML = Object.keys(customerData).length === 0
-        ? '<tr><td colspan="5" class="txt-dim">No customers found yet.</td></tr>'
-        : customerRows;
-
-      // Add event listeners for customer delete buttons
-
+      post('/api/admin-users', {}, 'admin-users').then(result => {
+        (result.users || []).forEach(account => {
+          if (customerData[account.email]) customerData[account.email].lastLogin = account.last_sign_in_at;
+        });
+        renderCustomerRows();
+      }).catch(() => {});
     }
   }
 
