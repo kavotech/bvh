@@ -11,7 +11,9 @@ initVehicleViewer();
 
 function vehicleDetailUrl(car) { return `/vehicle?van=${encodeURIComponent(car.id?.startsWith('fallback-') ? car.type : car.id || car.type)}`; }
 function escapeHTML(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const VAN_EMOJIS = { small: '🚐', medium: '🚛', xl: '🚚' };
+function vanFallbackIcon(size = 32) {
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>`;
+}
 
 let currentUser = null;
 let bookingsRealtimeChannel = null;
@@ -562,7 +564,7 @@ function renderAdminCarsTable(cars) {
     <tr>
       <td>
         <div class="car-thumb" style="background: ${car.image_url ? `url(&quot;${escapeHTML(car.image_url)}&quot;)` : gradientColors[car.type]}; background-size: cover; background-position: center;">
-          ${!car.image_url ? `<span>${VAN_EMOJIS[car.type] || '🚐'}</span>` : ''}
+          ${!car.image_url ? `<span style="display:inline-flex;color:#fff">${vanFallbackIcon(22)}</span>` : ''}
         </div>
       </td>
       <td><strong>${escapeHTML(car.model)}</strong></td>
@@ -611,7 +613,7 @@ function renderAdminCarsPreview(cars) {
   previewGrid.innerHTML = cars.map(car => `
     <div class="car-preview-card">
       <div class="car-preview-img" style="background: ${car.image_url ? `url(&quot;${escapeHTML(car.image_url)}&quot;)` : gradientColors[car.type]}; background-size: cover; background-position: center;">
-        ${!car.image_url ? `<span style="font-size: 3rem;">${VAN_EMOJIS[car.type] || '🚐'}</span>` : ''}
+        ${!car.image_url ? `<span style="display:inline-flex;color:#fff">${vanFallbackIcon(40)}</span>` : ''}
       </div>
       <div class="car-preview-info">
         <h4>${escapeHTML(car.model)}</h4>
@@ -762,7 +764,7 @@ function renderFleetCards(cars, container) {
   container.innerHTML = cars.map(car => `
     <div class="van-card reveal ${car.type === 'medium' ? 'van-featured' : ''}">
       <div class="van-card-image van-card-image-loading">
-        <div class="van-card-image-fallback">${VAN_EMOJIS[car.type] || '🚐'}</div>
+        <div class="van-card-image-fallback">${vanFallbackIcon(44)}</div>
         <img
           src="${escapeHTML(fleetImageUrl(car.image_url))}"
           alt="${escapeHTML(car.model)}"
