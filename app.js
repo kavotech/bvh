@@ -60,20 +60,82 @@ async function manageBooking(bookingId, action, availabilityChecked = false, ext
   await initDashboardPage(await refreshAuthState());
   return result;
 }
+function runBookingActionModal({ title, copy, showReason, action, availabilityChecked, bookingId, successTitle, successCopy }) {
+  const modal = document.getElementById('bookingActionModal');
+  if (!modal) return;
+  const form = document.getElementById('bookingActionForm');
+  const processing = document.getElementById('bookingActionProcessing');
+  const success = document.getElementById('bookingActionSuccess');
+  const codeInput = document.getElementById('bookingActionCode');
+  const reasonWrap = document.getElementById('bookingActionReasonWrap');
+  const reasonInput = document.getElementById('bookingActionReason');
+  const errorEl = document.getElementById('bookingActionError');
+  const closeBtn = document.getElementById('bookingActionClose');
+  const submitBtn = document.getElementById('bookingActionSubmit');
+  const doneBtn = document.getElementById('bookingActionDone');
+
+  document.getElementById('bookingActionTitle').textContent = title;
+  document.getElementById('bookingActionCopy').textContent = copy;
+  reasonWrap.hidden = !showReason;
+  codeInput.value = '';
+  reasonInput.value = '';
+  errorEl.hidden = true; errorEl.textContent = '';
+  form.hidden = false; processing.hidden = true; success.hidden = true;
+  modal.hidden = false;
+  codeInput.focus();
+
+  const close = () => { modal.hidden = true; cleanup(); };
+  const onBackdrop = event => { if (event.target === modal) close(); };
+  const onSubmit = async () => {
+    const code = codeInput.value.trim();
+    if (!code) { errorEl.textContent = 'Enter the administrator approval code.'; errorEl.hidden = false; return; }
+    errorEl.hidden = true;
+    form.hidden = true; processing.hidden = false;
+    try {
+      await manageBooking(bookingId, action, availabilityChecked, { approvalCode: code, rejectionReason: reasonInput.value.trim() });
+      processing.hidden = true;
+      document.getElementById('bookingActionSuccessTitle').textContent = successTitle;
+      document.getElementById('bookingActionSuccessCopy').textContent = successCopy;
+      success.hidden = false;
+    } catch (error) {
+      processing.hidden = true; form.hidden = false;
+      errorEl.textContent = error.message; errorEl.hidden = false;
+    }
+  };
+  function cleanup() {
+    closeBtn.removeEventListener('click', close);
+    modal.removeEventListener('click', onBackdrop);
+    submitBtn.removeEventListener('click', onSubmit);
+    doneBtn.removeEventListener('click', close);
+  }
+  closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', onBackdrop);
+  submitBtn.addEventListener('click', onSubmit);
+  doneBtn.addEventListener('click', close);
+}
 async function confirmBooking(bookingId) {
-  const code = prompt('Enter the administrator approval code:');
-  if (!code) return;
-  if (!confirm('Approve this booking request and email the customer a secure deposit payment link?')) return;
-  try { await manageBooking(bookingId, 'approve', true, { approvalCode: code }); }
-  catch (error) { alert(error.message); }
+  runBookingActionModal({
+    title: 'Approve booking',
+    copy: 'Approving will email the customer a secure deposit payment link.',
+    showReason: false,
+    action: 'approve',
+    availabilityChecked: true,
+    bookingId,
+    successTitle: 'Booking approved',
+    successCopy: 'The customer has been emailed a secure deposit payment link.',
+  });
 }
 async function rejectBooking(bookingId) {
-  const code = prompt('Enter the administrator approval code:');
-  if (!code) return;
-  const reason = prompt('Optional rejection reason:') || '';
-  if (!confirm('Reject this booking request?')) return;
-  try { await manageBooking(bookingId, 'reject', false, { approvalCode: code, rejectionReason: reason }); }
-  catch (error) { alert(error.message); }
+  runBookingActionModal({
+    title: 'Reject booking',
+    copy: 'The customer will be notified that this request was not accepted.',
+    showReason: true,
+    action: 'reject',
+    availabilityChecked: false,
+    bookingId,
+    successTitle: 'Booking rejected',
+    successCopy: 'The customer has been notified.',
+  });
 }
 async function cancelBooking(bookingId) {
   if (!confirm('Confirm cancellation of this booking and notify the customer?')) return;
