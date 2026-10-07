@@ -18,6 +18,7 @@ function vanFallbackIcon(size = 32) {
 let currentUser = null;
 let bookingsRealtimeChannel = null;
 let driverVerificationsRealtimeChannel = null;
+let paymentsRealtimeChannel = null;
 const ADMIN_OWNER_NAME = 'Mr Olushola Fadipe';
 supabase ? supabase.auth.onAuthStateChange((_event, session) => {
   currentUser = session?.user ?? null;
@@ -949,6 +950,7 @@ async function initDashboardPage(user) {
   const isAdminDashboard = dashboardPage.classList.contains('admin-console-page');
   const isInvoicePage = dashboardPage.classList.contains('admin-invoices-page');
   const isDriverChecksPage = dashboardPage.classList.contains('admin-driver-checks-page');
+  const isPaymentsPage = dashboardPage.classList.contains('admin-payments-page');
   if (isAdminDashboard && !isAdmin) {
     window.location.href = 'user-dashboard.html';
     return;
@@ -1018,6 +1020,49 @@ async function initDashboardPage(user) {
       : await supabase.from('driver_verifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
     if (!verificationResult.error && Array.isArray(verificationResult.data)) {
       verifications = verificationResult.data;
+    }
+
+    if (isAdmin && isPaymentsPage) {
+      const paymentsTableBody = document.getElementById('paymentsTableBody');
+      const paymentsResult = await supabase
+        .from('booking_payments')
+        .select('*, bookings(reference,name,email,vehicle_name)')
+        .order('updated_at', { ascending: false })
+        .limit(100);
+      const payments = !paymentsResult.error && Array.isArray(paymentsResult.data) ? paymentsResult.data : [];
+      const categoryLabels = { booking_deposit: 'Booking deposit', remaining_balance: 'Remaining balance', final_balance: 'Final balance', insurance_charge: 'Insurance', security_deposit: 'Security deposit', additional_charge: 'Additional charge' };
+      const statusClass = status => status === 'paid' ? 'paid' : status === 'failed' ? 'cancelled' : /not_due|not_applicable|cancelled/.test(status) ? 'neutral' : 'pending';
+      const statusLabel = status => ({ not_applicable: 'Not applicable', not_due: 'Not yet due', requires_payment: 'Awaiting payment', processing: 'Processing', paid: 'Paid', failed: 'Failed', cancelled: 'Cancelled', refunded: 'Refunded', partially_refunded: 'Partially refunded' }[status] || status);
+      const receivedTotal = payments.reduce((sum, p) => sum + (Number(p.received_amount_pence) || 0), 0) / 100;
+      const pendingCount = payments.filter(p => ['requires_payment', 'processing'].includes(p.status)).length;
+      const failedCount = payments.filter(p => p.status === 'failed').length;
+      const refundedCount = payments.filter(p => ['refunded', 'partially_refunded'].includes(p.status)).length;
+      setText('paymentsReceivedTotal', formatMoney(receivedTotal));
+      setText('paymentsPendingCount', pendingCount);
+      setText('paymentsFailedCount', failedCount);
+      setText('paymentsRefundedCount', refundedCount);
+      if (paymentsTableBody) {
+        paymentsTableBody.innerHTML = payments.length === 0
+          ? '<tr><td colspan="6" class="txt-dim">No payments recorded yet.</td></tr>'
+          : payments.map(p => {
+            const amountPence = p.status === 'paid' ? p.received_amount_pence : p.expected_amount_pence;
+            const updated = p.paid_at || p.updated_at;
+            return `<tr>
+              <td>${escapeHTML(p.bookings?.reference || p.booking_id)}</td>
+              <td>${escapeHTML(p.bookings?.name || p.bookings?.email || '--')}</td>
+              <td>${escapeHTML(categoryLabels[p.category] || p.category)}</td>
+              <td>${formatMoney((Number(amountPence) || 0) / 100)}</td>
+              <td><span class="admin-status ${statusClass(p.status)}">${escapeHTML(statusLabel(p.status))}</span></td>
+              <td>${updated ? new Date(updated).toLocaleString() : '--'}</td>
+            </tr>`;
+          }).join('');
+      }
+      if (supabase && !paymentsRealtimeChannel) {
+        paymentsRealtimeChannel = supabase
+          .channel('admin-payments-sync')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'booking_payments' }, () => { initDashboardPage(user); })
+          .subscribe();
+      }
     }
   }
 
