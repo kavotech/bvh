@@ -962,6 +962,9 @@ input, select, button, textarea { font-family: var(--font); }
 .bk-tab.active { color: var(--purple); border-bottom-color: var(--purple); background: rgba(91,34,176,.04); }
 
 .booking-form { padding: 32px; }
+.bk-status-banner { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; padding: 12px 16px; border-radius: 12px; background: var(--purple-bg); color: var(--purple); }
+.bk-status-banner svg { flex: 0 0 auto; margin-top: 1px; }
+.bk-status-banner p { margin: 0; color: var(--text-mid); font-size: .84rem; line-height: 1.5; }
 .bk-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-bottom: 24px; }
 @media (max-width: 560px) { .bk-grid { grid-template-columns: 1fr; } }
 .bk-field-full { grid-column: 1 / -1; }
