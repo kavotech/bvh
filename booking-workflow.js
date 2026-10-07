@@ -176,12 +176,17 @@ export function initBookingWorkflow() {
   loadVehicles();
   ['bookDate','bookTime','duration'].forEach(id => document.getElementById(id)?.addEventListener('change', () => loadVehicles()));
   const value = id => document.getElementById(id).value.trim();
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
   form.addEventListener('submit', event => {
     event.preventDefault();
     if (!form.reportValidity()) return;
     const vehicle = vehicles.find(item => item.id === select.value);
     if (!vehicle) return;
-    document.getElementById('reviewDetails').textContent = `${vehicle.model}\n${value('bookDate')} at ${value('bookTime')} (UK time)\nOwner collection location → ${value('dropoff')}\n${value('custName')} · ${value('custEmail')}\nEstimated price: ${document.getElementById('estimatedPrice').textContent}\nThis is a request, not a confirmed reservation. Secure payment is the next step.`;
+    setText('reviewVehicle', vehicle.model);
+    setText('reviewPickup', `${value('bookDate')} at ${value('bookTime')} (UK time)`);
+    setText('reviewLocation', value('dropoff'));
+    setText('reviewCustomer', `${value('custName')} · ${value('custEmail')}`);
+    setText('reviewPrice', document.getElementById('estimatedPrice').textContent);
     review.showModal();
   });
   document.getElementById('editBooking')?.addEventListener('click', () => review.close());
