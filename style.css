@@ -281,6 +281,7 @@ input, select, button, textarea { font-family: var(--font); }
     gap: 36px; z-index: 1000;
   }
   .nav-links.open a { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+  .nav-links.open .nav-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 28px; border-radius: 50px; background: var(--purple); color: var(--white) !important; font-size: 1.1rem; box-shadow: 0 8px 24px rgba(91,34,176,.35); }
   /* Keep toggle on top of the overlay */
   .nav-toggle.open {
     position: fixed; top: 18px; right: 16px; z-index: 1002;
@@ -653,8 +654,6 @@ input, select, button, textarea { font-family: var(--font); }
 .spec-label { font-size: .9rem; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.05em; }
 .spec-value { font-size: 1rem; font-weight: 600; color: var(--text); text-align: right; }
 
-.btn-sm { padding: 10px 20px; font-size: 0.95rem; display: inline-block; width: auto; }
-
 /* ============================================================
    IMG FEATURE SECTION (driver in van — co-wheels ref)
    ============================================================ */
@@ -929,7 +928,9 @@ input, select, button, textarea { font-family: var(--font); }
 .van-card-body p  { font-size: .88rem; color: var(--text-mid); margin-bottom: 14px; line-height: 1.6; }
 .van-specs-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .vspec { font-size: .76rem; background: var(--purple-bg); color: var(--purple); border-radius: 50px; padding: 4px 10px; font-weight: 600; }
-.van-price-row { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.van-price-row { display: flex; align-items: center; justify-content: space-between; margin-top: auto; margin-bottom: 14px; }
+.van-card-actions { display: flex; gap: 10px; }
+.van-card-actions .btn { flex: 1; justify-content: center; }
 .price-from { font-size: .8rem; color: var(--text-dim); margin-right: 4px; }
 .price-big  { font-size: 1.8rem; font-weight: 900; color: var(--text); letter-spacing: -.02em; }
 .price-unit { font-size: .82rem; color: var(--text-dim); margin-left: 2px; }
@@ -4391,48 +4392,6 @@ body.is-ready .hero-stats { animation-delay: .4s; }
 
 .btn-remove-img:hover {
   background: #dc2626;
-}
-
-/* ========== BUTTONS ========== */
-.btn {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 8px;
-  border: none;
-  font-family: var(--font);
-  font-size: .95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  text-align: center;
-}
-
-.btn-primary {
-  background: var(--purple);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: var(--purple-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(91, 34, 176, .3);
-}
-
-.btn-outline {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--gray-200);
-}
-
-.btn-outline:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-}
-
-.btn-sm {
-  padding: 8px 16px;
-  font-size: .85rem;
 }
 
 /* ========== RESPONSIVE ========== */

@@ -852,7 +852,10 @@ function renderFleetCards(cars, container) {
         </div>
         <div class="van-price-row">
           <div><span class="price-from">From</span><strong class="price-big">£${escapeHTML(car.price_daily)}</strong><span class="price-unit">/day</span></div>
-          <a href="${vehicleDetailUrl(car)}" class="btn btn-primary">View Van</a>
+        </div>
+        <div class="van-card-actions">
+          <a href="${vehicleDetailUrl(car)}" class="btn btn-outline-dark btn-sm">View Details</a>
+          <a href="/booking?van=${encodeURIComponent(car.id?.startsWith('fallback-') ? car.type : car.id || car.type)}" class="btn btn-primary btn-sm">Book Now</a>
         </div>
       </div>
     </div>
