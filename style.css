@@ -4618,24 +4618,37 @@ body.is-ready .hero-stats { animation-delay: .4s; }
 .vehicle-detail-page{padding-top:var(--nav-h);background:linear-gradient(180deg,#fbf9ff 0,#f4effb 52%,#fff 100%)}
 .vehicle-detail-hero{position:relative;overflow:hidden;padding:72px 0 34px;background:radial-gradient(circle at 78% 15%,rgba(255,214,69,.3),transparent 24%),linear-gradient(135deg,#2f1055 0%,#5b22b0 54%,#7e3ff2 100%);color:#fff}
 .vehicle-detail-hero::after{content:'';position:absolute;inset:auto -10% -38% 35%;height:420px;border-radius:50%;background:rgba(255,255,255,.1);filter:blur(24px)}
-.vehicle-detail-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:36px;align-items:end}
-.vehicle-detail-copy{max-width:720px;animation:vehicle-panel-in .55s cubic-bezier(.2,.8,.2,1) both}
-.vehicle-back-link{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,.86);text-decoration:none;font-weight:700;margin-bottom:24px}
-.vehicle-detail-copy .sec-tag{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.22);margin-bottom:18px}
-.vehicle-detail-copy h1{font-size:clamp(2.7rem,7vw,6.2rem);line-height:.92;letter-spacing:0;margin:0 0 18px;color:#fff}
-.vehicle-detail-copy p{font-size:1.1rem;line-height:1.75;color:rgba(255,255,255,.78);max-width:640px}
-.vehicle-hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin:30px 0 18px}
-.vehicle-detail-copy .btn-outline-dark{color:#fff;border-color:rgba(255,255,255,.45)}
-.vehicle-detail-copy .btn-outline-dark:hover{background:#fff;color:var(--purple)}
-.vehicle-hire-note{font-size:.92rem!important;color:rgba(255,255,255,.68)!important}
-.vehicle-booking-panel{animation:vehicle-panel-in .55s .12s cubic-bezier(.2,.8,.2,1) both;border:1px solid rgba(255,255,255,.18);border-radius:28px;background:rgba(255,255,255,.14);box-shadow:0 28px 80px rgba(0,0,0,.22);backdrop-filter:blur(18px);padding:26px;color:#fff}
-.vehicle-rate-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:1px solid rgba(255,255,255,.16);padding-bottom:20px;margin-bottom:20px}
-.vehicle-rate-row span,.vehicle-panel-specs span{font-size:.78rem;color:rgba(255,255,255,.66);text-transform:uppercase;letter-spacing:.08em}
-.vehicle-rate-row strong{font-size:2rem;color:#fff}
-.vehicle-panel-specs{display:grid;gap:12px;margin-bottom:22px}
-.vehicle-panel-specs div{border-radius:16px;background:rgba(255,255,255,.12);padding:14px}
-.vehicle-panel-specs strong{display:block;color:#fff;margin-top:6px}
-.vehicle-booking-panel .btn{width:100%;justify-content:center}
+.vehicle-detail-hero.vehicle-detail-hero-slim{padding:28px 0 0}
+.vehicle-detail-hero-slim::after{display:none}
+.vehicle-detail-hero-slim .sec-tag{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.22)}
+.vehicle-back-link{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,.86);text-decoration:none;font-weight:700;margin-bottom:16px}
+.vehicle-hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0 14px}
+.vehicle-hire-note{font-size:.8rem!important;color:var(--text-dim)!important}
+.vehicle-car-card{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:start;margin-top:24px}
+.vehicle-booking-panel{animation:vehicle-panel-in .55s .12s cubic-bezier(.2,.8,.2,1) both;border:1px solid var(--gray-200);border-radius:28px;background:#fff;box-shadow:var(--shadow);padding:28px;color:var(--text)}
+.vehicle-booking-panel h1{font-size:clamp(1.7rem,3vw,2.3rem);line-height:1.1;margin:0 0 6px;color:var(--text)}
+.vehicle-panel-subtitle{color:var(--text-mid);line-height:1.6;margin-bottom:16px}
+.vehicle-trust-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.vehicle-trust-row span{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;color:var(--purple);background:var(--purple-bg);border-radius:50px;padding:6px 12px}
+.vehicle-rate-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:1px solid var(--gray-200);padding-bottom:20px;margin-bottom:20px}
+.vehicle-rate-row span,.vehicle-panel-specs span{font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em}
+.vehicle-rate-row strong{font-size:2rem;color:var(--text)}
+.vehicle-panel-specs{display:grid;gap:12px;margin-bottom:8px}
+.vehicle-panel-specs div{border-radius:16px;background:var(--gray-50);padding:14px}
+.vehicle-panel-specs strong{display:block;color:var(--text);margin-top:6px}
+.vehicle-included{margin:14px 0 22px;padding-top:18px;border-top:1px solid var(--gray-200)}
+.vehicle-included>span{display:block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px}
+.vehicle-included ul{display:grid;gap:8px}
+.vehicle-included li{position:relative;padding-left:24px;font-size:.86rem;color:var(--text-mid);line-height:1.5}
+.vehicle-included li::before{content:'';position:absolute;left:0;top:3px;width:16px;height:16px;border-radius:50%;background:var(--purple-bg)}
+.vehicle-included li::after{content:'✓';position:absolute;left:3px;top:1px;font-size:.66rem;font-weight:900;color:var(--purple)}
+.vehicle-booking-panel .vehicle-hero-actions .btn{flex:1;justify-content:center}
+.vehicle-collection-list{display:grid;gap:18px;margin-top:16px}
+.vehicle-collection-list>div{display:flex;gap:14px;align-items:flex-start}
+.vehicle-collection-icon{flex:0 0 auto;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--purple-bg);color:var(--purple)}
+.vehicle-collection-list strong{display:block;margin-bottom:4px;color:var(--text)}
+.vehicle-collection-list p{margin:0;color:var(--text-mid);font-size:.88rem;line-height:1.55}
+.vehicle-collection-list a{color:var(--purple);font-weight:700;text-decoration:underline}
 .vehicle-view-section{padding:34px 0 24px}
 .vehicle-stage-wrap{animation:vehicle-canvas-in .7s cubic-bezier(.2,.8,.2,1) both}
 .vehicle-detail-page .vehicle-stage{position:relative;min-height:600px;padding:34px;border-radius:36px;background:radial-gradient(circle at 52% 42%,#fff 0 18%,#eee8f8 44%,#e3d9f3 100%);box-shadow:0 34px 100px rgba(46,16,85,.16);overflow:hidden;--spin-scale:1;--spin-skew:0deg;--spin-brightness:1}
@@ -4658,8 +4671,8 @@ body.is-ready .hero-stats { animation-delay: .4s; }
 .vehicle-detail-page .vehicle-detail-card{animation:vehicle-panel-in .55s cubic-bezier(.2,.8,.2,1) both}
 .vehicle-next-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .vehicle-next-card .btn{margin-top:6px}
-@media(max-width:980px){.vehicle-detail-grid{grid-template-columns:1fr}.vehicle-booking-panel{max-width:520px}.vehicle-detail-page .vehicle-stage{min-height:560px}.vehicle-detail-page .vehicle-view-shell{position:relative;left:auto;right:auto;top:auto;height:330px;margin-top:24px}.vehicle-view-head{flex-direction:column}.vehicle-detail-page .vehicle-side-tools{position:relative;right:auto;bottom:auto;margin-top:20px;flex-wrap:wrap}.vehicle-detail-page .vehicle-details-band{grid-template-columns:1fr}}
-@media(max-width:620px){.vehicle-detail-hero{padding:48px 0 28px}.vehicle-detail-copy h1{font-size:3rem}.vehicle-hero-actions .btn{width:100%;justify-content:center}.vehicle-detail-page .vehicle-stage{border-radius:24px;padding:22px;min-height:auto}.vehicle-detail-page .vehicle-view-shell{height:260px}.vehicle-detail-page .tool-btn{min-width:0;flex:1}.vehicle-detail-page .vehicle-details-band{width:100%;margin-bottom:0}.vehicle-detail-page .vehicle-detail-card{border-radius:0}.vehicle-panel-specs{grid-template-columns:1fr}}
+@media(max-width:980px){.vehicle-car-card{grid-template-columns:1fr}.vehicle-booking-panel{max-width:none}.vehicle-detail-page .vehicle-stage{min-height:560px}.vehicle-detail-page .vehicle-view-shell{position:relative;left:auto;right:auto;top:auto;height:330px;margin-top:24px}.vehicle-view-head{flex-direction:column;align-items:flex-start}.vehicle-detail-page .vehicle-side-tools{position:relative;right:auto;bottom:auto;margin-top:20px;flex-wrap:wrap}.vehicle-detail-page .vehicle-details-band{grid-template-columns:1fr}}
+@media(max-width:620px){.vehicle-detail-hero-slim{padding-top:18px}.vehicle-hero-actions .btn{width:100%;justify-content:center}.vehicle-detail-page .vehicle-stage{border-radius:24px;padding:22px;min-height:auto}.vehicle-detail-page .vehicle-view-shell{height:260px}.vehicle-detail-page .tool-btn{min-width:0;flex:1}.vehicle-detail-page .vehicle-details-band{width:100%;margin-bottom:0}.vehicle-detail-page .vehicle-detail-card{border-radius:0}.vehicle-panel-specs{grid-template-columns:1fr}}
 
 .vehicle-detail-hero{padding:52px 0 92px}
 .vehicle-detail-copy h1{font-size:clamp(2.7rem,6vw,5.25rem)}
