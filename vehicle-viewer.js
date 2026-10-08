@@ -114,15 +114,6 @@ function initVehicleControls() {
     shell.addEventListener('touchend', endDrag);
   }
 
-  document.querySelectorAll('.tool-btn').forEach(button => {
-    button.addEventListener('click', () => {
-      const key = button.dataset.toggle;
-      const pressed = button.getAttribute('aria-pressed') === 'true';
-      button.setAttribute('aria-pressed', String(!pressed));
-      stage.classList.toggle(`show-${key}`, !pressed);
-    });
-  });
-
 }
 
 export function initVehicleViewer() {
