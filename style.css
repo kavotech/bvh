@@ -794,7 +794,7 @@ input, select, button, textarea { font-family: var(--font); }
    CHAT FAB
    ============================================================ */
 .chat-fab {
-  position: fixed; bottom: 28px; right: 28px;
+  position: fixed; bottom: 28px; left: 28px;
   width: 56px; height: 56px; border-radius: 50%;
   background: var(--purple);
   border: none; cursor: pointer;
@@ -4668,7 +4668,7 @@ body.is-ready .hero-stats { animation-delay: .4s; }
 .van-card{animation:vehicle-panel-in .55s cubic-bezier(.2,.8,.2,1) both}
 .van-card:nth-child(2){animation-delay:.08s}
 .van-card:nth-child(3){animation-delay:.16s}
-.grecaptcha-badge{visibility:visible!important;right:16px!important;bottom:96px!important;z-index:1000!important}
+.grecaptcha-badge{visibility:visible!important;z-index:1000!important}
 @media(prefers-reduced-motion:reduce){.vehicle-app-shell,.vehicle-app-header,.vehicle-app-shell .vehicle-title-block,.vehicle-left-rail,.vehicle-app-shell .vehicle-angle-controls,.vehicle-app-shell .vehicle-view-shell,.vehicle-app-shell .vehicle-assistant,.vehicle-app-shell .assistant-command,.vehicle-app-shell .vehicle-side-tools,.vehicle-bottom-card,.drag-360-hint,.van-card{animation:none!important;transition:none!important}}
 
 /* Custom Stripe payment page */
