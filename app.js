@@ -490,9 +490,18 @@ if (cookieBanner) {
 }
 
 // ── CHAT BUBBLE ──
-document.getElementById('chatBubble')?.addEventListener('click', () => {
+const chatBubble = document.getElementById('chatBubble');
+chatBubble?.addEventListener('click', () => {
   window.location.href = 'tel:+447300331603';
 });
+// Hide the floating call button while the van cards grid is in view, since its
+// fixed bottom-left position would otherwise sit on top of each card's buttons.
+const vanCardsGrid = document.querySelector('.van-cards-grid');
+if (chatBubble && vanCardsGrid && 'IntersectionObserver' in window) {
+  new IntersectionObserver(([entry]) => {
+    chatBubble.classList.toggle('is-hidden', entry.isIntersecting);
+  }, { threshold: 0.15 }).observe(vanCardsGrid);
+}
 
 // ── SMOOTH SCROLL ──
 document.querySelectorAll('a[href^="#"]').forEach(a => {
