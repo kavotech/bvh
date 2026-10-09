@@ -19,7 +19,7 @@ export function validateBooking(body, user, car, now = new Date(), extras = {}) 
   const name = text(body.name, 'your name', 100, 2);
   const phone = text(body.phone, 'your phone number', 30, 7);
   if (!/^[+\d ()-]{7,30}$/.test(phone)) throw new HttpError(400, 'Please check your phone number.');
-  return { user_id: user.id, service: 'van-hire', van_size: car.type, vehicle_id: car.id, vehicle_name: car.model, name, email: user.email, phone, pickup: 'Owner collection location — address shared after confirmation', dropoff: text(body.dropoff, 'destination', 300, 3), date, time, duration: body.duration, helpers: '0', price, status: extras.status || 'Awaiting booking deposit', terms_accepted_at: now.toISOString(), ...extras };
+  return { user_id: user.id, service: 'van-hire', van_size: car.type, vehicle_id: car.id, vehicle_name: car.model, name, email: user.email, phone, pickup: 'Owner collection location — address shared after confirmation', dropoff: 'Discussed directly with our team after your booking is approved', date, time, duration: body.duration, helpers: '0', price, status: extras.status || 'Awaiting booking deposit', terms_accepted_at: now.toISOString(), ...extras };
 }
 export function validateDriver(body, user, requestId) {
   const driver = body.driver || {};

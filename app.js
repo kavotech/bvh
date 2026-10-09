@@ -1386,7 +1386,7 @@ async function initDashboardPage(user) {
 
   const composeAdminEmail = booking => ({
     subject: 'Your booking details',
-    body: booking ? [booking.reference || booking.id, booking.vehicle_name || booking.van_size, booking.date, booking.time, booking.pickup, booking.dropoff, 'Status: ' + booking.status, 'Hire estimate: ' + booking.price, 'This is not a payment receipt or a new confirmation of availability.'].join('\n') : '',
+    body: booking ? [booking.reference || booking.id, booking.vehicle_name || booking.van_size, booking.date, booking.time, booking.pickup, 'Status: ' + booking.status, 'Hire estimate: ' + booking.price, 'This is not a payment receipt or a new confirmation of availability.'].join('\n') : '',
   });
   const openAdminEmail = async (booking, type = 'confirmation') => {
     if (!booking?.email) { setText('invoiceEmailStatus','Select a booking.'); return; }

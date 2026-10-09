@@ -77,15 +77,8 @@
 
             <section class="booking-step" data-step="1" aria-labelledby="bookingStepJourney">
             <div class="bk-section-label" id="bookingStepJourney">Move Details</div>
+            <div class="bk-status-banner"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><p>Pickup and drop-off locations are arranged directly with our team once your booking is approved — no need to enter an address here.</p></div>
             <div class="bk-grid">
-              <div class="bk-field">
-                <label for="dropoff">Drop-off Location</label>
-                <div class="bk-input-ico">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 119.5 9 2.5 2.5 0 0112 11.5z"></path></svg>
-                  <input type="text" id="dropoff" placeholder="Postcode or address" required="">
-                </div>
-              </div>
-
               <div class="bk-field">
                 <label for="bookDate">Pick-up Date</label>
                 <input type="date" id="bookDate" required="">
@@ -96,7 +89,7 @@
                 <input type="time" id="bookTime" value="10:00" required="">
               </div>
 
-              <div class="bk-field">
+              <div class="bk-field bk-field-full">
                 <label for="duration">Duration</label>
                 <select id="duration" required="">
                   <option value="">Select duration</option>
@@ -340,6 +333,6 @@
 
   <div class="cookie-banner" id="cookieBanner"><div class="cookie-inner"><div class="cookie-txt"><p>This website uses browser storage for sign-in and form security.</p><p>Please read our <a href="/cookies">Cookie policy</a>.</p></div><div class="cookie-btns"><button class="btn btn-outline btn-sm" id="cookieManage">Dismiss</button><button class="btn btn-primary btn-sm" id="cookieAccept">Remember dismissal</button></div></div></div>
   <button class="chat-fab" id="chatBubble" aria-label="Call us"><svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.01 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="chat-dot"></span></button>
-  <dialog id="bookingReview" class="review-dialog"><h2>Review your request</h2><p class="review-dialog-intro">This is a request, not a confirmed reservation. Secure payment is the next step, once approved.</p><div class="review-summary-grid"><div><span>Vehicle</span><strong id="reviewVehicle">—</strong></div><div><span>Pickup</span><strong id="reviewPickup">—</strong></div><div class="review-summary-wide"><span>Collection location</span><strong id="reviewLocation">—</strong></div><div class="review-summary-wide"><span>Customer</span><strong id="reviewCustomer">—</strong></div><div class="review-summary-total review-summary-wide"><span>Estimated price</span><strong id="reviewPrice">—</strong></div></div><p id="reviewStatus" role="status"></p><div class="review-actions"><button class="btn btn-outline" id="editBooking" type="button">Edit details</button><button class="btn btn-primary" id="submitReviewedBooking" type="button">Submit request</button></div></dialog><script type="module" src="app.js"></script>
+  <dialog id="bookingReview" class="review-dialog"><h2>Review your request</h2><p class="review-dialog-intro">This is a request, not a confirmed reservation. Secure payment is the next step, once approved.</p><div class="review-summary-grid"><div><span>Vehicle</span><strong id="reviewVehicle">—</strong></div><div><span>Pickup</span><strong id="reviewPickup">—</strong></div><div class="review-summary-wide"><span>Customer</span><strong id="reviewCustomer">—</strong></div><div class="review-summary-total review-summary-wide"><span>Estimated price</span><strong id="reviewPrice">—</strong></div></div><p id="reviewStatus" role="status"></p><div class="review-actions"><button class="btn btn-outline" id="editBooking" type="button">Edit details</button><button class="btn btn-primary" id="submitReviewedBooking" type="button">Submit request</button></div></dialog><script type="module" src="app.js"></script>
 
 </body></html>

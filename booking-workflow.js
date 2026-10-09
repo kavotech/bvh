@@ -184,7 +184,6 @@ export function initBookingWorkflow() {
     if (!vehicle) return;
     setText('reviewVehicle', vehicle.model);
     setText('reviewPickup', `${value('bookDate')} at ${value('bookTime')} (UK time)`);
-    setText('reviewLocation', value('dropoff'));
     setText('reviewCustomer', `${value('custName')} · ${value('custEmail')}`);
     setText('reviewPrice', document.getElementById('estimatedPrice').textContent);
     review.showModal();
@@ -217,7 +216,7 @@ export function initBookingWorkflow() {
       const back = await upload('licenceBackFile', data.user.id);
       const result = await post('/api/submit', {
         kind: 'booking', requestId, vehicleId: select.value, name: value('custName'), phone: value('custPhone'),
-        dropoff: value('dropoff'), date: value('bookDate'), time: value('bookTime'), duration: value('duration'), termsAccepted: document.getElementById('termsAccepted').checked,
+        date: value('bookDate'), time: value('bookTime'), duration: value('duration'), termsAccepted: document.getElementById('termsAccepted').checked,
         driver: { full_name: value('driverFullName'), date_of_birth: value('driverDateOfBirth'), driving_licence_number: value('driverLicenceNumber'), dvla_check_code: value('dvlaCheckCode'), licence_front_file: front, licence_back_file: back },
       }, 'booking');
       review.close(); form.style.display = 'none';
