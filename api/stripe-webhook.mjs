@@ -1,6 +1,6 @@
 import { db, HttpError, site } from '../server/core.mjs';
 import { verifyStripeSignature } from '../server/stripe.mjs';
-import { template, deliverEmails } from '../server/email.mjs';
+import { template, deliverEmails, ukDate } from '../server/email.mjs';
 import { paymentCategoryLabel, penceToDisplay } from '../server/pricing.mjs';
 
 async function recordEvent(client, event) {
@@ -78,7 +78,7 @@ export function paymentEmails(outcome, { payment, intent }) {
   const amount = penceToDisplay(outcome === 'paid' ? intent.amount_received || intent.amount : intent.amount);
   const vehicle = booking.vehicle_name || booking.van_size || 'Van hire';
   const admin = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@breezyeevans.co.uk';
-  const summary = [`Reference: ${booking.reference}`, `Vehicle: ${vehicle}`, `Collection: ${booking.date || 'To be confirmed'}${booking.time ? ` at ${booking.time}` : ''}`, `Payment: ${label}`, `Amount: ${amount}`];
+  const summary = [`Reference: ${booking.reference}`, `Vehicle: ${vehicle}`, `Collection: ${ukDate(booking.date)}${booking.time ? ` at ${booking.time}` : ''}`, `Payment: ${label}`, `Amount: ${amount}`];
   if (outcome === 'paid') {
     const reserved = payment.category === 'booking_deposit';
     return [

@@ -121,7 +121,7 @@ test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and leas
       create table storage.objects(id uuid,bucket_id text,name text);
       create function storage.foldername(text) returns text[] language sql as $$ select string_to_array($1,'/') $$;
       insert into auth.users(id,email,raw_user_meta_data) values ('${user.id}','info@breezyeevans.co.uk','{}');`);
-    for(const file of ['create_cars_table.sql','create_driver_verifications.sql','20261003_production_workflows.sql','20261003_booking_management.sql','20261003_fleet_images.sql','20261003_stripe_payments.sql','20261003_booking_payment_system.sql','20261003_dynamic_deposits_admin_auth.sql']) await pg.exec(readFileSync(new URL(`../supabase_migrations/${file}`,import.meta.url),'utf8'));
+    for(const file of ['create_cars_table.sql','create_driver_verifications.sql','20261003_production_workflows.sql','20261003_booking_management.sql','20261003_fleet_images.sql','20261003_stripe_payments.sql','20261003_booking_payment_system.sql','20261003_dynamic_deposits_admin_auth.sql','20261018_customer_cancellation_statuses.sql']) await pg.exec(readFileSync(new URL(`../supabase_migrations/${file}`,import.meta.url),'utf8'));
     await pg.exec(`insert into cars(id,model,type,price_daily,capacity,payload,is_active,daily_rate_pence,published)
       values('${car.id}','${car.model}','${car.type}',100,'2-3 m3',750,true,10000,true) on conflict (id) do nothing`);
     const data=validateBooking(body,user,car,new Date('2026-10-03'));
@@ -153,6 +153,11 @@ test('SQL migrations preserve atomic bookings, enforce RLS, deduplicate and leas
     await assert.rejects(()=>manage('cancel_confirm','forbidden',false),/forbidden/);
     await manage('cancel','cancel-request',false);
     assert.equal((await pg.query('select status from bookings')).rows[0].status,'Cancellation requested');
+    for (const status of ['Pending Approval','Approved — Awaiting Deposit','Payment failed']) {
+      await pg.query('update bookings set status=$1',[status]);
+      await manage('cancel',`cancel-${status}`,false);
+      assert.equal((await pg.query('select status from bookings')).rows[0].status,'Cancellation requested',status);
+    }
   } finally { await pg.close(); }
 });
 test('Resend failures leave queued work retryable and successes record provider receipt',async()=>{

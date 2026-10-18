@@ -6,20 +6,26 @@ export const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '
 // sentence plus a standalone button, instead of an inline link mid-paragraph.
 const URL_RE = /(https?:\/\/\S+)/;
 
+export function ukDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))) return value || 'To be confirmed';
+  return new Date(`${value}T12:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'Europe/London', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 function renderLine(line) {
   const match = URL_RE.exec(line);
   if (!match) {
     const isLabelValue = /^[A-Za-z][\w /&'-]{1,30}:\s/.test(line);
-    const [, label, value] = isLabelValue ? line.match(/^([^:]+):\s*(.*)$/) : [null, null, null];
     if (isLabelValue) {
-      return `<tr><td style="padding:9px 0;border-bottom:1px solid #eee4fb;font-size:14px"><span style="color:#8a7fa0;display:inline-block;min-width:150px">${escape(label)}</span><span style="color:#241740;font-weight:600">${escape(value)}</span></td></tr>`;
+      const [, label, value] = line.match(/^([^:]+):\s*(.*)$/);
+      return `<tr><td width="42%" valign="top" style="padding:9px 12px 9px 0;border-bottom:1px solid #eee4fb;font-size:14px;line-height:1.45;color:#8a7fa0">${escape(label)}</td><td valign="top" style="padding:9px 0;border-bottom:1px solid #eee4fb;font-size:14px;line-height:1.45;color:#241740;font-weight:600">${escape(value)}</td></tr>`;
     }
-    return `<tr><td style="padding:6px 0;font-size:14px;line-height:1.65;color:#453a5c">${escape(line)}</td></tr>`;
+    return `<tr><td colspan="2" style="padding:8px 0;font-size:14px;line-height:1.65;color:#453a5c">${escape(line)}</td></tr>`;
   }
   const lead = line.slice(0, match.index).trim();
-  const url = match[1];
-  const buttonLabel = /\/payment\b/.test(url) ? 'Complete Payment →' : /admin-booking-review/.test(url) ? 'Review Booking →' : /\/user-dashboard\b/.test(url) ? 'View My Booking →' : 'Continue →';
-  return `${lead ? `<tr><td style="padding:6px 0 2px;font-size:14px;line-height:1.6;color:#453a5c">${escape(lead)}</td></tr>` : ''}<tr><td style="padding:10px 0 4px"><a href="${escape(url)}" style="display:inline-block;background:#5b22b0;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:50px">${buttonLabel}</a></td></tr>`;
+  const url = match[1].replace(/[.,;:!?)]+$/, '');
+  const tail = line.slice(match.index + url.length).replace(/^[.,;:!?)\s]+/, '').trim();
+  const buttonLabel = /\/payment\b/.test(url) ? 'Complete Payment →' : /admin-booking-review/.test(url) ? 'Review Booking →' : /\/user-dashboard\b/.test(url) ? 'View My Booking →' : /type=recovery|reset-password/.test(url) ? 'Reset My Password →' : 'Continue →';
+  return `${lead ? `<tr><td colspan="2" style="padding:8px 0 2px;font-size:14px;line-height:1.6;color:#453a5c">${escape(lead)}</td></tr>` : ''}<tr><td colspan="2" style="padding:12px 0 8px"><a href="${escape(url)}" style="display:inline-block;background:#5b22b0;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:50px">${buttonLabel}</a></td></tr>${tail ? renderLine(tail) : ''}`;
 }
 
 export function template(title, lines) {
@@ -50,7 +56,7 @@ Breezyee Vans — self-drive van hire<br>
   return { subject: title, html, text };
 }
 export function submissionEmails(kind, data, reference) {
-  const lines = [`Hello ${data.name || 'there'},`, `Reference: ${reference}`, ...(kind === 'booking' ? [`Vehicle: ${data.vehicle_name}`, `Collection date and time: ${data.date} at ${data.time} (UK time)`, `Collection and drop-off: arranged directly with our team after approval`, `Duration: ${data.duration === 'custom' ? 'Custom hire' : data.duration + ' hours'}`, `Estimated rental price: ${data.price}.`, `Estimated booking deposit: ${data.booking_deposit_pence ? `£${(Number(data.booking_deposit_pence) / 100).toFixed(2)}` : 'To be confirmed'}`, 'Status: Awaiting Approval.', 'No payment has been taken. Vehicle availability and the final hire terms will be confirmed by our team.'] : [`Enquiry: ${data.service}`, data.message, 'We have received your enquiry and will reply using the contact details you provided.'])];
+  const lines = [`Hello ${data.name || 'there'},`, `Reference: ${reference}`, ...(kind === 'booking' ? [`Vehicle: ${data.vehicle_name}`, `Collection: ${ukDate(data.date)} at ${data.time} (UK time)`, `Collection and drop-off: arranged directly with our team after approval`, `Duration: ${data.duration === 'custom' ? 'Custom hire' : data.duration + ' hours'}`, `Estimated rental price: ${data.price}.`, `Estimated booking deposit: ${data.booking_deposit_pence ? `£${(Number(data.booking_deposit_pence) / 100).toFixed(2)}` : 'To be confirmed'}`, 'Status: Awaiting Approval.', 'No payment has been taken. Vehicle availability and the final hire terms will be confirmed by our team.'] : [`Enquiry: ${data.service}`, data.message, 'We have received your enquiry and will reply using the contact details you provided.'])];
   const title = kind === 'booking' ? "We've Received Your Breezyee Vans Booking Request" : 'Your enquiry has been received';
   return [
     { recipient: data.email, ...template(title, lines) },

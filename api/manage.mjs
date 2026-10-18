@@ -1,5 +1,5 @@
 import { handle, requestBody, db, userFor, rateLimit, captcha, text, uuid, digest, env, HttpError } from '../server/core.mjs';
-import { template, deliverEmails } from '../server/email.mjs';
+import { template, deliverEmails, ukDate } from '../server/email.mjs';
 import { checkVehicleAvailable } from '../server/booking-payments.mjs';
 import { verifyReviewToken } from '../server/review-token.mjs';
 export default handle(async (req,res) => {
@@ -29,7 +29,8 @@ export default handle(async (req,res) => {
       if (!await checkVehicleAvailable(client, booking.vehicle_id, booking.collection_at, booking.return_at, booking.id)) throw new HttpError(409, 'This vehicle is no longer available for the requested period.');
       status = 'Approved — Awaiting Deposit';
       title = 'Your Breezyee Vans Booking Has Been Approved!';
-      detail = `Great news! Your booking request has been approved. To secure your vehicle, complete the booking deposit here: ${process.env.SITE_URL || 'https://www.breezyeevans.co.uk'}/payment?reference=${encodeURIComponent(booking.reference)}&category=booking_deposit. Deposit deadline: ${booking.payment_deadline_at || 'before collection'}.`;
+      const deadline = booking.payment_deadline_at ? new Date(booking.payment_deadline_at).toLocaleString('en-GB', { timeZone: 'Europe/London', dateStyle: 'full', timeStyle: 'short' }) : 'before collection';
+      detail = `Great news! Your booking request has been approved. To secure your vehicle, complete the booking deposit here: ${process.env.SITE_URL || 'https://www.breezyeevans.co.uk'}/payment?reference=${encodeURIComponent(booking.reference)}&category=booking_deposit. Deposit deadline: ${deadline} (UK time).`;
       await client.from('bookings').update({ status, booking_status: status, approval_status: status, approved_at: new Date().toISOString(), approved_by: user?.id || null, rejected_at: null, rejected_by: null }).eq('id', booking.id);
       await client.from('booking_holds').update({ status: 'active', expires_at: booking.payment_deadline_at || new Date(Date.now()+86400000).toISOString() }).eq('booking_id', booking.id);
       await client.from('booking_payments').update({ status: 'requires_payment' }).eq('booking_id', booking.id).eq('category', 'booking_deposit');
@@ -39,7 +40,7 @@ export default handle(async (req,res) => {
       await client.from('booking_payments').update({ status: 'cancelled' }).eq('booking_id', booking.id).eq('category', 'booking_deposit');
     }
     await client.from('booking_approval_audit').insert({ booking_id: booking.id, action: body.action === 'approve' ? 'approved' : 'rejected', actor_id: user?.id || null, reason: detail });
-    const content = template(title, [`Hello ${booking.name || 'there'},`, `Reference: ${booking.reference}`, `Vehicle: ${booking.vehicle_name || booking.van_size}`, `Collection: ${booking.date} at ${booking.time} (owner collection location)`, `Collection and drop-off: arranged directly with our team`, `Rental price: ${booking.price}`, `Booking deposit: £${(Number(booking.booking_deposit_pence || 0) / 100).toFixed(2)}`, `Refundable security deposit: £${(Number(booking.security_deposit_pence || 0) / 100).toFixed(2)}`, `Status: ${status}`, detail]);
+    const content = template(title, [`Hello ${booking.name || 'there'},`, `Reference: ${booking.reference}`, `Vehicle: ${booking.vehicle_name || booking.van_size}`, `Collection: ${ukDate(booking.date)} at ${booking.time} (UK time)`, `Collection and drop-off: arranged directly with our team`, `Rental price: ${booking.price}`, `Booking deposit: £${(Number(booking.booking_deposit_pence || 0) / 100).toFixed(2)}`, `Refundable security deposit: £${(Number(booking.security_deposit_pence || 0) / 100).toFixed(2)}`, `Status: ${status}`, detail]);
     await client.from('email_outbox').insert([{ submission_key: key, recipient: booking.email, ...content }, { submission_key: key, recipient: process.env.ADMIN_NOTIFICATION_EMAIL || 'info@breezyeevans.co.uk', ...template(`Booking ${status} — ${booking.reference}`, [`Reference: ${booking.reference}`, `Status: ${status}`, `Reviewed by: ${user?.email || 'secure review link'}`]) }]);
     try { await deliverEmails(client, key); } catch { console.warn('email_queue_pending'); }
     res.status(200).json({ message: body.action === 'approve' ? 'Booking approved and payment instructions emailed.' : 'Booking rejected and the customer has been notified.' });
@@ -63,7 +64,7 @@ export default handle(async (req,res) => {
     title=body.action==='reminder'?'A reminder about your booking request':'Your booking details';
     detail='The amount below is a hire estimate. This message is not a payment receipt or a new confirmation of availability.';
   }
-  const content=template(title,[`Hello ${booking.name},`,`Reference: ${booking.reference || booking.id}`,`Status: ${status}`,`Vehicle: ${booking.vehicle_name || booking.van_size}`,`Pickup: ${booking.date} at ${booking.time} (UK time)`,`Pickup location: ${booking.pickup}`,`Hire estimate: ${booking.price}`,detail]);
+  const content=template(title,[`Hello ${booking.name},`,`Reference: ${booking.reference || booking.id}`,`Status: ${status}`,`Vehicle: ${booking.vehicle_name || booking.van_size}`,`Collection: ${ukDate(booking.date)} at ${booking.time} (UK time)`,`Collection and drop-off: arranged directly with our team`,`Hire estimate: ${booking.price}`,detail]);
   const jobs=[{recipient:booking.email,...content},{recipient:process.env.ADMIN_NOTIFICATION_EMAIL || 'info@breezyeevans.co.uk',...content}];
   const {error:mutationError}=await client.rpc('bv_manage',{p_id:id,p_action:body.action,p_status:status,p_actor:user.id,p_admin:isAdmin,p_key:key,p_hash:digest([id,body.action]),p_emails:jobs});
   if(mutationError) throw new HttpError(409,'This booking cannot be changed in its current state. Refresh and try again.');
