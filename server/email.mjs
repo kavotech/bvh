@@ -18,7 +18,7 @@ function renderLine(line) {
   }
   const lead = line.slice(0, match.index).trim();
   const url = match[1];
-  const buttonLabel = /\/payment\b/.test(url) ? 'Complete Payment →' : /admin-booking-review/.test(url) ? 'Review Booking →' : 'Continue →';
+  const buttonLabel = /\/payment\b/.test(url) ? 'Complete Payment →' : /admin-booking-review/.test(url) ? 'Review Booking →' : /\/user-dashboard\b/.test(url) ? 'View My Booking →' : 'Continue →';
   return `${lead ? `<tr><td style="padding:6px 0 2px;font-size:14px;line-height:1.6;color:#453a5c">${escape(lead)}</td></tr>` : ''}<tr><td style="padding:10px 0 4px"><a href="${escape(url)}" style="display:inline-block;background:#5b22b0;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:50px">${buttonLabel}</a></td></tr>`;
 }
 

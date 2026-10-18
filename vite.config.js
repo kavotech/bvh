@@ -19,7 +19,16 @@ export default defineConfig(({ mode }) => {
         req.body=body;
         res.status=code=>{res.statusCode=code;return res;};
         res.json=value=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(value));};
-        try { const {default:handler}=await import(`./api/${endpoint}.mjs`); await handler(req,res); }
+        try {
+          const mod=await import(`./api/${endpoint}.mjs`);
+          if (mod.default) { await mod.default(req,res); return; }
+          const webHandler=mod[req.method];
+          if (!webHandler) { res.setHeader('Allow',Object.keys(mod).filter(k=>/^[A-Z]+$/.test(k)).join(', ')); res.status(405).json({error:'Method not allowed.'}); return; }
+          const response=await webHandler(new Request(`http://localhost${req.url}`,{method:req.method,headers:Object.entries(req.headers).filter(([,v])=>typeof v==='string'),body:['GET','HEAD'].includes(req.method)?undefined:body}));
+          res.statusCode=response.status;
+          response.headers.forEach((v,k)=>res.setHeader(k,v));
+          res.end(Buffer.from(await response.arrayBuffer()));
+        }
         catch {res.status(503).json({error:'Service temporarily unavailable.'});}
       });
     },

@@ -1,13 +1,7 @@
-import { db, HttpError } from '../server/core.mjs';
+import { db, HttpError, site } from '../server/core.mjs';
 import { verifyStripeSignature } from '../server/stripe.mjs';
-
-async function raw(req) {
-  if (typeof req.body === 'string') return req.body;
-  if (Buffer.isBuffer(req.body)) return req.body.toString('utf8');
-  let body = '';
-  for await (const chunk of req) body += chunk;
-  return body;
-}
+import { template, deliverEmails } from '../server/email.mjs';
+import { paymentCategoryLabel, penceToDisplay } from '../server/pricing.mjs';
 
 async function recordEvent(client, event) {
   const { data: existing } = await client.from('stripe_webhook_events').select('id,processing_status').eq('id', event.id).maybeSingle();
@@ -36,10 +30,13 @@ async function markPaymentIntent(client, event, nextStatus) {
   const paymentId = intent.metadata?.payment_id;
   const category = intent.metadata?.payment_category;
   if (!reference || !paymentId || !category) throw new HttpError(400, 'Missing payment metadata.');
-  const { data: payment, error: paymentError } = await client.from('booking_payments').select('*,bookings!inner(id,reference,booking_status,payment_status,paid_total_pence,email)').eq('id', paymentId).single();
+  const { data: payment, error: paymentError } = await client.from('booking_payments').select('*,bookings!inner(id,reference,booking_status,payment_status,paid_total_pence,email,name,vehicle_name,van_size,date,time)').eq('id', paymentId).single();
   if (paymentError) throw new HttpError(400, 'Payment record not found.');
   if (payment.bookings.reference !== reference || payment.category !== category || payment.currency !== intent.currency) throw new HttpError(400, 'Payment metadata mismatch.');
   if (Number(payment.expected_amount_pence) !== Number(intent.amount)) throw new HttpError(400, 'Payment amount mismatch.');
+  const detail = { bookingId: payment.booking_id, paymentId: payment.id, payment, intent, changed: false };
+  // Stripe does not guarantee event order: never let a late failure or processing event undo a payment.
+  if (payment.status === 'paid') return detail;
   const now = new Date().toISOString();
   const patch = {
     status: nextStatus,
@@ -72,7 +69,38 @@ async function markPaymentIntent(client, event, nextStatus) {
   } else if (nextStatus === 'failed') {
     await client.from('bookings').update({ payment_status: 'failed', status: 'Payment failed' }).eq('id', payment.booking_id);
   }
-  return { bookingId: payment.booking_id, paymentId: payment.id };
+  return { ...detail, changed: true };
+}
+
+export function paymentEmails(outcome, { payment, intent }) {
+  const booking = payment.bookings;
+  const label = paymentCategoryLabel(payment.category);
+  const amount = penceToDisplay(outcome === 'paid' ? intent.amount_received || intent.amount : intent.amount);
+  const vehicle = booking.vehicle_name || booking.van_size || 'Van hire';
+  const admin = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@breezyeevans.co.uk';
+  const summary = [`Reference: ${booking.reference}`, `Vehicle: ${vehicle}`, `Collection: ${booking.date || 'To be confirmed'}${booking.time ? ` at ${booking.time}` : ''}`, `Payment: ${label}`, `Amount: ${amount}`];
+  if (outcome === 'paid') {
+    const reserved = payment.category === 'booking_deposit';
+    return [
+      { recipient: booking.email, ...template(reserved ? 'Payment Received — Your Van Is Reserved' : 'Payment Received — Thank You', [`Hello ${booking.name || 'there'},`, `We've received your payment. ${reserved ? 'Your van is now reserved for your dates.' : 'Thank you — your payment has been applied to your booking.'}`, ...summary, `Status: ${reserved ? 'Reserved' : 'Fully paid'}`, 'Our team will contact you to arrange collection and drop-off. A Stripe receipt has also been sent to this address.', `View your booking at any time: ${site()}/user-dashboard`]) },
+      { recipient: admin, ...template(`Payment Received — ${booking.reference}`, [`${booking.name || 'A customer'} has paid ${amount} (${label}).`, ...summary, `Customer email: ${booking.email}`, `Stripe payment: ${intent.id}`]) },
+    ];
+  }
+  const reason = String(intent.last_payment_error?.message || '').slice(0, 200);
+  return [
+    { recipient: booking.email, ...template("Your Payment Didn't Go Through", [`Hello ${booking.name || 'there'},`, 'We were unable to take your payment, so no money has been taken and your booking has not been reserved yet.', ...summary, ...(reason ? [`Reason given by your bank: ${reason}`] : []), 'You can try again with the same or a different card:', `${site()}/payment?reference=${encodeURIComponent(booking.reference)}&category=${encodeURIComponent(payment.category)}`, 'If it keeps failing, call us on +44 7300 331603 and we will help.']) },
+    { recipient: admin, ...template(`Payment Failed — ${booking.reference}`, [`A ${label.toLowerCase()} payment of ${amount} from ${booking.name || 'a customer'} failed.`, ...summary, ...(reason ? [`Reason: ${reason}`] : []), `Customer email: ${booking.email}`, `Stripe payment: ${intent.id}`]) },
+  ];
+}
+
+async function notify(client, key, jobs) {
+  try {
+    const { error } = await client.from('email_outbox').upsert(jobs.map(job => ({ submission_key: key, ...job })), { onConflict: 'submission_key,recipient', ignoreDuplicates: true });
+    if (error) throw error;
+    await deliverEmails(client, key);
+  } catch {
+    console.warn('payment_email_pending', { key });
+  }
 }
 
 async function handleRefund(client, event) {
@@ -94,40 +122,39 @@ async function handleRefund(client, event) {
   return { bookingId: payment.booking_id, paymentId: payment.id };
 }
 
-export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    res.status(405).json({ error: 'Method not allowed.' });
-    return;
-  }
-  const client = db();
+export async function processStripeWebhook(rawBody, signature, client = db()) {
   let event;
   try {
-    const body = await raw(req);
-    verifyStripeSignature(body, req.headers['stripe-signature']);
-    event = JSON.parse(body);
-    const shouldProcess = await recordEvent(client, event);
-    if (!shouldProcess) {
-      res.status(200).json({ received: true, duplicate: true });
-      return;
-    }
+    verifyStripeSignature(rawBody, signature);
+    event = JSON.parse(rawBody);
+    if (!await recordEvent(client, event)) return { status: 200, body: { received: true, duplicate: true } };
     let detail = {};
-    if (event.type === 'payment_intent.succeeded') detail = await markPaymentIntent(client, event, 'paid');
-    else if (event.type === 'payment_intent.processing') detail = await markPaymentIntent(client, event, 'processing');
-    else if (event.type === 'payment_intent.payment_failed' || event.type === 'payment_intent.canceled') detail = await markPaymentIntent(client, event, 'failed');
+    if (event.type === 'payment_intent.succeeded') {
+      detail = await markPaymentIntent(client, event, 'paid');
+      if (detail.changed) await notify(client, `payment:${detail.paymentId}:paid`, paymentEmails('paid', detail));
+    } else if (event.type === 'payment_intent.processing') detail = await markPaymentIntent(client, event, 'processing');
+    else if (event.type === 'payment_intent.payment_failed') {
+      detail = await markPaymentIntent(client, event, 'failed');
+      if (detail.changed) await notify(client, `payment:${event.id}:failed`, paymentEmails('failed', detail));
+    } else if (event.type === 'payment_intent.canceled') detail = await markPaymentIntent(client, event, 'failed');
     else if (event.type === 'refund.created' || event.type === 'refund.updated' || event.type === 'charge.refunded') detail = await handleRefund(client, event);
     else {
       await finishEvent(client, event, 'ignored');
-      res.status(200).json({ received: true, ignored: true });
-      return;
+      return { status: 200, body: { received: true, ignored: true } };
     }
-    await finishEvent(client, event, 'processed', detail);
-    res.status(200).json({ received: true });
+    await finishEvent(client, event, 'processed', { bookingId: detail.bookingId, paymentId: detail.paymentId });
+    return { status: 200, body: { received: true } };
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 503;
     console.warn('stripe_webhook_failed', { status, event: event?.id });
     if (event?.id) await finishEvent(client, event, 'failed', { error: error instanceof Error ? error.message.slice(0, 300) : 'Webhook failed' });
-    res.status(status).json({ error: status === 400 ? error.message : 'Webhook unavailable.' });
+    return { status, body: { error: status === 400 ? error.message : 'Webhook unavailable.' } };
   }
+}
+
+// Web-standard handler: Vercel pre-parses JSON bodies for (req, res) handlers, which destroys the
+// exact bytes Stripe signed. request.text() is the raw payload.
+export async function POST(request) {
+  const { status, body } = await processStripeWebhook(await request.text(), request.headers.get('stripe-signature'));
+  return Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 }
