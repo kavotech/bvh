@@ -6,20 +6,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/dashboard.css">
 <noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript></head>
-<body id="dashboardPage" class="admin-console-page"><a class="skip-link" href="#main">Skip to content</a>
+<body id="dashboardPage" class="admin-console-page dash-app"><a class="skip-link" href="#main">Skip to content</a>
   <div class="admin-console-shell">
     <aside class="admin-console-sidebar">
-      <a href="/" class="admin-console-brand"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
-      <div class="admin-owner-card">
-        <span>Admin account</span>
-        <strong class="admin-owner-name">Mr Olushola Fadipe</strong>
-        <small id="dashboardSyncStatus">Connecting to Supabase</small>
-      </div>
+      <a href="/dashboard" class="admin-console-brand"><img src="/logo.webp" alt="Breezyee Vans admin" class="logo-image"></a>
+      <div class="admin-owner-card"><div class="dash-avatar" aria-hidden="true">OF</div><div><span>Admin</span><strong class="admin-owner-name">Mr Olushola Fadipe</strong><small id="dashboardSyncStatus">Connecting…</small></div></div>
       <nav class="admin-console-menu">
         <span>Main Menu</span>
-        <a href="/dashboard" class="active"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg></b>Dashboard</a>
-        <a href="/admin-transactions"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path></svg></b>Transactions</a><a href="/admin-payments"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></b>Payments</a>
+        <a href="/dashboard" class="active" aria-current="page"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg></b>Dashboard</a>
+        <a href="/admin-transactions"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path></svg></b>Bookings</a><a href="/admin-payments"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></b>Payments</a>
         <a href="/admin-invoices"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 13h6"></path><path d="M9 17h6"></path></svg></b>Invoices</a>
         <a href="/admin-analytics"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="12" y="8" width="3" height="10"></rect><rect x="17" y="4" width="3" height="14"></rect></svg></b>Analytics</a>
       </nav>
@@ -31,135 +28,120 @@
       <nav class="admin-console-menu">
         <span>General</span>
         <a href="/admin-settings"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 005 8.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019 9c.26.604.852 1 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path></svg></b>Settings</a>
-        <a href="/contact"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line></svg></b>Help Desk</a>
+        <a href="/"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line></svg></b>View website</a>
         <a href="#" id="signOutLink"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></b>Log out</a>
       </nav>
-      <div class="admin-upgrade-card">
-        <strong>Admin Pro</strong>
-        <p>Faster control for bookings, customers, and fleet activity.</p>
-        <a href="/admin-settings">Workspace settings</a>
-      </div>
+      <div class="dash-side-help"><strong>Customer support line</strong><a href="tel:+447300331603">+44 7300 331603</a></div>
     </aside>
 
     <main id="main" class="admin-console-main">
       <header class="admin-console-topbar">
-
+        <span class="admin-date-chip">Today</span>
         <div class="admin-console-actions">
-
-          <span class="admin-live-pill" id="dashboardLastSync">Syncing...</span>
-          <div class="admin-console-avatar" id="headerAvatar">A</div>
+          <span class="admin-live-pill" id="dashboardLastSync">Syncing…</span>
+          <div class="admin-console-avatar" id="headerAvatar" aria-hidden="true">OF</div>
         </div>
       </header>
 
       <section class="admin-console-hero">
         <div>
           <h1 id="dashboardGreeting">Welcome back</h1>
-          <p>Monitor and control every Breezyee Vans booking, payment, and customer request from one admin workspace owned by <span class="admin-owner-name">Mr Olushola Fadipe</span>.</p>
+          <p>Here’s what needs your attention across bookings, payments and customers.</p>
         </div>
         <div class="admin-hero-actions">
-          <span class="admin-date-chip">Thu, 28 May 2026</span>
-          <a class="admin-export-button" href="/booking">New Booking</a>
+          <a class="dash-btn dash-btn-ghost" href="#" id="exportBookingsCsv">Export CSV</a>
+          <a class="dash-btn" href="/booking">New booking</a>
         </div>
       </section>
 
-      <section class="admin-kpi-grid">
-
+      <section class="dash-kpis" aria-label="Key figures">
+        <article class="dash-kpi is-attention">
+          <span class="dash-kpi-icon amber" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></span>
+          <span class="dash-kpi-label">Awaiting approval</span>
+          <strong id="dashboardPendingCount">0</strong>
+          <p><b id="dashboardOverdueCount">0</b> waiting over 3 days</p>
+        </article>
+        <article class="dash-kpi">
+          <span class="dash-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+          <span class="dash-kpi-label">Upcoming hires</span>
+          <strong id="dashboardUpcomingCount">0</strong>
+          <p><b id="dashboardTodayCount">0</b> collecting today</p>
+        </article>
+        <article class="dash-kpi">
+          <span class="dash-kpi-icon green" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></span>
+          <span class="dash-kpi-label">Received this month</span>
+          <strong id="dashboardMonthlyRevenue">£0</strong>
+          <p><b id="dashboardRevenue">£0</b> received all time</p>
+        </article>
+        <article class="dash-kpi">
+          <span class="dash-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 00-3-3.87"></path><path d="M16 3.13a4 4 0 010 7.75"></path></svg></span>
+          <span class="dash-kpi-label">Customers</span>
+          <strong id="dashboardCustomersCount">0</strong>
+          <p><b id="dashboardBookingsCount">0</b> bookings in total</p>
+        </article>
       </section>
 
-      <section class="admin-console-grid">
-        <article class="admin-panel admin-wallet-panel">
+      <section class="dash-grid">
+        <article class="admin-panel">
           <div class="admin-panel-header">
-            <h2>Operations Snapshot</h2>
-            <a href="/admin-invoices">+ Add New</a>
+            <h2>Needs your approval</h2>
+            <a href="/admin-transactions">All bookings →</a>
           </div>
-          <div class="admin-wallet-grid">
-            <div><b><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></b><span>Total bookings</span><strong id="dashboardBookingsCount">0</strong><small>All captured requests</small></div>
-            <div><b><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></b><span>Upcoming</span><strong id="dashboardUpcomingCount">0</strong><small>Active jobs</small></div>
-            <div><b><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></b><span>Pending</span><strong id="dashboardPendingCount">0</strong><small>Needs review</small></div>
-            <div><b><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 00-3-3.87"></path><path d="M16 3.13a4 4 0 010 7.75"></path></svg></b><span>Customers</span><strong id="dashboardCustomersCount">0</strong><small>Unique contacts</small></div>
-            <div><b><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></b><span>Completed</span><strong id="dashboardCompletedCount">0</strong><small>Confirmed jobs</small></div>
-            <div><b><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></b><span>This month</span><strong id="dashboardMonthlyRevenue">£0</strong><small>Synced value</small></div>
-          </div>
+          <div class="dash-queue" id="pendingApprovalsList"><p class="txt-dim">Loading requests…</p></div>
         </article>
 
-        <article class="admin-panel admin-overview-panel">
+        <article class="admin-panel">
           <div class="admin-panel-header">
-            <h2>Overview</h2>
-            <div class="admin-panel-tools"><span>Earnings</span></div>
+            <h2>Payments received</h2>
+            <span id="dashboardChartYear">This year</span>
           </div>
-          <div class="admin-year-chart" aria-hidden="true">
-            <span data-month-bar="" style="height:42%"></span><span data-month-bar="" style="height:62%"></span><span data-month-bar="" style="height:72%"></span><span data-month-bar="" style="height:44%"></span>
-            <span data-month-bar="" style="height:58%"></span><span data-month-bar="" style="height:20%"></span><span data-month-bar="" style="height:44%"></span><span data-month-bar="" class="active" style="height:82%"></span>
-            <span data-month-bar="" style="height:54%"></span><span data-month-bar="" style="height:34%"></span><span data-month-bar="" style="height:30%"></span><span data-month-bar="" style="height:54%"></span>
+          <div class="admin-year-chart" role="img" aria-label="Payments received by month this year">
+            <span data-month-bar=""></span><span data-month-bar=""></span><span data-month-bar=""></span><span data-month-bar=""></span>
+            <span data-month-bar=""></span><span data-month-bar=""></span><span data-month-bar=""></span><span data-month-bar=""></span>
+            <span data-month-bar=""></span><span data-month-bar=""></span><span data-month-bar=""></span><span data-month-bar=""></span>
           </div>
-          <div class="admin-month-row"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span></div>
-        </article>
-
-        <article class="admin-panel admin-table-panel">
-          <div class="admin-panel-header">
-            <h2>Recent Transactions</h2>
-            <a href="/admin-transactions">Filter</a>
-          </div>
-          <div class="admin-table-wrap">
-            <table class="admin-history-table">
-              <thead>
-                <tr><th>Activity</th><th>Date</th><th>Van</th><th>Status</th><th>Price</th><th class="admin-actions-header">Actions</th></tr>
-              </thead>
-              <tbody id="bookingsTableBody">
-                <tr><td colspan="6" class="txt-dim">Loading booking history...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
-
-        <article class="admin-panel admin-table-panel">
-          <div class="admin-panel-header">
-            <h2>Customer Management</h2>
-            <span>Manage customer data</span>
-          </div>
-          <div class="admin-table-wrap">
-            <table class="admin-history-table">
-              <thead>
-                <tr><th>Customer</th><th>Email</th><th>Bookings</th><th>Total Spent</th><th>Last Login</th><th class="admin-actions-header">Actions</th></tr>
-              </thead>
-              <tbody id="customersTableBody">
-                <tr><td colspan="6" class="txt-dim">Loading customers...</td></tr>
-              </tbody>
-            </table>
+          <div class="admin-month-row" aria-hidden="true"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+          <div class="dash-chart-stats">
+            <div><span>Average paid per booking</span><strong id="dashboardAverageBooking">£0</strong></div>
+            <div><span>Booking conversion</span><strong id="dashboardConversionRate">0%</strong></div>
           </div>
         </article>
       </section>
 
-      <section class="admin-ops-grid">
-        <article class="admin-panel admin-ops-panel">
-          <div class="admin-panel-header">
-            <h2>Operations Command</h2>
-            <a href="/admin-transactions">Open Queue</a>
-          </div>
-          <div class="admin-command-grid">
-            <div><span>Jobs Today</span><strong id="dashboardTodayCount">0</strong><small>Scheduled for today</small></div>
-            <div><span>Overdue Follow-ups</span><strong id="dashboardOverdueCount">0</strong><small>Pending over 3 days</small></div>
-            <div><span>Average Booking</span><strong id="dashboardAverageBooking">£0</strong><small>Across all requests</small></div>
-            <div><span>Conversion Health</span><strong id="dashboardConversionRate">0%</strong><small>Confirmed vs total</small></div>
-          </div>
-        </article>
+      <article class="admin-panel admin-table-panel">
+        <div class="admin-panel-header">
+          <h2>Recent bookings</h2>
+          <a href="/admin-transactions">View all →</a>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-history-table dash-stack-table">
+            <thead>
+              <tr><th>Booking</th><th>Vehicle</th><th>Collection</th><th>Status</th><th>Hire price</th><th class="admin-actions-header">Actions</th></tr>
+            </thead>
+            <tbody id="bookingsTableBody" data-limit="8">
+              <tr><td colspan="6" class="txt-dim">Loading bookings…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
 
-        <article class="admin-panel admin-action-panel">
-          <div class="admin-panel-header">
-            <h2>Quick Actions</h2>
-            <span>Admin tools</span>
-          </div>
-          <div class="admin-action-list">
-            <a href="/booking"><b><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></b><span>Create new booking</span></a>
-            <a href="/admin-invoices"><b><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></b><span>Send invoice or reminder</span></a>
-            <a href="/admin-analytics"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="12" y="8" width="3" height="10"></rect><rect x="17" y="4" width="3" height="14"></rect></svg></b><span>Review performance</span></a>
-            <a href="/contact"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line></svg></b><span>Open help desk</span></a>
-          </div>
-        </article>
-      </section>
+      <article class="admin-panel admin-table-panel">
+        <div class="admin-panel-header">
+          <h2>Customers</h2>
+          <span>Everyone who has booked with you</span>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-history-table dash-stack-table">
+            <thead>
+              <tr><th>Customer</th><th>Bookings</th><th>Hire value</th><th>Last sign-in</th><th class="admin-actions-header">Contact</th></tr>
+            </thead>
+            <tbody id="customersTableBody">
+              <tr><td colspan="5" class="txt-dim">Loading customers…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
     </main>
   </div>
   <div id="bookingActionModal" class="review-modal" hidden><div class="review-modal-card" role="dialog" aria-modal="true" aria-labelledby="bookingActionTitle"><button type="button" class="review-modal-close" id="bookingActionClose" aria-label="Close">×</button><div id="bookingActionForm"><p class="eyebrow">Secure action</p><h2 id="bookingActionTitle">Approve booking</h2><p id="bookingActionCopy">Enter your administrator approval code to continue.</p><label for="bookingActionCode">Administrator code</label><input id="bookingActionCode" inputmode="numeric" autocomplete="one-time-code"><div id="bookingActionReasonWrap" hidden><label for="bookingActionReason">Rejection reason (optional)</label><input id="bookingActionReason" type="text" placeholder="Let the customer know why"></div><p id="bookingActionError" class="review-modal-error" hidden></p><button type="button" class="btn btn-primary" id="bookingActionSubmit">Continue</button></div><div id="bookingActionProcessing" hidden><div class="review-spinner"></div><h2>Processing…</h2><p>Saving the booking decision and notifying the customer.</p></div><div id="bookingActionSuccess" hidden><div class="review-success-icon">✓</div><h2 id="bookingActionSuccessTitle">Done</h2><p id="bookingActionSuccessCopy"></p><button type="button" class="btn btn-primary" id="bookingActionDone">Close</button></div></div></div>
-  <script type="module" src="app.js"></script>
-
-<footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer></body></html>
+  <script type="module" src="app.js"></script></body></html>

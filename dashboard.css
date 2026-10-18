@@ -1,0 +1,744 @@
+/* Shared admin + customer dashboard design. Loaded after style.css on dashboard pages;
+   every rule is scoped to body.dash-app so it overrides the legacy admin styles. */
+body.dash-app {
+  --d-bg: #f5f3fa;
+  --d-surface: #fff;
+  --d-ink: #1a1033;
+  --d-ink-2: #3d3354;
+  --d-muted: #766c8c;
+  --d-line: #ebe6f3;
+  --d-line-2: #f4f1f9;
+  --d-brand: #5b22b0;
+  --d-brand-2: #7c3aed;
+  --d-brand-soft: #f2ebfd;
+  --d-side: #170d2e;
+  --d-side-ink: #c9bfe0;
+  --d-amber: #9a5800;
+  --d-amber-bg: #fff3dc;
+  --d-green: #15784a;
+  --d-green-bg: #e3f5eb;
+  --d-red: #b42318;
+  --d-red-bg: #fdecea;
+  --d-radius: 16px;
+  --d-shadow: 0 1px 2px rgba(23, 13, 46, .04), 0 10px 28px rgba(23, 13, 46, .05);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  /* style.css sets overflow-x:hidden, which makes <body> a scroll container and breaks the sticky sidebar. */
+  overflow-x: clip;
+  overflow-y: visible;
+  background: var(--d-bg);
+  color: var(--d-ink);
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+/* ── Shell ── */
+body.dash-app .admin-console-shell {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 256px minmax(0, 1fr);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+body.dash-app .admin-console-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 22px 16px;
+  background: var(--d-side);
+  color: var(--d-side-ink);
+  scrollbar-width: thin;
+}
+body.dash-app .admin-console-brand {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fff;
+}
+body.dash-app .admin-console-brand .logo-image { height: 34px; width: auto; display: block; }
+body.dash-app .admin-owner-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .08);
+  color: #fff;
+  box-shadow: none;
+}
+body.dash-app .admin-owner-card > div { display: grid; gap: 2px; min-width: 0; }
+body.dash-app .admin-owner-card span { font-size: .7rem; color: var(--d-side-ink); text-transform: uppercase; letter-spacing: .08em; }
+body.dash-app .admin-owner-card strong { font-size: .9rem; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.dash-app .admin-owner-card small { font-size: .74rem; color: #8fe0b6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.dash-app .dash-avatar {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--d-brand), var(--d-brand-2));
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 700;
+}
+body.dash-app .admin-console-menu { display: grid; gap: 2px; }
+body.dash-app .admin-console-menu > span {
+  padding: 0 12px 6px;
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(201, 191, 224, .5);
+}
+body.dash-app .admin-console-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: var(--d-side-ink);
+  font-size: .88rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: transparent;
+  transition: background .15s ease, color .15s ease;
+}
+body.dash-app .admin-console-menu a b {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .06);
+  color: inherit;
+}
+body.dash-app .admin-console-menu a:hover { background: rgba(255, 255, 255, .07); color: #fff; }
+body.dash-app .admin-console-menu a.active {
+  background: linear-gradient(135deg, var(--d-brand), var(--d-brand-2));
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(91, 34, 176, .35);
+}
+body.dash-app .admin-console-menu a.active b { background: rgba(255, 255, 255, .18); }
+body.dash-app .admin-console-menu a:focus-visible { outline: 2px solid #c4a8ff; outline-offset: 2px; }
+body.dash-app .admin-upgrade-card { display: none; }
+body.dash-app .dash-side-help {
+  margin-top: auto;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .05);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+body.dash-app .dash-side-help strong { display: block; color: #fff; font-size: .86rem; margin-bottom: 2px; }
+body.dash-app .dash-side-help a { color: #d9c8ff; font-weight: 600; text-decoration: none; }
+
+/* ── Main column ── */
+body.dash-app .admin-console-main,
+body.dash-app .user-dashboard-main {
+  width: 100%;
+  max-width: 1360px;
+  min-width: 0;
+  margin: 0;
+  padding: 22px 36px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  background: transparent;
+}
+body.dash-app .admin-console-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-height: 40px;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+body.dash-app .admin-console-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+body.dash-app .admin-console-avatar,
+body.dash-app .admin-console-topbar .dash-avatar {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--d-brand), var(--d-brand-2));
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 700;
+}
+body.dash-app .admin-live-pill,
+body.dash-app .admin-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--d-surface);
+  border: 1px solid var(--d-line);
+  color: var(--d-muted);
+  font-size: .78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: none;
+}
+body.dash-app .admin-live-pill::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, .18);
+}
+
+/* Page header */
+body.dash-app .admin-console-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--d-ink);
+  overflow: visible;
+}
+body.dash-app .admin-console-hero::before,
+body.dash-app .admin-console-hero::after { display: none; }
+body.dash-app .admin-console-hero h1 {
+  margin: 0 0 4px;
+  font-size: clamp(1.45rem, 2.3vw, 1.95rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -.02em;
+  color: var(--d-ink);
+}
+body.dash-app .admin-console-hero p { margin: 0; max-width: 62ch; color: var(--d-muted); font-size: .94rem; line-height: 1.55; }
+body.dash-app .admin-console-hero p strong,
+body.dash-app .admin-console-hero p span { color: inherit; }
+body.dash-app .admin-hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-left: 0; }
+
+/* Buttons */
+body.dash-app .dash-btn,
+body.dash-app .admin-export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--d-brand), var(--d-brand-2));
+  color: #fff;
+  font: 600 .86rem/1.2 'Poppins', system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(91, 34, 176, .22);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+body.dash-app .dash-btn:hover,
+body.dash-app .admin-export-button:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(91, 34, 176, .28); }
+body.dash-app .dash-btn-ghost { background: var(--d-surface); color: var(--d-ink-2); border-color: var(--d-line); box-shadow: none; }
+body.dash-app .dash-btn-ghost:hover { border-color: #d6cbea; box-shadow: none; }
+body.dash-app .dash-btn-sm { min-height: 34px; padding: 6px 12px; font-size: .8rem; border-radius: 9px; }
+body.dash-app .dash-btn-danger { background: var(--d-surface); color: var(--d-red); border-color: #f4cdc8; box-shadow: none; }
+body.dash-app .dash-btn-danger:hover { background: var(--d-red-bg); box-shadow: none; }
+body.dash-app .dash-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+/* ── KPI cards ── */
+body.dash-app .admin-kpi-grid,
+body.dash-app .dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+body.dash-app .admin-kpi-grid:empty { display: none; }
+body.dash-app .admin-kpi-card,
+body.dash-app .dash-kpi {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 18px 20px;
+  border-radius: var(--d-radius);
+  background: var(--d-surface);
+  border: 1px solid var(--d-line);
+  box-shadow: var(--d-shadow);
+  color: var(--d-ink);
+  min-height: 0;
+}
+body.dash-app .admin-kpi-card::before,
+body.dash-app .admin-kpi-card::after,
+body.dash-app .admin-panel::before,
+body.dash-app .admin-panel::after { display: none; }
+body.dash-app .admin-kpi-card h2,
+body.dash-app .dash-kpi-label { margin: 0; font-size: .8rem; font-weight: 600; color: var(--d-muted); letter-spacing: 0; text-transform: none; }
+body.dash-app .admin-kpi-card strong,
+body.dash-app .dash-kpi strong { font-size: 1.85rem; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; color: var(--d-ink); }
+body.dash-app .admin-kpi-card p,
+body.dash-app .dash-kpi p { margin: 0; font-size: .8rem; color: var(--d-muted); }
+body.dash-app .admin-kpi-top { display: flex; justify-content: space-between; margin: 0; }
+body.dash-app .admin-kpi-icon,
+body.dash-app .dash-kpi-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--d-brand-soft);
+  color: var(--d-brand);
+}
+body.dash-app .admin-kpi-icon:empty { display: none; }
+body.dash-app .dash-kpi-icon { margin-bottom: 6px; }
+body.dash-app .dash-kpi-icon.amber { background: var(--d-amber-bg); color: var(--d-amber); }
+body.dash-app .dash-kpi-icon.green { background: var(--d-green-bg); color: var(--d-green); }
+body.dash-app .dash-kpi.is-attention { border-color: #f5d79c; background: linear-gradient(180deg, #fffaf0, #fff 60%); }
+
+/* ── Panels ── */
+body.dash-app .admin-panel,
+body.dash-app .user-panel,
+body.dash-app .dash-card {
+  min-width: 0;
+  padding: 20px 22px;
+  border-radius: var(--d-radius);
+  background: var(--d-surface);
+  border: 1px solid var(--d-line);
+  box-shadow: var(--d-shadow);
+  color: var(--d-ink);
+}
+body.dash-app .admin-panel-header,
+body.dash-app .dash-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+body.dash-app .admin-panel-header h2,
+body.dash-app .dash-card-head h2 { margin: 0; font-size: 1.02rem; font-weight: 700; letter-spacing: -.01em; color: var(--d-ink); }
+body.dash-app .admin-panel-header > span,
+body.dash-app .dash-card-head > span,
+body.dash-app .dash-card-head p { margin: 0; font-size: .8rem; color: var(--d-muted); }
+body.dash-app .admin-panel-header > a,
+body.dash-app .dash-card-head > a {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--d-brand);
+  text-decoration: none;
+  background: none;
+  padding: 0;
+}
+body.dash-app .admin-panel-header > a:hover,
+body.dash-app .dash-card-head > a:hover { text-decoration: underline; }
+body.dash-app .dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+body.dash-app .dash-stack { display: grid; gap: 20px; min-width: 0; }
+body.dash-app .admin-console-grid,
+body.dash-app .admin-ops-grid,
+body.dash-app .admin-analytics-grid,
+body.dash-app .admin-settings-grid { gap: 20px; margin: 0; }
+body.dash-app .txt-dim { color: var(--d-muted); }
+
+/* ── Tables ── */
+body.dash-app .admin-table-wrap { overflow-x: auto; margin: 0 -22px; padding: 0 22px; border: 0; background: none; }
+body.dash-app .admin-history-table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: .875rem;
+  background: none;
+}
+body.dash-app .admin-history-table th {
+  padding: 10px 14px;
+  background: var(--d-line-2);
+  border: 0;
+  border-bottom: 1px solid var(--d-line);
+  color: var(--d-muted);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+body.dash-app .admin-history-table th:first-child { border-radius: 10px 0 0 10px; }
+body.dash-app .admin-history-table th:last-child { border-radius: 0 10px 10px 0; }
+body.dash-app .admin-history-table td {
+  padding: 14px;
+  border: 0;
+  border-bottom: 1px solid var(--d-line-2);
+  color: var(--d-ink-2);
+  vertical-align: middle;
+  background: none;
+}
+body.dash-app .admin-history-table tbody tr:last-child td { border-bottom: 0; }
+body.dash-app .admin-history-table tbody tr:hover td { background: #fbfaff; }
+body.dash-app .admin-history-table td strong { color: var(--d-ink); font-weight: 600; white-space: nowrap; font-size: .84rem; }
+body.dash-app .dash-cell-sub { display: block; margin-top: 2px; font-size: .78rem; color: var(--d-muted); }
+body.dash-app .dash-cell-actions { display: flex; flex-wrap: nowrap; gap: 6px; }
+body.dash-app .admin-history-table td[data-label="Actions"] a,
+body.dash-app .dash-nowrap { white-space: nowrap; }
+body.dash-app .admin-history-table a:not(.dash-btn) { color: var(--d-brand); font-weight: 600; text-decoration: none; }
+body.dash-app .admin-btn-icon,
+body.dash-app .admin-email-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--d-line);
+  background: var(--d-surface);
+  color: var(--d-ink-2);
+  font: 600 .78rem/1 'Poppins', system-ui, sans-serif;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+body.dash-app .confirm-booking-btn { background: var(--d-green-bg); border-color: #c4e9d4; color: var(--d-green); }
+body.dash-app .confirm-booking-btn:hover { background: #d3efdf; }
+body.dash-app .reject-booking-btn { background: var(--d-red-bg); border-color: #f6d0cb; color: var(--d-red); }
+body.dash-app .reject-booking-btn:hover { background: #fbdcd8; }
+body.dash-app .admin-email-action:hover { background: var(--d-brand-soft); }
+body.dash-app .admin-email-action.ghost { background: transparent; }
+body.dash-app .admin-btn-icon:disabled,
+body.dash-app .admin-email-action:disabled { opacity: .5; cursor: wait; }
+
+/* Status badges */
+body.dash-app .admin-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1eff5;
+  color: #5d566b;
+  font-size: .74rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  border: 0;
+}
+body.dash-app .admin-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+body.dash-app .admin-status.pending { background: var(--d-amber-bg); color: var(--d-amber); }
+body.dash-app .admin-status.paid { background: var(--d-green-bg); color: var(--d-green); }
+body.dash-app .admin-status.successful,
+body.dash-app .admin-status.info { background: var(--d-brand-soft); color: var(--d-brand); }
+body.dash-app .admin-status.cancelled { background: var(--d-red-bg); color: var(--d-red); }
+
+/* Forms inside dashboard panels */
+body.dash-app .admin-panel input:not([type=checkbox]):not([type=radio]),
+body.dash-app .admin-panel select,
+body.dash-app .admin-panel textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--d-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--d-ink);
+  font: 400 .9rem/1.4 'Poppins', system-ui, sans-serif;
+}
+body.dash-app .admin-panel input:focus,
+body.dash-app .admin-panel select:focus,
+body.dash-app .admin-panel textarea:focus { outline: none; border-color: var(--d-brand-2); box-shadow: 0 0 0 3px rgba(124, 58, 237, .14); }
+body.dash-app .admin-panel label { font-size: .8rem; font-weight: 600; color: var(--d-ink-2); }
+body.dash-app .admin-settings-list { display: grid; gap: 14px; margin: 0; }
+body.dash-app .admin-settings-list > label:not(.terms-check) { display: grid; gap: 6px; }
+body.dash-app .admin-settings-list .terms-check { display: flex; align-items: center; gap: 10px; padding: 0; background: none; border: 0; }
+body.dash-app .admin-settings-list .terms-check input {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  accent-color: var(--d-brand);
+}
+body.dash-app .admin-settings-list .terms-check span { font-size: .86rem; font-weight: 500; color: var(--d-ink-2); }
+body.dash-app #paymentSettingsForm { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+body.dash-app #paymentSettingsForm > :is(small, .terms-check, button, p),
+body.dash-app #paymentSettingsForm > label:has(textarea) { grid-column: 1 / -1; }
+body.dash-app #paymentSettingsForm > button { justify-self: start; }
+@media (max-width: 640px) { body.dash-app #paymentSettingsForm { grid-template-columns: 1fr; } }
+
+/* ── Driver checks ── */
+body.dash-app .driver-check-card { padding: 18px; border-radius: 14px; border: 1px solid var(--d-line); background: #fdfcff; box-shadow: none; }
+body.dash-app .driver-check-card + .driver-check-card { margin-top: 12px; }
+body.dash-app .driver-check-card-head strong { font-size: .8rem; color: var(--d-muted); background: var(--d-line-2); padding: 4px 10px; border-radius: 999px; }
+body.dash-app .driver-check-grid > div { background: var(--d-surface); border: 1px solid var(--d-line-2); border-radius: 10px; }
+body.dash-app .driver-document-actions button,
+body.dash-app .driver-admin-actions a,
+body.dash-app .driver-admin-actions button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--d-line);
+  background: var(--d-surface);
+  color: var(--d-ink-2);
+  font: 600 .8rem/1 'Poppins', system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+body.dash-app .driver-document-actions button:hover,
+body.dash-app .driver-admin-actions a:hover { background: var(--d-brand-soft); color: var(--d-brand); }
+body.dash-app .driver-admin-actions .approve-driver-btn { background: var(--d-green-bg); border-color: #c4e9d4; color: var(--d-green); }
+body.dash-app .driver-admin-actions .reject-driver-btn { background: var(--d-red-bg); border-color: #f6d0cb; color: var(--d-red); }
+
+/* ── Approval queue ── */
+body.dash-app .dash-queue { display: grid; gap: 10px; }
+body.dash-app .dash-queue-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--d-line);
+  background: #fdfcff;
+}
+body.dash-app .dash-queue-item .dash-avatar { width: 40px; height: 40px; background: var(--d-amber-bg); color: var(--d-amber); }
+body.dash-app .dash-queue-main { min-width: 0; }
+body.dash-app .dash-queue-main strong { display: block; font-size: .92rem; line-height: 1.35; color: var(--d-ink); }
+body.dash-app .dash-queue-main span { display: block; margin-top: 2px; font-size: .78rem; line-height: 1.45; color: var(--d-muted); }
+body.dash-app .dash-queue-side { display: flex; align-items: center; gap: 8px; }
+body.dash-app .dash-queue-price { font-weight: 700; font-size: .92rem; color: var(--d-ink); margin-right: 4px; }
+body.dash-app .dash-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--d-muted);
+  font-size: .86rem;
+}
+body.dash-app .dash-empty-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; background: var(--d-green-bg); color: var(--d-green); margin-bottom: 4px; }
+body.dash-app .dash-empty strong { color: var(--d-ink); font-size: .95rem; }
+body.dash-app .dash-empty .dash-btn { margin-top: 8px; }
+
+/* ── Revenue chart ── */
+body.dash-app .admin-year-chart {
+  height: 180px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
+  padding: 0;
+  margin: 6px 0 0;
+  background: repeating-linear-gradient(to top, var(--d-line-2) 0 1px, transparent 1px 45px);
+  border: 0;
+}
+body.dash-app .admin-year-chart.tall { height: 280px; }
+body.dash-app .admin-year-chart span {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 4px;
+  border-radius: 6px 6px 3px 3px;
+  background: #e5dbf7;
+  transition: height .5s ease;
+}
+body.dash-app .admin-year-chart span::before,
+body.dash-app .admin-year-chart span::after { display: none; }
+body.dash-app .admin-year-chart span.active { background: linear-gradient(180deg, var(--d-brand-2), var(--d-brand)); }
+body.dash-app .admin-month-row {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+  font-size: .68rem;
+  color: var(--d-muted);
+  text-align: center;
+}
+body.dash-app .dash-chart-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--d-line-2);
+}
+body.dash-app .dash-chart-stats div { display: grid; gap: 2px; }
+body.dash-app .dash-chart-stats span { font-size: .74rem; color: var(--d-muted); }
+body.dash-app .dash-chart-stats strong { font-size: 1.15rem; font-weight: 700; color: var(--d-ink); }
+
+/* ── Customer bookings ── */
+body.dash-app .dash-bookings { display: grid; gap: 16px; }
+body.dash-app .dash-booking {
+  padding: 20px 22px;
+  border-radius: var(--d-radius);
+  background: var(--d-surface);
+  border: 1px solid var(--d-line);
+  box-shadow: var(--d-shadow);
+}
+body.dash-app .dash-booking-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+body.dash-app .dash-booking-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--d-ink); }
+body.dash-app .dash-booking-head p { margin: 2px 0 0; font-size: .8rem; color: var(--d-muted); }
+body.dash-app .dash-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+body.dash-app .dash-steps li { position: relative; display: grid; justify-items: center; gap: 6px; text-align: center; font-size: .74rem; color: var(--d-muted); }
+body.dash-app .dash-steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: relative;
+  z-index: 1;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--d-surface);
+  border: 2px solid var(--d-line);
+  color: var(--d-muted);
+  font-size: .72rem;
+  font-weight: 700;
+}
+body.dash-app .dash-steps li::after { content: ''; position: absolute; top: 12px; left: calc(50% + 15px); right: calc(-50% + 15px); height: 2px; background: var(--d-line); }
+body.dash-app .dash-steps li:last-child::after { display: none; }
+body.dash-app .dash-steps li.done { color: var(--d-ink-2); }
+body.dash-app .dash-steps li.done::before { content: '✓'; background: var(--d-brand); border-color: var(--d-brand); color: #fff; }
+body.dash-app .dash-steps li.done::after { background: var(--d-brand); }
+body.dash-app .dash-steps li.current { color: var(--d-ink); font-weight: 600; }
+body.dash-app .dash-steps li.current::before { border-color: var(--d-brand); color: var(--d-brand); box-shadow: 0 0 0 4px var(--d-brand-soft); }
+body.dash-app .dash-booking { container-type: inline-size; }
+body.dash-app .dash-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+@container (min-width: 600px) {
+  body.dash-app .dash-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+body.dash-app .dash-facts div { padding: 10px 12px; border-radius: 10px; background: var(--d-line-2); }
+body.dash-app .dash-facts span { display: block; font-size: .7rem; color: var(--d-muted); text-transform: uppercase; letter-spacing: .06em; }
+body.dash-app .dash-facts strong { display: block; margin-top: 2px; font-size: .9rem; color: var(--d-ink); font-weight: 600; }
+body.dash-app .dash-booking-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+body.dash-app .dash-booking-note { margin: 0; font-size: .82rem; color: var(--d-muted); flex: 1 1 260px; }
+body.dash-app .dash-booking-note.is-alert { color: var(--d-red); }
+body.dash-app .dash-booking-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Side cards (customer) */
+body.dash-app .dash-list { display: grid; gap: 0; margin: 0; }
+body.dash-app .dash-list div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--d-line-2); font-size: .85rem; }
+body.dash-app .dash-list div:last-child { border-bottom: 0; }
+body.dash-app .dash-list span { color: var(--d-muted); }
+body.dash-app .dash-list strong { color: var(--d-ink); font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+body.dash-app .dash-next { padding: 16px; border-radius: 12px; background: linear-gradient(135deg, var(--d-brand), var(--d-brand-2)); color: #fff; }
+body.dash-app .dash-next span { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; opacity: .8; }
+body.dash-app .dash-next strong { display: block; margin: 4px 0 2px; font-size: 1.05rem; color: #fff; }
+body.dash-app .dash-next p { margin: 0; font-size: .82rem; opacity: .9; }
+body.dash-app .dash-note { margin: 0 0 12px; font-size: .84rem; color: var(--d-muted); line-height: 1.55; }
+body.dash-app .dash-help-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  body.dash-app .dash-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 1024px) {
+  body.dash-app .admin-console-shell { grid-template-columns: 1fr; }
+  body.dash-app .admin-console-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    box-shadow: 0 6px 18px rgba(23, 13, 46, .18);
+  }
+  body.dash-app .admin-console-sidebar::-webkit-scrollbar { display: none; }
+  body.dash-app .admin-console-brand { flex: 0 0 auto; align-self: center; padding: 5px 9px; margin-right: 6px; }
+  body.dash-app .admin-console-brand .logo-image { height: 26px; }
+  body.dash-app .admin-owner-card,
+  body.dash-app .dash-side-help,
+  body.dash-app .admin-console-menu > span { display: none; }
+  body.dash-app .admin-console-menu { display: flex; flex: 0 0 auto; gap: 4px; }
+  body.dash-app .admin-console-menu a { padding: 7px 12px; white-space: nowrap; font-size: .84rem; }
+  body.dash-app .admin-console-menu a b { display: none; }
+  body.dash-app .admin-console-main,
+  body.dash-app .user-dashboard-main { padding: 18px 20px 48px; }
+}
+@media (max-width: 640px) {
+  body.dash-app .admin-console-main,
+  body.dash-app .user-dashboard-main { padding: 16px 14px 40px; gap: 16px; }
+  body.dash-app .admin-console-topbar { justify-content: space-between; }
+  body.dash-app .admin-console-hero { align-items: stretch; }
+  body.dash-app .admin-hero-actions { width: 100%; }
+  body.dash-app .admin-hero-actions .dash-btn,
+  body.dash-app .admin-hero-actions .admin-export-button { flex: 1 1 0; }
+  body.dash-app .admin-kpi-grid,
+  body.dash-app .dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  body.dash-app .admin-kpi-card,
+  body.dash-app .dash-kpi { padding: 14px; }
+  body.dash-app .admin-kpi-card strong,
+  body.dash-app .dash-kpi strong { font-size: 1.4rem; }
+  body.dash-app .dash-kpi-icon { width: 32px; height: 32px; }
+  body.dash-app .admin-panel,
+  body.dash-app .user-panel,
+  body.dash-app .dash-card,
+  body.dash-app .dash-booking { padding: 16px; }
+  body.dash-app .admin-table-wrap { margin: 0 -16px; padding: 0 16px; }
+  body.dash-app .dash-queue-item { grid-template-columns: auto minmax(0, 1fr); }
+  body.dash-app .dash-queue-side { grid-column: 1 / -1; justify-content: space-between; }
+  body.dash-app .dash-steps li { font-size: .66rem; }
+  body.dash-app .dash-booking-actions,
+  body.dash-app .dash-booking-actions .dash-btn { width: 100%; }
+  /* Tables marked .dash-stack-table become one card per row on phones. */
+  body.dash-app .dash-stack-table thead { display: none; }
+  body.dash-app .dash-stack-table tbody,
+  body.dash-app .dash-stack-table tr,
+  body.dash-app .dash-stack-table td { display: block; }
+  body.dash-app .dash-stack-table tr { padding: 12px 0; border-bottom: 1px solid var(--d-line); }
+  body.dash-app .dash-stack-table tbody tr:last-child { border-bottom: 0; }
+  body.dash-app .dash-stack-table td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 5px 0; border: 0; text-align: right; }
+  body.dash-app .dash-stack-table td[data-label]::before { content: attr(data-label); color: var(--d-muted); font-size: .74rem; font-weight: 500; text-align: left; }
+  body.dash-app .dash-stack-table td:first-child { display: block; text-align: left; padding-bottom: 8px; }
+  body.dash-app .dash-stack-table td:first-child::before { display: none; }
+  body.dash-app .dash-stack-table td[colspan] { display: block; text-align: center; }
+  body.dash-app .dash-stack-table tbody tr:hover td { background: none; }
+}

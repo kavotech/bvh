@@ -708,7 +708,7 @@ function updateCarsStats(cars) {
     document.getElementById('totalCarsCount').textContent = '0';
     document.getElementById('avgPriceRate').textContent = '£0';
     document.getElementById('totalCapacity').textContent = '0 m³';
-    document.getElementById('fleetUtil').textContent = '0%';
+    document.getElementById('fleetUtil').textContent = '0';
     return;
   }
 
@@ -730,8 +730,8 @@ function updateCarsStats(cars) {
 
   document.getElementById('totalCarsCount').textContent = totalCars;
   document.getElementById('avgPriceRate').textContent = `£${Math.round(avgPrice)}`;
-  document.getElementById('totalCapacity').textContent = `${Math.round(totalCapacity)} m³ (approx.)`;
-  document.getElementById('fleetUtil').textContent = Math.round(activeCars / totalCars * 100) + '%';
+  document.getElementById('totalCapacity').textContent = `≈ ${Math.round(totalCapacity)} m³`;
+  document.getElementById('fleetUtil').textContent = `${activeCars} of ${totalCars}`;
 }
 
 async function editCar(id) {
@@ -1000,6 +1000,8 @@ async function initDashboardPage(user) {
   document.querySelectorAll('.admin-owner-name').forEach(el => {
     el.textContent = displayName;
   });
+  const accountNameEl = document.getElementById('dashboardAccountName');
+  if (accountNameEl) accountNameEl.textContent = customerName;
 
   const setText = (id, value) => {
     const el = document.getElementById(id);
@@ -1099,18 +1101,23 @@ async function initDashboardPage(user) {
 
   const tableBody = document.getElementById('bookingsTableBody');
   if (error || !Array.isArray(bookings)) {
-    if (!tableBody) return;
-    tableBody.innerHTML = '<tr><td colspan="5" class="txt-dim">Unable to load booking data. Please check your Supabase setup.</td></tr>';
-    setText('dashboardSyncStatus', 'Supabase connection issue');
+    const message = 'We couldn’t load bookings right now. Refresh the page, or call +44 7300 331603 if this keeps happening.';
+    if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="txt-dim">${message}</td></tr>`;
+    for (const id of ['customerBookingsList', 'pendingApprovalsList']) {
+      const list = document.getElementById(id);
+      if (list) list.innerHTML = `<p class="txt-dim">${message}</p>`;
+    }
+    setText('dashboardSyncStatus', 'Connection issue');
+    setText('dashboardLastSync', 'Offline');
     return;
   }
 
   const verificationStatusLabel = verification => {
-    if (!verification) return '⚪ Not Submitted';
+    if (!verification) return 'Not submitted';
     const status = verification.verification_status || 'PENDING';
-    if (status === 'APPROVED') return '🟢 Approved';
-    if (status === 'REJECTED') return '🔴 Rejected';
-    return '🟡 Pending Review';
+    if (status === 'APPROVED') return 'Approved';
+    if (status === 'REJECTED') return 'Rejected';
+    return 'Pending review';
   };
   const verificationStatusClass = verification => {
     if (!verification) return 'neutral';
@@ -1126,62 +1133,114 @@ async function initDashboardPage(user) {
     return 'Your driving documents are being reviewed.';
   };
 
+  const vehicleOf = booking => booking.vehicle_name || booking.van_size || 'Van hire';
+  const penceText = pence => `£${((Number(pence) || 0) / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const collectionText = booking => {
+    if (!booking.date) return 'Date to be confirmed';
+    const day = new Date(`${booking.date}T12:00:00`);
+    const label = Number.isNaN(day.getTime()) ? booking.date : day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    return booking.time ? `${label} · ${String(booking.time).slice(0, 5)}` : label;
+  };
+  const durationText = booking => booking.duration === 'custom' ? 'Custom hire' : booking.duration ? `${booking.duration} hours` : '—';
+  const statusTone = booking => {
+    const text = `${booking.status || ''} ${booking.booking_status || ''} ${booking.payment_status || ''}`.toLowerCase().replace(/unpaid/g, '');
+    if (/cancel|reject|unsuccessful|expired|failed/.test(text)) return 'cancelled';
+    if (/fully.paid|fully_paid|deposit_paid|reserved|confirmed|complete|paid/.test(text)) return 'paid';
+    if (/approved/.test(text)) return 'info';
+    return 'pending';
+  };
+  const isAwaitingApproval = booking => /^(pending approval|requested|pending|driver verification pending)$/i.test((booking.status || '').trim()) && !/approved|reject/i.test(booking.approval_status || '');
+  const initials = name => String(name || '?').trim().split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || '?';
+
   const invoiceRows = bookings.slice(0, 10).map((booking, index) => {
     const customer = booking.name || booking.email || 'Customer';
-    return `<tr><td>${escapeHTML(customer)}</td><td>${escapeHTML(booking.email)}</td><td>${escapeHTML(booking.service)}</td><td>${escapeHTML(booking.price || '£0')}</td><td><button class="admin-email-action" type="button" data-email-action="invoice" data-booking-index="${index}">Invoice</button><button class="admin-email-action ghost" type="button" data-email-action="reminder" data-booking-index="${index}">Reminder</button></td></tr>`;
+    return `<tr><td><strong>${escapeHTML(customer)}</strong><span class="dash-cell-sub">${escapeHTML(booking.email)}</span></td><td>${escapeHTML(vehicleOf(booking))}</td><td>${escapeHTML(booking.price || '£0')}</td><td><div class="dash-cell-actions"><button class="admin-email-action" type="button" data-email-action="invoice" data-booking-index="${index}">Details</button><button class="admin-email-action ghost" type="button" data-email-action="reminder" data-booking-index="${index}">Reminder</button></div></td></tr>`;
   }).join('');
 
-  const bookingRows = bookings.slice(0, 10).map(booking => {
+  const rowLimit = Number(tableBody?.dataset.limit) || bookings.length;
+  const bookingRows = bookings.slice(0, rowLimit).map(booking => {
     const status = booking.status || 'Requested';
-    const loweredStatus = status.toLowerCase();
-    const statusClass = loweredStatus.includes('cancel')
-      || loweredStatus.includes('unsuccessful')
-      ? 'cancelled'
-      : loweredStatus.includes('pending') || loweredStatus.includes('review')
-        ? 'pending'
-        : loweredStatus.includes('paid') || loweredStatus.includes('verified')
-          ? 'paid'
-          : 'successful';
-
-    const customerAction = !isAdmin && /approved.*deposit|awaiting.*payment/i.test(`${status} ${booking.booking_status || ''}`)
-      ? `<a class="btn btn-primary btn-sm" href="/payment?reference=${encodeURIComponent(booking.reference || '')}&category=booking_deposit">Pay booking deposit</a>`
-      : !isAdmin && /deposit_paid|awaiting final|remaining/i.test(`${booking.payment_status || ''} ${status}`)
-        ? `<a class="btn btn-outline btn-sm" href="/payment?reference=${encodeURIComponent(booking.reference || '')}&category=final_balance">Pay remaining balance</a>`
-        : '—';
+    const actions = isAwaitingApproval(booking)
+      ? `<div class="dash-cell-actions"><button class="admin-btn-icon confirm-booking-btn" type="button" data-id="${escapeHTML(booking.id)}">Approve</button><button class="admin-btn-icon reject-booking-btn" type="button" data-id="${escapeHTML(booking.id)}">Reject</button></div>`
+      : `<a href="mailto:${escapeHTML(booking.email || '')}?subject=${encodeURIComponent(`Your Breezyee Vans booking ${booking.reference || ''}`)}">Email customer</a>`;
     return `<tr>
-      <td>${escapeHTML(booking.service)}</td>
-      <td>${escapeHTML(booking.date)}</td>
-      <td>${escapeHTML(booking.van_size)}</td>
-      <td><span class="admin-status ${statusClass}">${escapeHTML(status)}</span></td>
-      <td>${escapeHTML(booking.price || '£0')}</td>
-      ${isAdmin ? `<td>
-        <button class="admin-btn-icon confirm-booking-btn" data-id="${escapeHTML(booking.id)}" title="Approve booking request">Approve</button>
-        <button class="admin-btn-icon reject-booking-btn" data-id="${escapeHTML(booking.id)}" title="Reject booking request">Reject</button>
-      </td>` : `<td>${customerAction}</td>`}
+      <td><strong>${escapeHTML(booking.reference || String(booking.id).slice(0, 8))}</strong><span class="dash-cell-sub">${escapeHTML(booking.name || booking.email || 'Customer')}</span></td>
+      <td data-label="Vehicle">${escapeHTML(vehicleOf(booking))}</td>
+      <td data-label="Collection"><span><span class="dash-nowrap">${escapeHTML(collectionText({ date: booking.date }))}</span><span class="dash-cell-sub">${escapeHTML([booking.time && String(booking.time).slice(0, 5), durationText(booking)].filter(Boolean).join(' · '))}</span></span></td>
+      <td data-label="Status"><span class="admin-status ${statusTone(booking)}">${escapeHTML(status)}</span></td>
+      <td data-label="Hire price">${escapeHTML(booking.price || '—')}</td>
+      <td data-label="Actions">${actions}</td>
     </tr>`;
   }).join('');
 
-  if (isUserDashboard) {
-    const actions = document.getElementById('customerBookingActions');
-    if (actions) {
-      actions.replaceChildren();
-      bookings.filter(b => ['Requested','Confirmed','Pending','Driver Verification Pending'].includes(b.status)).forEach(booking => {
-        const button = document.createElement('button'); button.className = 'btn btn-outline btn-sm';
-        button.textContent = 'Request cancellation: ' + (booking.reference || booking.id);
-        button.addEventListener('click', async () => {
-          if (!confirm('Request cancellation? The team will review the applicable hire terms.')) return;
-          button.disabled = true;
-          try { await manageBooking(booking.id, 'cancel'); }
-          catch(error) { alert(error.message); button.disabled = false; }
-        }); actions.append(button);
-      });
-    }
+  const pendingList = document.getElementById('pendingApprovalsList');
+  if (pendingList) {
+    const awaiting = bookings.filter(isAwaitingApproval);
+    pendingList.innerHTML = awaiting.length
+      ? awaiting.slice(0, 6).map(booking => `<div class="dash-queue-item">
+          <div class="dash-avatar" aria-hidden="true">${escapeHTML(initials(booking.name || booking.email))}</div>
+          <div class="dash-queue-main"><strong>${escapeHTML(booking.name || booking.email || 'Customer')} · ${escapeHTML(vehicleOf(booking))}</strong><span>${escapeHTML(booking.reference || '')} · ${escapeHTML(collectionText(booking))} · ${escapeHTML(durationText(booking))}</span></div>
+          <div class="dash-queue-side"><span class="dash-queue-price">${escapeHTML(booking.price || '—')}</span><button class="admin-btn-icon confirm-booking-btn" type="button" data-id="${escapeHTML(booking.id)}">Approve</button><button class="admin-btn-icon reject-booking-btn" type="button" data-id="${escapeHTML(booking.id)}">Reject</button></div>
+        </div>`).join('') + (awaiting.length > 6 ? `<p class="txt-dim">+ ${awaiting.length - 6} more in <a href="/admin-transactions">all bookings</a>.</p>` : '')
+      : '<div class="dash-empty"><span class="dash-empty-icon" aria-hidden="true">✓</span><strong>You’re all caught up</strong><span>New booking requests will appear here for approval.</span></div>';
+    pendingList.querySelectorAll('.confirm-booking-btn').forEach(btn => btn.addEventListener('click', () => confirmBooking(btn.dataset.id)));
+    pendingList.querySelectorAll('.reject-booking-btn').forEach(btn => btn.addEventListener('click', () => rejectBooking(btn.dataset.id)));
   }
+
+  const customerList = document.getElementById('customerBookingsList');
+  if (customerList) {
+    const cancellable = /^(Requested|Pending Approval|Approved — Awaiting Deposit|Payment failed|Awaiting booking deposit|Reserved|Confirmed|Driver Verification Pending|Pending|Paid|Fully paid)$/;
+    const stageOf = booking => {
+      const text = `${booking.status || ''} ${booking.booking_status || ''} ${booking.payment_status || ''}`.toLowerCase();
+      if (/fully.paid|fully_paid/.test(text)) return 4;
+      if (/deposit_paid|reserved|confirmed/.test(text)) return 3;
+      if (/approved|awaiting.*deposit|failed/.test(text)) return 2;
+      return 1;
+    };
+    const nextStep = booking => {
+      const status = `${booking.status || ''} ${booking.booking_status || ''}`;
+      const payment = booking.payment_status || '';
+      const payLink = category => `/payment?reference=${encodeURIComponent(booking.reference || '')}&category=${category}`;
+      if (/reject/i.test(status)) return { note: booking.rejection_reason || 'We couldn’t accept this request. Call us and we’ll help find another option.', alert: true };
+      if (/cancel/i.test(status)) return { note: /requested/i.test(status) ? 'We’ve received your cancellation request and will be in touch.' : 'This booking has been cancelled.' };
+      if (payment === 'failed') return { note: 'Your last payment didn’t go through, so nothing was taken. You can try again.', alert: true, action: `<a class="dash-btn dash-btn-sm" href="${payLink('booking_deposit')}">Try payment again</a>` };
+      if (/approved/i.test(status) && !/deposit_paid|fully_paid/.test(payment)) return { note: `Approved! Pay your ${penceText(booking.booking_deposit_pence)} deposit to reserve the van.`, action: `<a class="dash-btn dash-btn-sm" href="${payLink('booking_deposit')}">Pay deposit</a>` };
+      if (payment === 'fully_paid' || /fully paid/i.test(status)) return { note: 'All paid. We’ll contact you to arrange collection.' };
+      if (payment === 'deposit_paid' && Number(booking.outstanding_balance_pence) > 0) return { note: 'Your van is reserved. Pay the remaining balance before collection.', action: `<a class="dash-btn dash-btn-sm dash-btn-ghost" href="${payLink('final_balance')}">Pay remaining balance</a>` };
+      if (/reserved|confirmed/i.test(status) || payment === 'deposit_paid') return { note: 'Your van is reserved. We’ll contact you to arrange collection and drop-off.' };
+      return { note: 'We’re reviewing your request and will email you as soon as it’s approved. No payment has been taken.' };
+    };
+    const labels = ['Requested', 'Approved', 'Deposit paid', 'Fully paid'];
+    customerList.innerHTML = bookings.length
+      ? bookings.map(booking => {
+        const stage = stageOf(booking);
+        const step = nextStep(booking);
+        const stopped = /cancel|reject/i.test(`${booking.status || ''} ${booking.booking_status || ''}`);
+        const stepClass = index => (index < stage ? 'done' : index === stage ? 'current' : '');
+        return `<article class="dash-booking">
+          <div class="dash-booking-head"><div><h3>${escapeHTML(vehicleOf(booking))}</h3><p>Ref ${escapeHTML(booking.reference || String(booking.id).slice(0, 8))}</p></div><span class="admin-status ${statusTone(booking)}">${escapeHTML(booking.status || 'Requested')}</span></div>
+          ${stopped ? '' : `<ol class="dash-steps" aria-label="Booking progress">${labels.map((label, index) => `<li class="${stepClass(index)}">${label}</li>`).join('')}</ol>`}
+          <div class="dash-facts">
+            <div><span>Collection</span><strong>${escapeHTML(collectionText(booking))}</strong></div>
+            <div><span>Duration</span><strong>${escapeHTML(durationText(booking))}</strong></div>
+            <div><span>Hire price</span><strong>${escapeHTML(booking.price || '—')}</strong></div>
+            <div><span>Paid so far</span><strong>${escapeHTML(penceText(booking.paid_total_pence))}</strong></div>
+          </div>
+          <div class="dash-booking-foot"><p class="dash-booking-note${step.alert ? ' is-alert' : ''}">${escapeHTML(step.note)}</p><div class="dash-booking-actions">${step.action || ''}${cancellable.test(booking.status || '') ? `<button class="dash-btn dash-btn-sm dash-btn-danger cancel-request-btn" type="button" data-id="${escapeHTML(booking.id)}">Request cancellation</button>` : ''}</div></div>
+        </article>`;
+      }).join('')
+      : '<div class="dash-card dash-empty"><span class="dash-empty-icon" aria-hidden="true">✓</span><strong>No bookings yet</strong><span>When you request a van, you’ll track its approval and payments here.</span><a class="dash-btn" href="/booking">Book your first van</a></div>';
+    customerList.querySelectorAll('.cancel-request-btn').forEach(button => button.addEventListener('click', async () => {
+      if (!confirm('Request cancellation? Our team will review it against your hire terms and confirm by email.')) return;
+      button.disabled = true;
+      try { await manageBooking(button.dataset.id, 'cancel'); }
+      catch (manageError) { alert(manageError.message); button.disabled = false; }
+    }));
+  }
+
   if (tableBody) {
     tableBody.innerHTML = bookings.length === 0
-      ? (isUserDashboard
-          ? `<tr><td colspan="6"><div class="empty-state"><strong>No bookings yet</strong><p>When you book a van, it will show up here with its status, dates and payment details.</p><a class="btn btn-primary btn-sm" href="/booking">Book your first van</a></div></td></tr>`
-          : `<tr><td colspan="6" class="txt-dim">No bookings found yet.</td></tr>`)
+      ? '<tr><td colspan="6" class="txt-dim">No bookings found yet.</td></tr>'
       : isInvoicePage ? invoiceRows : bookingRows;
   }
 
@@ -1223,18 +1282,15 @@ async function initDashboardPage(user) {
       const renderCustomerRows = () => {
         const rows = Object.values(customerData).map(customer => `
           <tr>
-            <td>${escapeHTML(customer.name)}</td>
-            <td>${escapeHTML(customer.email)}</td>
-            <td>${customer.bookings}</td>
-            <td>${formatMoney(customer.totalSpent)}</td>
-            <td>${customer.lastLogin ? new Date(customer.lastLogin).toLocaleString() : '<span class="txt-dim">Never signed in</span>'}</td>
-            <td>
-              <a href="mailto:${escapeHTML(customer.email)}">Contact</a>
-            </td>
+            <td><strong>${escapeHTML(customer.name)}</strong><span class="dash-cell-sub">${escapeHTML(customer.email)}</span></td>
+            <td data-label="Bookings">${customer.bookings}</td>
+            <td data-label="Hire value">${formatMoney(customer.totalSpent)}</td>
+            <td data-label="Last sign-in">${customer.lastLogin ? new Date(customer.lastLogin).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : '<span class="txt-dim">Never</span>'}</td>
+            <td data-label="Contact"><a href="mailto:${escapeHTML(customer.email)}">Email</a></td>
           </tr>
         `).join('');
         customersTableBody.innerHTML = Object.keys(customerData).length === 0
-          ? '<tr><td colspan="6" class="txt-dim">No customers found yet.</td></tr>'
+          ? '<tr><td colspan="5" class="txt-dim">No customers yet.</td></tr>'
           : rows;
       };
       renderCustomerRows();
@@ -1250,7 +1306,7 @@ async function initDashboardPage(user) {
 
   setText('dashboardBookingsCount', bookings.length);
   const now = new Date();
-  const upcomingBookings = bookings.filter(b => b.date && new Date(b.date + 'T23:59:59') >= now && !/cancel/i.test(b.status || ''));
+  const upcomingBookings = bookings.filter(b => b.date && new Date(b.date + 'T23:59:59') >= now && !/cancel|reject/i.test(b.status || ''));
   setText('dashboardUpcomingCount', upcomingBookings.length);
 
   const uniqueUsers = new Set(bookings.filter(b => b.email).map(b => b.email));
@@ -1264,11 +1320,8 @@ async function initDashboardPage(user) {
   if (weeklyCountEl) weeklyCountEl.textContent = weeklyBookings.length;
 
   const totalRevenue = bookings.reduce((sum, b) => sum + (Number(b.paid_total_pence) || 0) / 100, 0);
-  const pendingBookings = bookings.filter(b => /requested|pending/i.test(b.status || ''));
-  const completedBookings = bookings.filter(b => {
-    const status = (b.status || '').toLowerCase();
-    return status.includes('success') || status.includes('complete') || status.includes('confirm');
-  });
+  const pendingBookings = bookings.filter(isAwaitingApproval);
+  const completedBookings = bookings.filter(b => /success|complete|confirm|reserved|paid/i.test(`${b.status || ''} ${b.payment_status || ''}`) && !/failed|unpaid/i.test(b.payment_status || ''));
   const todayISO = now.toISOString().split('T')[0];
   const todayBookings = bookings.filter(b => b.date === todayISO);
   const overdueBookings = pendingBookings.filter(b => {
@@ -1299,15 +1352,15 @@ async function initDashboardPage(user) {
   setText('dashboardRevenueGoal', `${monthlyProgress}%`);
   setText('dashboardFleetUtilisation', fleetUtilisation);
   setText('dashboardFollowUps', `${followUpRate}%`);
-  setText('dashboardSyncStatus', 'Synced with Supabase');
+  setText('dashboardSyncStatus', 'Up to date');
   setText('dashboardLastSync', `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
 
   const nextBooking = upcomingBookings
     .slice()
     .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
-  setText('userNextService', nextBooking?.service || 'No upcoming booking');
-  setText('userNextDate', nextBooking?.date || 'Book your next van when ready');
-  setText('userNextVan', nextBooking?.van_size || 'Van size pending');
+  setText('userNextService', nextBooking ? (nextBooking.vehicle_name || nextBooking.van_size || 'Van hire') : 'No upcoming collection');
+  setText('userNextDate', nextBooking ? collectionText(nextBooking) : 'Book a van whenever you’re ready');
+  setText('userNextVan', nextBooking ? `Ref ${nextBooking.reference || ''} · ${nextBooking.status || ''}` : '');
   setText('userTotalSpend', formatMoney(totalRevenue));
   setText('userEmail', user.email || '--');
   setText('userEmailSidebar', user.email || '--');
@@ -1316,7 +1369,7 @@ async function initDashboardPage(user) {
 
   const latestVerification = verifications[0];
   setText('driverVerificationStatus', verificationStatusLabel(latestVerification));
-  setText('driverVerificationUpdated', latestVerification?.updated_at ? new Date(latestVerification.updated_at).toLocaleString() : '--');
+  setText('driverVerificationUpdated', latestVerification?.updated_at ? new Date(latestVerification.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
   setText('driverVerificationDvlaCode', latestVerification?.dvla_check_code ? 'Submitted' : 'Not submitted');
   setText('driverVerificationDocuments', latestVerification ? 'Licence front and licence back' : 'No documents uploaded');
   const driverVerificationBadge = document.getElementById('driverVerificationBadge');
@@ -1341,19 +1394,19 @@ async function initDashboardPage(user) {
     if (pendingList) {
       pendingList.innerHTML = pending.length ? pending.map(item => {
         const booking = bookingById.get(item.booking_id) || {};
-        const bookingReference = item.booking_id ? String(item.booking_id).slice(0, 8).toUpperCase() : 'Pending';
+        const bookingReference = booking.reference || (item.booking_id ? String(item.booking_id).slice(0, 8).toUpperCase() : 'Pending');
         return `<article class="driver-check-card">
           <div class="driver-check-card-head">
             <div>
-              <span class="admin-status pending">🟡 Pending Review</span>
+              <span class="admin-status pending">Pending review</span>
               <h3>${escapeHTML(item.full_name || booking.name || 'Customer')}</h3>
               <p>${escapeHTML(booking.email || 'No email on booking')}</p>
             </div>
             <strong>${escapeHTML(bookingReference)}</strong>
           </div>
           <div class="driver-check-grid">
-            <div><span>Vehicle</span><strong>${escapeHTML(booking.van_size || '--')}</strong></div>
-            <div><span>Collection Date</span><strong>${escapeHTML(booking.date || '--')}</strong></div>
+            <div><span>Vehicle</span><strong>${escapeHTML(booking.vehicle_name || booking.van_size || '—')}</strong></div>
+            <div><span>Collection</span><strong>${escapeHTML(booking.date ? collectionText(booking) : '—')}</strong></div>
             <div><span>DVLA Code</span><strong>${escapeHTML(item.dvla_check_code || '--')}</strong></div>
             <div><span>Licence Details</span><strong>${escapeHTML(item.driving_licence_number || '--')}</strong></div>
           </div>
@@ -1458,11 +1511,14 @@ async function initDashboardPage(user) {
     monthlyTotals[created.getMonth()] += (Number(booking.paid_total_pence) || 0) / 100;
   });
   const maxMonth = Math.max(...monthlyTotals, 1);
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   document.querySelectorAll('[data-month-bar]').forEach((bar, index) => {
     const height = Math.round((monthlyTotals[index] / maxMonth) * 100);
     bar.style.height = `${height}%`;
+    bar.title = `${monthNames[index]}: ${formatMoney(monthlyTotals[index])}`;
     bar.classList.toggle('active', index === now.getMonth());
   });
+  setText('dashboardChartYear', String(now.getFullYear()));
 
   if (supabase && !bookingsRealtimeChannel) {
     bookingsRealtimeChannel = supabase
@@ -1471,7 +1527,7 @@ async function initDashboardPage(user) {
         initDashboardPage(user);
       })
       .subscribe(status => {
-        if (status === 'SUBSCRIBED') setText('dashboardSyncStatus', 'Live Supabase sync on');
+        if (status === 'SUBSCRIBED') setText('dashboardSyncStatus', 'Live updates on');
       });
   }
   if (supabase && !driverVerificationsRealtimeChannel) {

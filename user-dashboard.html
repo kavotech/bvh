@@ -1,185 +1,93 @@
 <!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Dashboard - Breezyee Vans</title>
+  <title>My Bookings - Breezyee Vans</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/dashboard.css">
 <noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript></head>
-<body id="dashboardPage" class="user-dashboard-page"><a class="skip-link" href="#main">Skip to content</a>
-  <div class="user-dashboard-shell">
-    <aside class="user-dashboard-sidebar">
-      <a href="/" class="user-dashboard-brand"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image"></a>
-      <nav class="user-dashboard-nav">
-        <a href="/user-dashboard" class="active">Overview</a>
-        <a href="/booking">New Booking</a>
-        <a href="/fleet">Fleet</a>
+<body id="dashboardPage" class="user-dashboard-page dash-app"><a class="skip-link" href="#main">Skip to content</a>
+  <div class="admin-console-shell">
+    <aside class="admin-console-sidebar">
+      <a href="/" class="admin-console-brand"><img src="/logo.webp" alt="Breezyee Vans home" class="logo-image"></a>
+      <div class="admin-owner-card"><div class="dash-avatar" id="headerAvatar" aria-hidden="true">U</div><div><span>My account</span><strong id="dashboardAccountName">Your account</strong><small id="userEmailSidebar">Loading…</small></div></div>
+      <nav class="admin-console-menu" aria-label="Account">
+        <span>My hire</span>
+        <a href="/user-dashboard" class="active" aria-current="page"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg></b>My bookings</a>
+        <a href="/booking"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></b>Book a van</a>
+        <a href="/fleet"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></b>Our vans</a>
       </nav>
-      <div class="user-profile-card">
-        <div class="user-profile-avatar" id="headerAvatar">U</div>
-        <div>
-          <strong id="dashboardGreeting">Welcome back</strong>
-          <span id="userEmailSidebar">Loading account...</span>
-        </div>
-      </div>
-      <a href="#" class="user-signout-link" id="signOutLink">Sign out</a>
+      <nav class="admin-console-menu" aria-label="Help">
+        <span>Help</span>
+        <a href="/contact"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12H5.17L4 17.17z"></path></svg></b>Contact us</a>
+        <a href="/terms"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6"></path></svg></b>Hire terms</a>
+        <a href="#" id="signOutLink"><b><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></b>Sign out</a>
+      </nav>
+      <div class="dash-side-help"><strong>Questions about your hire?</strong>Call <a href="tel:+447300331603">+44 7300 331603</a></div>
     </aside>
 
     <main id="main" class="user-dashboard-main">
-      <header class="user-dashboard-hero">
-        <div>
-          <span class="user-eyebrow">Customer Dashboard</span>
-          <h1>Your van hire, organised clearly.</h1>
-          <p>Track your Breezyee Vans bookings, see what is coming next, and start a new request in a few clicks.</p>
-        </div>
-        <a href="/booking" class="user-primary-action">Book a Van</a>
+      <header class="admin-console-topbar">
+        <div class="admin-console-actions"><span class="admin-live-pill" id="dashboardLastSync">Syncing…</span></div>
       </header>
 
-      <section class="user-stats-grid">
-        <article class="user-stat-card">
-          <span>Total bookings</span>
-          <strong id="dashboardBookingsCount">0</strong>
-          <p>All requests linked to your account.</p>
-        </article>
-        <article class="user-stat-card">
-          <span>Upcoming</span>
-          <strong id="dashboardUpcomingCount">0</strong>
-          <p>Moves currently scheduled.</p>
-        </article>
-        <article class="user-stat-card">
-          <span>Pending</span>
-          <strong id="dashboardPendingCount">0</strong>
-          <p>Requests awaiting confirmation.</p>
-        </article>
-        <article class="user-stat-card">
-          <span>Recorded paid amount</span>
-          <strong id="userTotalSpend">£0</strong>
-          <p>Total paid towards your bookings.</p>
-        </article>
+      <section class="admin-console-hero">
+        <div>
+          <h1 id="dashboardGreeting">Welcome back</h1>
+          <p>Track approval, pay your deposit and manage your van hire in one place.</p>
+        </div>
+        <div class="admin-hero-actions"><a href="/booking" class="dash-btn">Book a van</a></div>
       </section>
 
-      <section class="user-quick-grid">
-        <a href="/booking?van=medium" class="user-quick-card">
-          <span>Medium Van</span>
-          <strong>Reserve popular size</strong>
-        </a>
-        <a href="/booking" class="user-quick-card">
-          <span>Book a Van</span>
-          <strong>Reserve your rental</strong>
-        </a>
-        <a href="/fleet" class="user-quick-card">
-          <span>Fleet</span>
-          <strong>See our vans</strong>
-        </a>
+      <section class="dash-kpis" aria-label="Your bookings at a glance">
+        <article class="dash-kpi"><span class="dash-kpi-label">Bookings</span><strong id="dashboardBookingsCount">0</strong><p>On your account</p></article>
+        <article class="dash-kpi"><span class="dash-kpi-label">Upcoming</span><strong id="dashboardUpcomingCount">0</strong><p>Collections ahead</p></article>
+        <article class="dash-kpi"><span class="dash-kpi-label">Awaiting approval</span><strong id="dashboardPendingCount">0</strong><p>We’re reviewing these</p></article>
+        <article class="dash-kpi"><span class="dash-kpi-label">Paid to date</span><strong id="userTotalSpend">£0</strong><p>Across all bookings</p></article>
       </section>
 
-      <section class="user-dashboard-grid">
-        <article class="user-panel user-next-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Next Booking</span>
-              <h2 id="userNextService">Loading...</h2>
-            </div>
-            <a href="/booking">Update</a>
-          </div>
-          <div class="user-next-card">
-            <div>
-              <span>Date</span>
-              <strong id="userNextDate">--</strong>
-            </div>
-            <div>
-              <span>Van</span>
-              <strong id="userNextVan">--</strong>
-            </div>
-          </div>
-          <p class="user-panel-note">Need to change details? Create a new booking request and our team will confirm availability.</p>
-        </article>
+      <section class="dash-grid">
+        <div class="dash-stack">
+          <div class="dash-card-head"><h2>Your bookings</h2><p>Newest first</p></div>
+          <div class="dash-bookings" id="customerBookingsList"><div class="dash-card"><p class="txt-dim">Loading your bookings…</p></div></div>
+        </div>
 
-        <article class="user-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Account Details</span>
-              <h2>Your contact info</h2>
-            </div>
-          </div>
-          <div class="user-detail-list">
-            <div><span>Email</span><strong id="userEmail">--</strong></div>
-            <div><span>Phone</span><strong id="userPhone">--</strong></div>
-            <div><span>Postcode</span><strong id="userPostcode">--</strong></div>
-          </div>
-        </article>
+        <aside class="dash-stack" aria-label="Account summary">
+          <article class="dash-card">
+            <div class="dash-card-head"><h2>Next collection</h2></div>
+            <div class="dash-next"><span>Vehicle</span><strong id="userNextService">—</strong><p id="userNextDate">—</p><p id="userNextVan"></p></div>
+          </article>
 
-        <article class="user-panel driver-verification-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>My Driver Verification</span>
-              <h2>Licence check status</h2>
+          <article class="dash-card">
+            <div class="dash-card-head"><h2>Driver check</h2><span class="admin-status pending" id="driverVerificationBadge">Pending review</span></div>
+            <p class="dash-note" id="driverVerificationMessage">Submit your driver verification with your next booking.</p>
+            <div class="dash-list">
+              <div><span>Status</span><strong id="driverVerificationStatus">—</strong></div>
+              <div><span>Documents</span><strong id="driverVerificationDocuments">—</strong></div>
+              <div><span>DVLA code</span><strong id="driverVerificationDvlaCode">—</strong></div>
+              <div><span>Last updated</span><strong id="driverVerificationUpdated">—</strong></div>
             </div>
-            <span class="admin-status pending" id="driverVerificationBadge">🟡 Pending Review</span>
-          </div>
-          <p class="user-panel-note" id="driverVerificationMessage">Submit your driver verification with your next booking.</p>
-          <div class="user-detail-list">
-            <div><span>Verification Status</span><strong id="driverVerificationStatus">--</strong></div>
-            <div><span>Documents Uploaded</span><strong id="driverVerificationDocuments">--</strong></div>
-            <div><span>DVLA Code Submitted</span><strong id="driverVerificationDvlaCode">--</strong></div>
-            <div><span>Last Updated</span><strong id="driverVerificationUpdated">--</strong></div>
-          </div>
-        </article>
+          </article>
 
-        <article class="user-panel user-checklist-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Move Prep</span>
-              <h2>Your hire checklist</h2>
+          <article class="dash-card">
+            <div class="dash-card-head"><h2>Account details</h2></div>
+            <div class="dash-list">
+              <div><span>Email</span><strong id="userEmail">—</strong></div>
+              <div><span>Phone</span><strong id="userPhone">—</strong></div>
+              <div><span>Postcode</span><strong id="userPostcode">—</strong></div>
             </div>
-          </div>
-          <div class="user-checklist">
-            <label><input type="checkbox"> Confirm pickup and drop-off addresses</label>
-            <label><input type="checkbox"> Pack fragile items separately</label>
-            <label><input type="checkbox"> Keep keys, documents, and chargers handy</label>
-            <label><input type="checkbox"> Be ready 15 minutes before arrival</label>
-          </div>
-        </article>
+          </article>
 
-        <article class="user-panel user-support-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Support</span>
-              <h2>Need help?</h2>
-            </div>
-          </div>
-          <p class="user-panel-note">Questions about timing, van size, payments, or changing a booking? Contact Breezyee Vans and we will help confirm the details.</p>
-          <div class="user-support-actions">
-            <a href="tel:+447300331603">Call support</a>
-            <a href="/booking">Change booking</a>
-          </div>
-        </article>
-
-        <article class="user-panel user-history-panel">
-          <div class="user-panel-header">
-            <div>
-              <span>Booking History</span>
-              <h2>Your recent requests</h2>
-            </div>
-            <span id="dashboardLastSync">Syncing...</span>
-          </div>
-          <div class="admin-table-wrap">
-            <table class="admin-history-table">
-              <thead>
-                <tr><th>Service</th><th>Date</th><th>Van</th><th>Status</th><th>Price</th><th>Action</th></tr>
-              </thead>
-              <tbody id="bookingsTableBody">
-                <tr><td colspan="5" class="txt-dim">Loading your bookings...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
-
+          <article class="dash-card">
+            <div class="dash-card-head"><h2>Need help?</h2></div>
+            <p class="dash-note">Want to change a date, switch van, or ask about payments? Our team is happy to help.</p>
+            <div class="dash-help-actions"><a class="dash-btn dash-btn-sm" href="tel:+447300331603">Call us</a><a class="dash-btn dash-btn-sm dash-btn-ghost" href="mailto:info@breezyeevans.co.uk">Email us</a></div>
+          </article>
+        </aside>
       </section>
-    <section class="user-panel contact-card"><h2>Manage a request</h2><p>Cancellations are reviewed against your agreed hire terms.</p><div id="customerBookingActions" class="review-actions"></div></section></main>
+    </main>
   </div>
-
   <script type="module" src="app.js"></script>
-
-<footer class="footer" id="contact"><div class="container footer-grid" style="padding:48px 0"><div class="footer-brand"><a href="/" class="nav-logo"><img src="/logo.webp" alt="Breezyee Vans" class="logo-image" width="180" height="60"></a><p>Self-drive van hire for your next move.</p></div><div class="footer-col"><h2>Explore</h2><ul><li><a href="/fleet">Our fleet</a></li><li><a href="/services">Services</a></li><li><a href="/booking">Request a booking</a></li><li><a href="/contact">Contact us</a></li></ul></div><div class="footer-col"><h2>Let’s talk</h2><ul><li><a href="tel:+447300331603">+44 7300 331603</a></li><li><a href="mailto:info@breezyeevans.co.uk">info@breezyeevans.co.uk</a></li></ul></div></div><div class="footer-bottom"><div class="container footer-bottom-inner"><p>© 2026 Breezyee Vans</p><div class="footer-legal"><a href="/terms">Hire terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></div></div></div></footer></body></html>
+</body></html>
